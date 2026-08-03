@@ -130,6 +130,37 @@ const LoginClient = (props: LoginClientProps) => {
     if (token) setMfaToken(token)
   }, [])
 
+  // Erros do login corporativo (Keycloak) chegam por ?error= com código
+  // genérico por categoria (FR-009) — o detalhe fica na auditoria do backend.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const ssoError = params.get('error')
+    if (!ssoError) return
+    const mensagens: Record<string, string> = {
+      acesso_nao_concluido: t('auth.sso_erro_acesso_nao_concluido', {
+        defaultValue: 'O acesso não foi concluído no provedor corporativo. Tente novamente.',
+      }),
+      sessao_expirada: t('auth.sso_erro_sessao_expirada', {
+        defaultValue: 'A sessão de login expirou ou já foi utilizada. Inicie o login novamente.',
+      }),
+      login_invalido: t('auth.sso_erro_login_invalido', {
+        defaultValue: 'Não foi possível validar seu login corporativo. Tente novamente.',
+      }),
+      conta_nao_encontrada: t('auth.sso_erro_conta_nao_encontrada', {
+        defaultValue:
+          'Sua identidade corporativa foi validada, mas não há uma conta correspondente nesta plataforma. Contate a administração da sua organização.',
+      }),
+      sso_nao_disponivel: t('auth.sso_erro_nao_disponivel', {
+        defaultValue: 'O login corporativo não está disponível para esta organização.',
+      }),
+      sso_indisponivel: t('auth.sso_erro_indisponivel', {
+        defaultValue:
+          'O login corporativo está temporariamente indisponível. Tente novamente em instantes.',
+      }),
+    }
+    if (mensagens[ssoError]) setError(mensagens[ssoError])
+  }, []) // eslint-disable-line
+
   // Honor a post-login redirect via ?next / ?redirect, sanitized to an
   // internal same-origin path (no open-redirect), defaulting to /home.
   // Forward it through the cross-domain /redirect_from_auth handoff.

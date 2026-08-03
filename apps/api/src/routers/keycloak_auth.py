@@ -45,6 +45,18 @@ def _erro(status_code: int, code: str, message: str) -> HTTPException:
     )
 
 
+def _log_outcome(stage: str, outcome: str, org_slug: Optional[str] = None) -> None:
+    """Trilha operacional de auditoria do fluxo (FR-010) — somente categorias.
+
+    Eventos duráveis (``user_audit_event``) exigem usuário conhecido; falhas
+    pré-autenticação (state inválido, token rejeitado, conta inexistente) ficam
+    neste log estruturado, sem code, tokens, verifier ou segredos.
+    """
+    logger.info(
+        "keycloak_auth stage=%s outcome=%s org=%s", stage, outcome, org_slug or "-"
+    )
+
+
 ERRO_SSO_NAO_CONFIGURADO = (
     status.HTTP_404_NOT_FOUND,
     "SSO_NAO_CONFIGURADO",
@@ -137,26 +149,28 @@ async def keycloak_authorize(
     db_session: AsyncSession = Depends(get_db_session),
 ):
     if not _config_ativa():
+        _log_outcome("authorize", "not_configured", body.org_slug)
         raise _erro(*ERRO_SSO_NAO_CONFIGURADO)
     organization = await _resolve_org(db_session, body.org_slug)
     if organization is None:
+        _log_outcome("authorize", "unknown_org")
         raise _erro(*ERRO_SSO_NAO_CONFIGURADO)
     if not await is_login_method_allowed(db_session, organization.id, AUTH_METHOD_SSO):
+        _log_outcome("authorize", "method_not_allowed", body.org_slug)
         raise _erro(*ERRO_SSO_NAO_CONFIGURADO)
 
     config = oidc.get_keycloak_config()
     try:
         discovery = oidc.get_discovery(config.issuer)
         flow = oidc.create_flow(body.org_slug, body.redirect_to)
-    except oidc.ProviderUnavailableError:
+    except oidc.ProviderUnavailableError as exc:
+        _log_outcome("authorize", f"unavailable:{exc.category}", body.org_slug)
         raise _erro(*ERRO_SSO_INDISPONIVEL)
 
     authorization_url = oidc.build_authorization_url(
         discovery, flow["state"], flow["nonce"], flow["code_challenge"]
     )
-    logger.info(
-        "Keycloak: fluxo de login iniciado (org=%s)", body.org_slug
-    )
+    _log_outcome("authorize", "flow_created", body.org_slug)
     return {"authorization_url": authorization_url, "state": flow["state"]}
 
 
@@ -178,34 +192,40 @@ async def keycloak_callback(
     # 1. Uso único do state (GETDEL) — replay/expirado/desconhecido → 410.
     try:
         flow = oidc.consume_flow(body.state)
-    except oidc.ProviderUnavailableError:
+    except oidc.ProviderUnavailableError as exc:
+        _log_outcome("callback", f"unavailable:{exc.category}")
         raise _erro(*ERRO_SSO_INDISPONIVEL)
     if flow is None:
-        logger.info("Keycloak: callback com state inválido/reutilizado")
+        _log_outcome("callback", "invalid_state")
         raise _erro(*ERRO_FLUXO_INVALIDO)
+    org_slug = flow.get("org_slug")
+    _log_outcome("callback", "received", org_slug)
 
     # 2. Troca do código (client confidencial + PKCE).
     try:
         provider_tokens = oidc.exchange_code(body.code, flow["code_verifier"])
     except oidc.CodeExchangeError:
+        _log_outcome("callback", "code_rejected", org_slug)
         raise _erro(*ERRO_CODIGO_RECUSADO)
-    except oidc.ProviderUnavailableError:
+    except oidc.ProviderUnavailableError as exc:
+        _log_outcome("callback", f"unavailable:{exc.category}", org_slug)
         raise _erro(*ERRO_SSO_INDISPONIVEL)
 
     # 3. Validação integral do ID token.
     try:
         claims = oidc.validate_id_token(provider_tokens["id_token"], flow["nonce"])
     except oidc.TokenValidationError as exc:
-        logger.info("Keycloak: ID token rejeitado (categoria=%s)", exc.category)
+        _log_outcome("callback", f"token_invalid:{exc.category}", org_slug)
         raise _erro(*ERRO_TOKEN_INVALIDO)
-    except oidc.ProviderUnavailableError:
+    except oidc.ProviderUnavailableError as exc:
+        _log_outcome("callback", f"unavailable:{exc.category}", org_slug)
         raise _erro(*ERRO_SSO_INDISPONIVEL)
 
     # 4. Resolução interina do usuário (research §6): e-mail verificado no
     # provedor → conta local existente; sem auto-provisionamento (feature 002).
     email = claims.get("email")
     if not email or claims.get("email_verified") is not True:
-        logger.info("Keycloak: login negado (e-mail ausente ou não verificado)")
+        _log_outcome("callback", "email_unverified", org_slug)
         raise _erro(*ERRO_CONTA_NAO_ENCONTRADA)
     user = (
         (await db_session.execute(select(User).where(User.email == email.lower())))
@@ -213,19 +233,21 @@ async def keycloak_callback(
         .first()
     )
     if user is None:
-        logger.info("Keycloak: login negado (conta local inexistente)")
+        _log_outcome("callback", "user_not_found", org_slug)
         raise _erro(*ERRO_CONTA_NAO_ENCONTRADA)
 
     # 5. Política de métodos da org (multi-tenant — Princípio IV).
-    organization = await _resolve_org(db_session, flow.get("org_slug") or "")
+    organization = await _resolve_org(db_session, org_slug or "")
     org_id = organization.id if organization else None
     if not await is_login_method_allowed(db_session, org_id, AUTH_METHOD_SSO):
+        _log_outcome("callback", "method_not_allowed", org_slug)
         raise _erro(*ERRO_METODO_NAO_PERMITIDO)
 
     # 6. Sessão interna reusada (chokepoint mint_session_tokens) — sem desafio
     # de MFA local: MFA é responsabilidade do Keycloak (sem duplo MFA).
     issue = mint_session_tokens(user.email, amr=AUTH_METHOD_SSO, org_id=org_id)
 
+    _log_outcome("callback", "success", org_slug)
     await record_audit_event(
         event_type=UserAuditEventType.LOGIN,
         user_id=user.id,
