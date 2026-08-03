@@ -317,6 +317,7 @@
     "password_req_number": "At least one number (0-9)",
     "password_req_special": "At least one special character (!@#$%...)",
     "sign_in_with_sso": "Sign in with SSO",
+    "keycloak_sso_button": "Entrar com identidade corporativa",
     "sso_error": "SSO authentication failed. Please try again.",
     "sso_callback": {
       "missing_params": "Invalid SSO callback. Missing required parameters.",

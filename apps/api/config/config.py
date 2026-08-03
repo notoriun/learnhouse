@@ -1,7 +1,7 @@
 import os
 import yaml
 from typing import Literal, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
 # One-shot guard for the missing-credential report below: config is loaded on
@@ -122,6 +122,16 @@ class RedisConfig(BaseModel):
     redis_connection_string: Optional[str]
 
 
+class KeycloakConfig(BaseModel):
+    enabled: bool = False
+    issuer: str = ""
+    client_id: str = ""
+    # Somente env/config — nunca serializado em resposta de API nem em logs
+    # (repr=False evita vazamento acidental em repr/str do objeto de config).
+    client_secret: str = Field(default="", repr=False)
+    clock_skew: int = 30
+
+
 class InternalStripeConfig(BaseModel):
     stripe_secret_key: str | None
     stripe_publishable_key: str | None
@@ -148,6 +158,7 @@ class LearnHouseConfig(BaseModel):
     payments_config: InternalPaymentsConfig
     tinybird_config: TinybirdConfig | None
     judge0_config: Judge0Config | None
+    keycloak_config: KeycloakConfig = KeycloakConfig()
 
 
 def get_learnhouse_config() -> LearnHouseConfig:
@@ -649,6 +660,41 @@ def get_learnhouse_config() -> LearnHouseConfig:
                 "; ".join(missing),
             )
 
+    # Keycloak (login corporativo OIDC) — envs têm precedência sobre o YAML
+    kc_yaml = yaml_config.get("keycloak", {}) or {}
+    env_kc_enabled = os.environ.get("LEARNHOUSE_KEYCLOAK_ENABLED")
+    kc_enabled = (
+        env_kc_enabled.lower() in ("true", "1", "yes")
+        if env_kc_enabled is not None
+        else bool(kc_yaml.get("enabled", False))
+    )
+    kc_issuer = (
+        os.environ.get("LEARNHOUSE_KEYCLOAK_ISSUER") or kc_yaml.get("issuer") or ""
+    ).rstrip("/")
+    kc_client_id = (
+        os.environ.get("LEARNHOUSE_KEYCLOAK_CLIENT_ID") or kc_yaml.get("client_id") or ""
+    )
+    kc_client_secret = (
+        os.environ.get("LEARNHOUSE_KEYCLOAK_CLIENT_SECRET")
+        or kc_yaml.get("client_secret")
+        or ""
+    )
+    kc_clock_skew = int(
+        os.environ.get("LEARNHOUSE_KEYCLOAK_CLOCK_SKEW")
+        or kc_yaml.get("clock_skew")
+        or 30
+    )
+    if kc_enabled:
+        if not kc_issuer or not kc_client_id or not kc_client_secret:
+            raise ValueError(
+                "LEARNHOUSE_KEYCLOAK_ENABLED=true exige LEARNHOUSE_KEYCLOAK_ISSUER, "
+                "LEARNHOUSE_KEYCLOAK_CLIENT_ID e LEARNHOUSE_KEYCLOAK_CLIENT_SECRET."
+            )
+        if not development_mode and not kc_issuer.startswith("https://"):
+            raise ValueError(
+                "LEARNHOUSE_KEYCLOAK_ISSUER deve usar HTTPS fora de desenvolvimento."
+            )
+
     # Create LearnHouseConfig object
     config = LearnHouseConfig(
         site_name=site_name,
@@ -686,6 +732,13 @@ def get_learnhouse_config() -> LearnHouseConfig:
         ),
         tinybird_config=tinybird_config,
         judge0_config=judge0_config,
+        keycloak_config=KeycloakConfig(
+            enabled=kc_enabled,
+            issuer=kc_issuer,
+            client_id=kc_client_id,
+            client_secret=kc_client_secret,
+            clock_skew=kc_clock_skew,
+        ),
     )
 
     return config
