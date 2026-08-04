@@ -3,6 +3,7 @@ import { Search, Cpu, Briefcase, GraduationCap, Heart, Palette, Plane, Utensils,
   Dumbbell, Music, Shirt, Book, Building, Bike, Camera, Microscope, Coins, Coffee, Gamepad,
   Flower} from 'lucide-react';
 import Modal from '@components/Objects/StyledElements/Modal/Modal';
+import { getBrand } from '@services/config/brand';
 import { useTranslation } from 'react-i18next';
 
 let unsplashApi: any = null;
@@ -17,9 +18,9 @@ async function getUnsplashApi() {
 }
 
 const IMAGES_PER_PAGE = 20;
-const UNSPLASH_UTM = '?utm_source=LearnHouse&utm_medium=referral';
+const unsplashUtm = () => `?utm_source=${encodeURIComponent(getBrand().name)}&utm_medium=referral`;
 
-const withUtm = (url?: string) => (url ? `${url}${UNSPLASH_UTM}` : UNSPLASH_UTM);
+const withUtm = (url?: string) => (url ? `${url}${unsplashUtm()}` : unsplashUtm());
 
 const predefinedLabels = [
   { name: 'Nature', icon: Flower },
@@ -207,7 +208,7 @@ const UnsplashImagePicker: React.FC<UnsplashImagePickerProps> = ({ onSelect, onC
                 </a>
                 {' '}on{' '}
                 <a
-                  href={`https://unsplash.com/${UNSPLASH_UTM}`}
+                  href={`https://unsplash.com/${unsplashUtm()}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline hover:text-gray-700"
@@ -233,7 +234,7 @@ const UnsplashImagePicker: React.FC<UnsplashImagePickerProps> = ({ onSelect, onC
       <div className="border-t border-gray-100 px-4 py-2 text-[11px] text-gray-500 text-center">
         Photos from{' '}
         <a
-          href={`https://unsplash.com/${UNSPLASH_UTM}`}
+          href={`https://unsplash.com/${unsplashUtm()}`}
           target="_blank"
           rel="noopener noreferrer"
           className="underline hover:text-gray-700"

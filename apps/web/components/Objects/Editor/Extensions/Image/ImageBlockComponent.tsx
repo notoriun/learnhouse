@@ -14,10 +14,11 @@ import Modal from '@components/Objects/StyledElements/Modal/Modal'
 import { useTranslation } from 'react-i18next'
 import UnsplashImagePicker, { UnsplashPhotoMeta } from '@components/Dashboard/Pages/Course/EditCourseGeneral/UnsplashImagePicker'
 import AIImageButton from '@components/Objects/AI/AIImageButton'
+import { getBrand } from '@services/config/brand'
 
 const SUPPORTED_FILES = constructAcceptValue(['jpg', 'png', 'webp', 'gif'])
-const UNSPLASH_UTM = '?utm_source=LearnHouse&utm_medium=referral'
-const withUtm = (url?: string | null) => (url ? `${url}${UNSPLASH_UTM}` : '')
+const unsplashUtm = () => `?utm_source=${encodeURIComponent(getBrand().name)}&utm_medium=referral`
+const withUtm = (url?: string | null) => (url ? `${url}${unsplashUtm()}` : '')
 
 function ImageBlockComponent(props: any) {
   const { t } = useTranslation()
@@ -185,7 +186,7 @@ function ImageBlockComponent(props: any) {
       </a>
       {' '}on{' '}
       <a
-        href={`https://unsplash.com/${UNSPLASH_UTM}`}
+        href={`https://unsplash.com/${unsplashUtm()}`}
         target="_blank"
         rel="noopener noreferrer"
         className="underline hover:text-neutral-700"

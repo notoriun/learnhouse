@@ -33,7 +33,7 @@ function SignUpClient(props: SignUpClientProps) {
 
   const isAuthenticated = session.status === 'authenticated'
   // There is only an org to JOIN when we actually resolved one (a subdomain or an
-  // invite). On the org-less apex (`learnhouse.io/signup`) props.org is null, so a
+  // invite). On the org-less apex (`/signup` on the apex domain) props.org is null, so a
   // signed-in visitor has nothing to sign up for and no org to join → send them to
   // the hub instead of a broken "Join <nothing>" screen.
   const hasOrgToJoin = !!props.org
@@ -64,7 +64,7 @@ function SignUpClient(props: SignUpClientProps) {
     <AuthLayout
       org={props.org}
       welcomeText={t('auth.invited_to_join')}
-      title={t('auth.image_title_signup', { defaultValue: 'Start teaching with LearnHouse.' })}
+      title={t('auth.image_title_signup', { defaultValue: 'Start teaching with {{brand}}.' })}
       subtitle={t('auth.image_subtitle_signup', {
         defaultValue: 'Create your account and launch your first course in minutes.',
       })}

@@ -1,5 +1,6 @@
 import { getOrganizationContextInfo } from '@services/organizations/orgs'
 import { getAuthOrgSlug } from '@services/org/orgResolution'
+import { getBrand } from '@services/config/brand'
 import LoginClient from './login'
 import { Metadata } from 'next'
 import OrgNotFound from '@components/Objects/StyledElements/Error/OrgNotFound'
@@ -8,8 +9,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const orgslug = await getAuthOrgSlug()
 
   if (!orgslug) {
-    // Apex (org-less) login.
-    return { title: 'Login — LearnHouse', robots: { index: false, follow: false } }
+    // Apex (org-less) login — o template do layout raiz anexa o nome da marca.
+    return { title: 'Login', robots: { index: false, follow: false } }
   }
 
   let org: any = null
@@ -23,7 +24,8 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   return {
-    title: 'Login' + ` — ${org?.name || 'LearnHouse'}`,
+    // `absolute` evita que o template do layout raiz duplique o sufixo da marca.
+    title: { absolute: `Login — ${org?.name || getBrand().name}` },
     robots: { index: false, follow: false },
   }
 }

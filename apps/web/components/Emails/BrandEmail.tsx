@@ -5,18 +5,19 @@ import {
   Heading,
   Hr,
   Html,
-  Img,
   Preview,
   Section,
   Text,
 } from '@react-email/components'
 import * as React from 'react'
+import { getBrand } from '@services/config/brand'
 
 // Shared transactional email layout (React Email). One flexible template drives
 // every message — welcome, purchase, plan change, payment failed, etc. — via an
-// accent color plus optional card / transition / bullet blocks. Ported from the
-// platform repo's templates/shared.tsx and kept provider-agnostic (rendered to
-// HTML by services/emails/resend.ts).
+// accent color plus optional card / transition / bullet blocks. Rendered to
+// HTML by services/emails/resend.ts. A marca vem de getBrand() (feature 005);
+// o cabeçalho usa o nome como wordmark em texto — e-mails exigem URLs absolutas
+// para imagens, e texto renderiza em qualquer cliente.
 
 export interface InfoCard {
   label: string
@@ -34,7 +35,7 @@ export interface TransitionCard {
   toColor: string
 }
 
-export interface LearnHouseEmailProps {
+export interface BrandEmailProps {
   accentColor: string
   heading: string
   subtitle: string
@@ -46,9 +47,7 @@ export interface LearnHouseEmailProps {
   cta?: { label: string; href: string }
 }
 
-const LOGO_URL = 'https://www.learnhouse.io/learnhouse-dark.svg'
-
-export function LearnHouseEmail({
+export function BrandEmail({
   accentColor,
   heading,
   subtitle,
@@ -57,7 +56,8 @@ export function LearnHouseEmail({
   card,
   transition,
   cta,
-}: LearnHouseEmailProps) {
+}: BrandEmailProps) {
+  const brand = getBrand()
   return (
     <Html>
       <Head />
@@ -68,7 +68,9 @@ export function LearnHouseEmail({
           <div style={{ height: 6, backgroundColor: accentColor }} />
 
           <Section style={{ padding: '32px 40px 8px' }}>
-            <Img src={LOGO_URL} alt="LearnHouse" height={28} style={{ marginBottom: 24 }} />
+            <Text style={{ fontSize: 18, fontWeight: 800, color: '#171717', margin: '0 0 24px', letterSpacing: -0.3 }}>
+              {brand.name}
+            </Text>
             <Heading style={{ fontSize: 24, fontWeight: 800, color: '#171717', margin: '0 0 8px', lineHeight: 1.25 }}>
               {heading}
             </Heading>
@@ -133,7 +135,7 @@ export function LearnHouseEmail({
           <Hr style={{ borderColor: '#eee', margin: '24px 40px 0' }} />
           <Section style={{ padding: '16px 40px 32px' }}>
             <Text style={{ fontSize: 12, color: '#a3a3a3', margin: 0 }}>
-              LearnHouse — the open-source learning platform.
+              {brand.name} — {brand.tagline}
             </Text>
           </Section>
         </Container>
@@ -142,4 +144,4 @@ export function LearnHouseEmail({
   )
 }
 
-export default LearnHouseEmail
+export default BrandEmail

@@ -46,11 +46,11 @@
     "help": "Aiuto",
     "help_menu": {
       "documentation": "Documentazione",
-      "website": "Sito web LearnHouse",
+      "website": "Sito web {{brand}}",
       "discord": "Discord",
       "report_feedback": "Segnala problema o feedback",
       "feedback_title": "Invia Feedback",
-      "feedback_description": "Aiutaci a migliorare LearnHouse condividendo i tuoi pensieri, segnalando bug o suggerendo nuove funzionalità.",
+      "feedback_description": "Aiutaci a migliorare {{brand}} condividendo i tuoi pensieri, segnalando bug o suggerendo nuove funzionalità.",
       "feedback_placeholder": "Dicci cosa pensi...",
       "feedback_success": "Grazie per il tuo feedback!",
       "send_feedback": "Invia Feedback",
@@ -215,7 +215,7 @@
     "organizations": "Organizzazioni",
     "billing": "Fatturazione",
     "create_organization": "Crea organizzazione",
-    "copyright": "© {{year}} LearnHouse, Inc.",
+    "copyright": "© {{year}} {{legalName}}",
     "delete_organization_error": "Impossibile eliminare questa organizzazione. Riprova.",
     "org_actions": "Azioni dell’organizzazione",
     "manage_upgrade": "Gestisci / Aggiorna",
@@ -358,11 +358,11 @@
     "privacy_policy": "l’Informativa sulla privacy",
     "image_title_forgot": "Reimposta la password.",
     "image_subtitle_forgot": "Ti aiutiamo a rientrare nel tuo account in un attimo.",
-    "image_title_login": "Bentornato su LearnHouse.",
+    "image_title_login": "Bentornato su {{brand}}.",
     "image_subtitle_login": "Riprendi da dove avevi lasciato — i tuoi corsi, gli studenti e gli strumenti ti aspettano.",
     "image_title_reset": "Ci sei quasi.",
     "image_subtitle_reset": "Crea una password robusta per mantenere sicuro il tuo account.",
-    "image_title_signup": "Inizia a insegnare con LearnHouse.",
+    "image_title_signup": "Inizia a insegnare con {{brand}}.",
     "image_subtitle_signup": "Crea il tuo account e lancia il tuo primo corso in pochi minuti.",
     "image_title_verify": "Verifica la tua email.",
     "image_subtitle_verify": "Un rapido passaggio per proteggere il tuo account e iniziare.",
@@ -554,14 +554,14 @@
     "import": {
       "scorm_package": "Pacchetto SCORM",
       "scorm_description": "Importa pacchetti SCORM 1.2 o SCORM 2004",
-      "learnhouse_courses": "Corsi LearnHouse",
-      "learnhouse_description": "Importa corsi esportati da LearnHouse",
+      "learnhouse_courses": "Corsi {{brand}}",
+      "learnhouse_description": "Importa corsi esportati da {{brand}}",
       "upload_package": "Carica Pacchetto",
       "configure": "Configura",
       "complete": "Completato",
       "click_to_upload": "Clicca per caricare o trascina",
-      "learnhouse_format": "Esportazione corso LearnHouse (.zip)",
-      "learnhouse_info": "Carica un pacchetto di esportazione corsi LearnHouse (.zip). Potrai selezionare quali corsi importare e configurare le opzioni di importazione.",
+      "learnhouse_format": "Esportazione corso {{brand}} (.zip)",
+      "learnhouse_info": "Carica un pacchetto di esportazione corsi {{brand}} (.zip). Potrai selezionare quali corsi importare e configurare le opzioni di importazione.",
       "analyze_package": "Analizza Pacchetto",
       "ready_to_analyze": "Pronto per l'analisi",
       "invalid_file_format": "Carica un file .zip",
@@ -1434,7 +1434,7 @@
           "description": "Configura le tue impostazioni personali, password ed email"
         }
       },
-      "learnhouse_university": "Università LearnHouse",
+      "learnhouse_university": "Università {{brand}}",
       "welcome_back": "Bentornato",
       "plan": "piano",
       "create_course": "Crea corso",
@@ -1491,8 +1491,8 @@
       "import_course": "Importa corso",
       "import_scorm": "Importa Pacchetto SCORM",
       "import_scorm_description": "Importa un pacchetto SCORM per creare un nuovo corso",
-      "import_learnhouse": "Importa Corsi LearnHouse",
-      "import_learnhouse_description": "Importa corsi da un pacchetto di esportazione LearnHouse",
+      "import_learnhouse": "Importa Corsi {{brand}}",
+      "import_learnhouse_description": "Importa corsi da un pacchetto di esportazione {{brand}}",
       "import_select_type": "Seleziona il tipo di pacchetto che vuoi importare",
       "no_courses": "Ancora nessun corso",
       "create_course_placeholder": "Crea un corso per aggiungere contenuti",
@@ -2341,9 +2341,9 @@
         "footer_text_desc": "Testo personalizzato visualizzato in fondo alle pagine della tua organizzazione",
         "default_language": "Lingua predefinita",
         "default_language_desc": "La lingua mostrata per impostazione predefinita ai nuovi visitatori e usata per le email inviate per conto di questa organizzazione. I membri possono comunque cambiare la propria lingua dell'interfaccia.",
-        "watermark_desc": "Mostra il watermark LearnHouse sulle pagine della tua organizzazione",
+        "watermark_desc": "Mostra il watermark {{brand}} sulle pagine della tua organizzazione",
         "watermark_free_plan": "Il watermark è sempre mostrato nel piano gratuito",
-        "watermark_label": "Watermark \"Made with LearnHouse\"",
+        "watermark_label": "Watermark \"Made with {{brand}}\"",
         "watermark_ee": "Nascosto dalla tua licenza Enterprise Edition"
       },
       "images": {
@@ -3004,19 +3004,97 @@
         "failed_load": "Impossibile caricare il dossier dello studente.",
         "back_to_students": "Torna agli studenti",
         "no_behavioral": "Nessun dato comportamentale (le analisi potrebbero non essere configurate per questo periodo).",
-        "ranges": { "d30": "30 giorni", "d90": "90 giorni", "y1": "1 anno" },
-        "kpi": { "courses": "Corsi", "completed": "{{count}} completati", "avg_progress": "Progresso medio", "time_spent": "Tempo trascorso", "assignments": "Compiti", "avg_grade": "media {{grade}}", "certificates": "Certificati", "connections": "Connessioni", "last": "ultima {{date}}" },
-        "tabs": { "connections": "Connessioni", "courses": "Corsi", "assignments": "Compiti", "code": "Codice", "community": "Comunità", "certificates": "Certificati", "behavior": "Comportamento" },
-        "identity": { "verified": "Verificato", "unverified": "Non verificato", "via": "tramite {{method}}" },
-        "connections": { "title": "Connessioni", "empty": "Nessuna connessione registrata finora." },
-        "courses": { "title": "Progresso del corso", "empty": "Non iscritto ad alcun corso.", "activities": "{{done}}/{{total}} attività", "enrolled": "Iscritto il {{date}}" },
-        "assignments": { "title": "Compiti", "empty": "Nessun compito consegnato.", "attempt": "tentativo {{number}}", "feedback": "Feedback:" },
-        "code": { "title": "Esercizi di codice", "empty": "Nessun codice consegnato.", "activity": "Attività", "result": "Risultato", "tests": "Test", "time": "Tempo", "when": "Quando", "passed": "Superato", "failed": "Fallito" },
-        "community": { "title": "Partecipazione alla comunità", "empty": "Nessuna attività nella comunità.", "discussions": "Discussioni", "comments": "Commenti" },
-        "certificates": { "title": "Certificati ottenuti", "empty": "Nessun certificato ottenuto." },
-        "behavior": { "title": "Analisi comportamentali", "time_by_course": "Tempo trascorso per corso", "searches": "Ricerche" },
-        "status": { "completed": "completato", "in_progress": "in corso", "paused": "in pausa", "cancelled": "annullato", "graded": "valutato", "submitted": "consegnato", "pending": "in attesa", "late": "in ritardo", "not_submitted": "non consegnato" },
-        "comparison": { "student": "Studente", "enrolled": "Iscritto", "completed": "Completato", "certificates": "Certificati", "last_connection": "Ultima connessione", "view": "Visualizza" }
+        "ranges": {
+          "d30": "30 giorni",
+          "d90": "90 giorni",
+          "y1": "1 anno"
+        },
+        "kpi": {
+          "courses": "Corsi",
+          "completed": "{{count}} completati",
+          "avg_progress": "Progresso medio",
+          "time_spent": "Tempo trascorso",
+          "assignments": "Compiti",
+          "avg_grade": "media {{grade}}",
+          "certificates": "Certificati",
+          "connections": "Connessioni",
+          "last": "ultima {{date}}"
+        },
+        "tabs": {
+          "connections": "Connessioni",
+          "courses": "Corsi",
+          "assignments": "Compiti",
+          "code": "Codice",
+          "community": "Comunità",
+          "certificates": "Certificati",
+          "behavior": "Comportamento"
+        },
+        "identity": {
+          "verified": "Verificato",
+          "unverified": "Non verificato",
+          "via": "tramite {{method}}"
+        },
+        "connections": {
+          "title": "Connessioni",
+          "empty": "Nessuna connessione registrata finora."
+        },
+        "courses": {
+          "title": "Progresso del corso",
+          "empty": "Non iscritto ad alcun corso.",
+          "activities": "{{done}}/{{total}} attività",
+          "enrolled": "Iscritto il {{date}}"
+        },
+        "assignments": {
+          "title": "Compiti",
+          "empty": "Nessun compito consegnato.",
+          "attempt": "tentativo {{number}}",
+          "feedback": "Feedback:"
+        },
+        "code": {
+          "title": "Esercizi di codice",
+          "empty": "Nessun codice consegnato.",
+          "activity": "Attività",
+          "result": "Risultato",
+          "tests": "Test",
+          "time": "Tempo",
+          "when": "Quando",
+          "passed": "Superato",
+          "failed": "Fallito"
+        },
+        "community": {
+          "title": "Partecipazione alla comunità",
+          "empty": "Nessuna attività nella comunità.",
+          "discussions": "Discussioni",
+          "comments": "Commenti"
+        },
+        "certificates": {
+          "title": "Certificati ottenuti",
+          "empty": "Nessun certificato ottenuto."
+        },
+        "behavior": {
+          "title": "Analisi comportamentali",
+          "time_by_course": "Tempo trascorso per corso",
+          "searches": "Ricerche"
+        },
+        "status": {
+          "completed": "completato",
+          "in_progress": "in corso",
+          "paused": "in pausa",
+          "cancelled": "annullato",
+          "graded": "valutato",
+          "submitted": "consegnato",
+          "pending": "in attesa",
+          "late": "in ritardo",
+          "not_submitted": "non consegnato"
+        },
+        "comparison": {
+          "student": "Studente",
+          "enrolled": "Iscritto",
+          "completed": "Completato",
+          "certificates": "Certificati",
+          "last_connection": "Ultima connessione",
+          "view": "Visualizza"
+        }
       },
       "active_users": {
         "title": "Utenti attivi",
@@ -5056,10 +5134,10 @@
       },
       "teach_the_world": {
         "title": "Impara e cresci",
-        "description": "Risorse per aiutarti a ottenere il massimo da LearnHouse.",
+        "description": "Risorse per aiutarti a ottenere il massimo da {{brand}}.",
         "classroom": "L'aula",
         "classroom_desc": "Impara a far crescere e gestire i tuoi corsi",
-        "university": "Università LearnHouse",
+        "university": "Università {{brand}}",
         "university_desc": "Guide, suggerimenti e buone pratiche"
       },
       "add_content": {
@@ -5089,7 +5167,7 @@
       }
     },
     "welcome": {
-      "title": "Benvenuto su LearnHouse",
+      "title": "Benvenuto su {{brand}}",
       "subtitle": "Crea corsi, invita studenti e condividi la conoscenza con il mondo.",
       "get_started": "Inizia",
       "features_title": "Tutto ciò di cui hai bisogno",
@@ -5133,7 +5211,7 @@
   "embed": {
     "not_supported_description": "Questo tipo di attività richiede l'autenticazione e non può essere incorporato.",
     "not_supported_title": "Questa attività non è supportata",
-    "powered_by": "Powered by LearnHouse",
+    "powered_by": "Powered by {{brand}}",
     "visit_activity": "Visita la pagina dell'attività"
   },
   "migration": {
@@ -5638,7 +5716,7 @@
         "title": "Vuoi fare una prova?",
         "body": "Vai alla",
         "link": "pagina Sviluppatori",
-        "suffix": "per provare invece LearnHouse."
+        "suffix": "per provare invece {{brand}}."
       },
       "validation": {
         "required": "Obbligatorio",

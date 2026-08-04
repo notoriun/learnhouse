@@ -7,7 +7,7 @@ import {
 import UserAvatar from '@components/Objects/UserAvatar'
 import { useUsersAuditSummary } from './useUserAudit'
 import { fullName, fmtDate, avatarUrl } from './format'
-import LearnHouseSpinner from '@components/Objects/Loaders/LearnHouseSpinner'
+import BrandSpinner from '@components/Objects/Loaders/BrandSpinner'
 import { Eye } from 'lucide-react'
 
 interface Props {
@@ -23,7 +23,7 @@ export default function UsersComparisonTable({ userIds, days = 365, onOpenUser }
   const P = 'dashboard.users.analytics.comparison'
 
   if (isLoading) {
-    return <div className="py-16 flex justify-center"><LearnHouseSpinner /></div>
+    return <div className="py-16 flex justify-center"><BrandSpinner /></div>
   }
 
   return (

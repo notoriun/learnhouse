@@ -1,5 +1,6 @@
 import { getOrganizationContextInfo } from '@services/organizations/orgs'
 import { getAuthOrgSlug } from '@services/org/orgResolution'
+import { getBrand } from '@services/config/brand'
 import ResetPasswordClient from './reset'
 import { Metadata } from 'next'
 import OrgNotFound from '@components/Objects/StyledElements/Error/OrgNotFound'
@@ -10,7 +11,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const orgslug = await getAuthOrgSlug()
 
   if (!orgslug) {
-    return { title: 'Reset Password — LearnHouse' }
+    // Apex (org-less) — o template do layout raiz anexa o nome da marca.
+    return { title: 'Redefinir senha' }
   }
 
   let org: any = null
@@ -24,7 +26,8 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   return {
-    title: 'Reset Password' + ` — ${org?.name || 'LearnHouse'}`,
+    // `absolute` evita que o template do layout raiz duplique o sufixo da marca.
+    title: { absolute: `Redefinir senha — ${org?.name || getBrand().name}` },
     robots: { index: false, follow: false },
   }
 }

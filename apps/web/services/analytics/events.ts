@@ -2,7 +2,7 @@
    Enum members are the public API of this registry; they are referenced by
    call-sites across the app, not within this file. */
 /**
- * learnhouse-analytics — central event registry (single source of truth).
+ * analytics — central event registry (single source of truth).
  *
  * Naming convention: `object_action`, snake_case, past-tense verb.
  * - Object first so events cluster by feature in PostHog (course_*, podcast_*, …).

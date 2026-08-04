@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react'
-import LearnHouseSpinner from '@components/Objects/Loaders/LearnHouseSpinner'
+import BrandSpinner from '@components/Objects/Loaders/BrandSpinner'
 import { FileText } from '@phosphor-icons/react'
 import { constructAcceptValue } from '@/lib/constants'
 import { updateDocumentActivity } from '@services/courses/activities'
@@ -102,7 +102,7 @@ function EditDocumentActivityModal({ activity, courseUuid, orgSlug, onClose }: E
           className="inline-flex items-center justify-center h-9 px-5 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
         >
           {isSubmitting ? (
-            <LearnHouseSpinner size={18} className="[&>div]:border-t-white" />
+            <BrandSpinner size={18} className="[&>div]:border-t-white" />
           ) : (
             'Save changes'
           )}

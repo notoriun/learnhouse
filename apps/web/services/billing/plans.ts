@@ -12,7 +12,7 @@ export type Billing = "monthly" | "annual";
 export type PlanId = "free" | "standard" | "pro" | "enterprise" | "personal" | "personal-family";
 export type PaidPlanId = Exclude<PlanId, "free" | "enterprise">;
 export type PackId = "ai_500";
-export type LearnHousePlanType = "free" | "personal" | "personal-family" | "standard" | "pro" | "enterprise";
+export type PlanType = "free" | "personal" | "personal-family" | "standard" | "pro" | "enterprise";
 
 import { buildPriceToPlan, type PriceMapEntry } from "./subscriptionUtils";
 

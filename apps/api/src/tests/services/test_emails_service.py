@@ -82,9 +82,11 @@ class TestEmailsService:
             )
         call = send_email.call_args.kwargs
         assert "https://platform.test/organizations" in call["body"]
-        # Org-less keeps the LearnHouse-branded subject + Academy footer, no org logo.
-        assert "Welcome to LearnHouse" in call["subject"]
-        assert "LearnHouse Academy" in call["body"]
+        # Org-less keeps the platform-branded subject + Academy footer, no org
+        # logo. `{platform_name}` is resolved later, inside send_email (mocked
+        # here), so the raw placeholder is what crosses this boundary.
+        assert "Welcome to {platform_name}" in call["subject"]
+        assert "{platform_name} Academy" in call["body"]
         assert "<img" not in call["body"]
 
     def test_welcome_is_whitelabeled_when_org_supplied(self):
@@ -97,14 +99,14 @@ class TestEmailsService:
                 logo_url="https://api.test/content/orgs/org_uuid/logos/logo.png",
             )
         call = send_email.call_args.kwargs
-        # Subject/body name the org (html-escaped), not LearnHouse.
+        # Subject/body name the org (html-escaped), not the platform.
         assert "Acme &amp; Co" in call["subject"]
-        assert "Welcome to LearnHouse" not in call["subject"]
+        assert "Welcome to {platform_name}" not in call["subject"]
         assert "Acme &amp; Co" in call["body"]
         # Org logo replaces the mark; Academy link is gone; powered-by remains.
         assert '<img src="https://api.test/content/orgs/org_uuid/logos/logo.png"' in call["body"]
-        assert "LearnHouse Academy" not in call["body"]
-        assert "Powered by LearnHouse" in call["body"]
+        assert "{platform_name} Academy" not in call["body"]
+        assert "Powered by {platform_name}" in call["body"]
         assert "https://acme.test/home" in call["body"]
 
     def test_whitelabel_without_logo_falls_back_to_learnhouse_mark(self):
@@ -113,11 +115,11 @@ class TestEmailsService:
                 _user(), "user@test.com", org_name="Acme", logo_url=None
             )
         call = send_email.call_args.kwargs
-        # No org logo → LearnHouse wordmark (SVG), but text still white-labeled.
+        # No org logo → default wordmark (SVG), but text still white-labeled.
         assert "<img" not in call["body"]
         assert "<svg" in call["body"]
         assert "Acme" in call["subject"]
-        assert "Powered by LearnHouse" in call["body"]
+        assert "Powered by {platform_name}" in call["body"]
 
     def test_role_changed_email_links_back_to_the_org(self):
         """Telling someone their permissions changed is useless without a way

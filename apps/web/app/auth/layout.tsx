@@ -11,7 +11,7 @@ export default async function AuthLayout({
     const orgslug = await getAuthOrgSlug()
 
     // No org slug → bare apex (learn.io) → generic, org-less auth pages. No
-    // OrgProvider; the page renders generic LearnHouse branding.
+    // OrgProvider; the page renders the generic platform branding (getBrand).
     if (!orgslug) {
         return <>{children}</>
     }

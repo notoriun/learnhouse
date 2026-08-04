@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Dialog, DialogContent } from '@components/ui/dialog'
 import { useUserDossier } from './useUserAudit'
 import UserDossier from './UserDossier'
-import LearnHouseSpinner from '@components/Objects/Loaders/LearnHouseSpinner'
+import BrandSpinner from '@components/Objects/Loaders/BrandSpinner'
 
 interface Props {
   userId: number | null
@@ -20,7 +20,7 @@ export default function UserDossierModal({ userId, days = 365, onOpenChange }: P
     <Dialog open={userId != null} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-[#f8f8f8] p-6 sm:p-8">
         {isLoading && (
-          <div className="py-20 flex justify-center"><LearnHouseSpinner /></div>
+          <div className="py-20 flex justify-center"><BrandSpinner /></div>
         )}
         {isError && (
           <div className="py-20 text-center text-sm text-gray-500">{t('dashboard.users.analytics.failed_load')}</div>

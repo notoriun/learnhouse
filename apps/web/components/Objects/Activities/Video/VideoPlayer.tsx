@@ -49,7 +49,7 @@ export interface ThumbnailsConfig {
   rows: number
 }
 
-interface LearnHousePlayerProps {
+interface VideoPlayerProps {
   src: string
   /** When true, `src` is an HLS master playlist (.m3u8). */
   isHls?: boolean
@@ -74,7 +74,7 @@ const PLAYBACK_RATES = [0.5, 0.75, 1, 1.25, 1.5, 2]
  * Video.js and its plugins are imported dynamically inside an effect so nothing
  * touches `window`/`document` during SSR.
  */
-const LearnHousePlayer: React.FC<LearnHousePlayerProps> = ({
+const VideoPlayer: React.FC<VideoPlayerProps> = ({
   src,
   isHls = false,
   fallbackSrc,
@@ -342,4 +342,4 @@ const LearnHousePlayer: React.FC<LearnHousePlayerProps> = ({
   )
 }
 
-export default LearnHousePlayer
+export default VideoPlayer

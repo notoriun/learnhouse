@@ -18,8 +18,9 @@ export async function generateMetadata(props: MetadataProps): Promise<Metadata> 
     tags: ['organizations'],
   }, access_token)
   return {
-    title: 'Copilot — ' + org.name,
-    description: 'Chat with AI about your courses using LearnHouse Copilot.',
+    // `absolute` evita que o template do layout raiz duplique o sufixo da marca.
+    title: { absolute: 'Copilot — ' + org.name },
+    description: 'Converse com a IA sobre seus cursos usando o Copilot.',
   }
 }
 
