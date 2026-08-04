@@ -30,7 +30,7 @@ App Router). Testes da API em `apps/api/src/tests/routers/` e `apps/api/src/test
 (Princípio V: httpx, PyJWT[crypto] e redis já instalados)
 
 - [X] T001 Adicionar bloco de defaults `keycloak` (enabled=false, issuer="", client_id="", client_secret="", clock_skew=30) em apps/api/config/config.yaml, mapeado para as variáveis `LEARNHOUSE_KEYCLOAK_ENABLED`, `LEARNHOUSE_KEYCLOAK_ISSUER`, `LEARNHOUSE_KEYCLOAK_CLIENT_ID`, `LEARNHOUSE_KEYCLOAK_CLIENT_SECRET`, `LEARNHOUSE_KEYCLOAK_CLOCK_SKEW` (contracts/api-oidc.md §3)
-- [ ] T002 [P] Provisionar Keycloak de desenvolvimento conforme quickstart.md §1: container `kc-dev`, realm `plataforma`, client confidencial `learnhouse-web` com Standard flow ON, Implicit OFF, PKCE S256 obrigatório, redirect URI exata `http://localhost:3000/api/auth/keycloak/callback`, usuário de teste com e-mail verificado igual ao usuário local (ex.: `aluno@acme.dev`)
+- [X] T002 [P] Provisionar Keycloak de desenvolvimento conforme quickstart.md §1: container `kc-dev`, realm `plataforma`, client confidencial `learnhouse-web` com Standard flow ON, Implicit OFF, PKCE S256 obrigatório, redirect URI exata `http://localhost:3000/api/auth/keycloak/callback`, usuário de teste com e-mail verificado igual ao usuário local (ex.: `aluno@acme.dev`)
 
 ---
 
@@ -97,7 +97,7 @@ Session Storage, Cookies e Console sem nenhum token do provedor (SC-003)
 
 - [X] T020 [US2] Revisar e ajustar apps/web/app/api/auth/keycloak/callback/route.ts e apps/web/app/api/auth/keycloak/authorize/route.ts para os invariantes de US2: todas as respostas são `302` sem corpo com tokens; tokens internos saem somente como `Set-Cookie` httpOnly; `error_description` do provedor nunca é repassado à URL ou ao corpo; nenhum dado do callback vai a resposta legível por JavaScript (contracts/api-oidc.md §1 — Invariantes US2)
 - [X] T021 [US2] Varrer apps/api/src/services/auth/keycloak_oidc.py e apps/api/src/routers/keycloak_auth.py removendo qualquer log/exceção que inclua `code`, tokens do provedor, `code_verifier` ou `client_secret` (o claim que falhou vai ao evento de auditoria como categoria, nunca o valor — FR-009/FR-010)
-- [ ] T022 [US2] Executar a auditoria manual DevTools do quickstart.md §3.2 num login completo em dev (Network: só `code`+`state` em query, nunca fragmento; Storage vazio de tokens; cookies `LH_*` com `LH_access`/`LH_refresh` HttpOnly; `document.cookie` sem tokens) e registrar o resultado no PR (SC-003)
+- [ ] T022 (PENDENTE — requer stack de dev rodando; Keycloak kc-dev já provisionado) [US2] Executar a auditoria manual DevTools do quickstart.md §3.2 num login completo em dev (Network: só `code`+`state` em query, nunca fragmento; Storage vazio de tokens; cookies `LH_*` com `LH_access`/`LH_refresh` HttpOnly; `document.cookie` sem tokens) e registrar o resultado no PR (SC-003)
 
 **Checkpoint**: US1 e US2 comprovadas — arquitetura BFF sem vazamento auditada e testada
 
@@ -131,9 +131,9 @@ exibida e ausência de sessão; suíte automatizada cobre 100% dos casos negativ
 
 **Purpose**: Regressão, validação de ponta a ponta e auditoria final
 
-- [ ] T029 [P] Rodar a regressão do login nativo (SC-004): `uv run pytest src/tests/routers/test_auth_router.py src/tests/routers/test_login_provenance.py src/tests/security/test_auth_policy.py -v` e a suíte completa `uv run pytest` em apps/api (cobertura da flag `api` do CI — Princípio III), sem regressão
-- [ ] T030 [P] Executar a validação completa do quickstart.md §3 (cenários 3.1–3.7) em dev com o Keycloak container: login feliz < 15 s, cancelamento, state reutilizado em janela anônima, rotação de chaves no realm (JWKS rebuscado), provedor parado (`docker stop kc-dev` — sessões ativas e login nativo intactos, SC-005/FR-011), open redirect
-- [ ] T031 Auditoria final de logs e checklist de saída (quickstart.md §5): nenhum log da API contém `code`, tokens ou `client_secret` durante os cenários; GET /status não permite enumeração de orgs; marcar os critérios de saída da fase ("login técnico validado")
+- [X] T029 [P] Rodar a regressão do login nativo (SC-004): `uv run pytest src/tests/routers/test_auth_router.py src/tests/routers/test_login_provenance.py src/tests/security/test_auth_policy.py -v` e a suíte completa `uv run pytest` em apps/api (cobertura da flag `api` do CI — Princípio III), sem regressão
+- [ ] T030 (PENDENTE — requer stack de dev rodando; Keycloak kc-dev já provisionado) [P] Executar a validação completa do quickstart.md §3 (cenários 3.1–3.7) em dev com o Keycloak container: login feliz < 15 s, cancelamento, state reutilizado em janela anônima, rotação de chaves no realm (JWKS rebuscado), provedor parado (`docker stop kc-dev` — sessões ativas e login nativo intactos, SC-005/FR-011), open redirect
+- [ ] T031 (PENDENTE — validação manual em dev; partes automatizáveis cobertas por testes-sentinela de log e teste de não-enumeração do /status) Auditoria final de logs e checklist de saída (quickstart.md §5): nenhum log da API contém `code`, tokens ou `client_secret` durante os cenários; GET /status não permite enumeração de orgs; marcar os critérios de saída da fase ("login técnico validado")
 
 ---
 
