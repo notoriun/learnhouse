@@ -50,6 +50,18 @@ database_config:
 redis_config:
   redis_connection_string: redis://localhost:6379/learnhouse
 
+keycloak:
+  # Login corporativo via Keycloak (OIDC Authorization Code + PKCE S256).
+  # Override com LEARNHOUSE_KEYCLOAK_ENABLED, LEARNHOUSE_KEYCLOAK_ISSUER,
+  # LEARNHOUSE_KEYCLOAK_CLIENT_ID, LEARNHOUSE_KEYCLOAK_CLIENT_SECRET,
+  # LEARNHOUSE_KEYCLOAK_CLOCK_SKEW. Issuer exige HTTPS fora de desenvolvimento.
+  # O client_secret vive somente em env — nunca em resposta de API ou log.
+  enabled: false
+  issuer: ""
+  client_id: ""
+  client_secret: ""
+  clock_skew: 30
+
 payments_config:
   # See ee/services/payments/README.md for full setup instructions.
   # To add a new payment provider, add its credentials block here and register
