@@ -15,7 +15,6 @@ from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
 from src.core.events.database import get_db_session
-from src.db.external_identities import ExternalIdentity
 from src.db.upstream_sessions import STATUS_ACTIVE, STATUS_REVOKED, UpstreamSession
 from src.db.users import User
 from src.routers.keycloak_auth import router as kc_router

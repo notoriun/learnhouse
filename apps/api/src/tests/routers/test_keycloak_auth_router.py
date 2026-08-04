@@ -15,6 +15,8 @@ from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
 from src.core.events.database import get_db_session
+from src.db.user_audit_events import UserAuditEventType
+from src.db.user_organizations import UserOrganization
 from src.db.users import User
 from src.routers.keycloak_auth import router as keycloak_router
 from src.services.auth import keycloak_oidc
@@ -76,6 +78,8 @@ def keycloak_enabled(monkeypatch):
 def audit_mock(monkeypatch):
     mock = AsyncMock()
     monkeypatch.setattr("src.routers.keycloak_auth.record_audit_event", mock)
+    # A auditoria durável do login federado vive no provisionamento (feature 002).
+    monkeypatch.setattr("src.services.auth.provisioning.record_audit_event", mock)
     return mock
 
 
@@ -97,8 +101,9 @@ async def client(app):
 
 
 @pytest.fixture
-async def sso_user(db):
-    """Usuário local pré-existente com e-mail igual ao do provedor (research §6)."""
+async def sso_user(db, org):
+    """Usuário local pré-existente com e-mail igual ao do provedor (research §6),
+    membro da org do fluxo — pré-condição de vínculo da feature 002."""
     user = User(
         id=42,
         username="aluno",
@@ -112,6 +117,15 @@ async def sso_user(db):
         update_date=str(datetime.now()),
     )
     db.add(user)
+    db.add(
+        UserOrganization(
+            user_id=42,
+            org_id=org.id,
+            role_id=4,
+            creation_date=str(datetime.now()),
+            update_date=str(datetime.now()),
+        )
+    )
     await db.commit()
     await db.refresh(user)
     return user
@@ -214,14 +228,14 @@ class TestVazamentos:
         monkeypatch.setattr(
             keycloak_oidc,
             "exchange_code",
-            lambda code, verifier: {
+            lambda code, verifier, config=None: {
                 "id_token": "id-token-sentinela-do-provedor",
                 "access_token": "access-token-sentinela-do-provedor",
                 "refresh_token": "refresh-token-sentinela-do-provedor",
             },
         )
         monkeypatch.setattr(
-            keycloak_oidc, "validate_id_token", lambda id_token, nonce: dict(PROVIDER_CLAIMS)
+            keycloak_oidc, "validate_id_token", lambda id_token, nonce, config=None: dict(PROVIDER_CLAIMS)
         )
 
         state, _ = await _start_flow(client, fake_redis)
@@ -253,7 +267,7 @@ class TestVazamentos:
         assert r410.status_code == 410
 
         # 401 — código recusado pelo token_endpoint
-        def recusa(code, verifier):
+        def recusa(code, verifier, config=None):
             raise keycloak_oidc.CodeExchangeError()
 
         monkeypatch.setattr(keycloak_oidc, "exchange_code", recusa)
@@ -312,10 +326,10 @@ class TestFluxosNegativos:
         self, client, org, sso_user, keycloak_enabled, fake_redis, audit_mock, monkeypatch
     ):
         monkeypatch.setattr(
-            keycloak_oidc, "exchange_code", lambda code, verifier: {"id_token": "x"}
+            keycloak_oidc, "exchange_code", lambda code, verifier, config=None: {"id_token": "x"}
         )
         monkeypatch.setattr(
-            keycloak_oidc, "validate_id_token", lambda id_token, nonce: dict(PROVIDER_CLAIMS)
+            keycloak_oidc, "validate_id_token", lambda id_token, nonce, config=None: dict(PROVIDER_CLAIMS)
         )
         state, _ = await _start_flow(client, fake_redis)
         primeiro = await client.post(
@@ -343,7 +357,7 @@ class TestFluxosNegativos:
     async def test_provedor_indisponivel_na_troca_e_503_sem_stack_trace(
         self, client, org, keycloak_enabled, fake_redis, sem_sessao, monkeypatch
     ):
-        def fora_do_ar(code, verifier):
+        def fora_do_ar(code, verifier, config=None):
             raise keycloak_oidc.ProviderUnavailableError("token_endpoint_unavailable")
 
         monkeypatch.setattr(keycloak_oidc, "exchange_code", fora_do_ar)
@@ -376,10 +390,10 @@ class TestFluxosNegativos:
         self, client, org, sso_user, keycloak_enabled, fake_redis, sem_sessao, monkeypatch
     ):
         monkeypatch.setattr(
-            keycloak_oidc, "exchange_code", lambda code, verifier: {"id_token": "x"}
+            keycloak_oidc, "exchange_code", lambda code, verifier, config=None: {"id_token": "x"}
         )
         monkeypatch.setattr(
-            keycloak_oidc, "validate_id_token", lambda id_token, nonce: dict(PROVIDER_CLAIMS)
+            keycloak_oidc, "validate_id_token", lambda id_token, nonce, config=None: dict(PROVIDER_CLAIMS)
         )
         state, _ = await _start_flow(client, fake_redis)
         monkeypatch.setattr(
@@ -398,10 +412,10 @@ class TestFluxosNegativos:
     ):
         claims = dict(PROVIDER_CLAIMS, email_verified=False)
         monkeypatch.setattr(
-            keycloak_oidc, "exchange_code", lambda code, verifier: {"id_token": "x"}
+            keycloak_oidc, "exchange_code", lambda code, verifier, config=None: {"id_token": "x"}
         )
         monkeypatch.setattr(
-            keycloak_oidc, "validate_id_token", lambda id_token, nonce: claims
+            keycloak_oidc, "validate_id_token", lambda id_token, nonce, config=None: claims
         )
         state, _ = await _start_flow(client, fake_redis)
 
@@ -417,10 +431,10 @@ class TestFluxosNegativos:
     ):
         claims = dict(PROVIDER_CLAIMS, email="ninguem@acme.dev")
         monkeypatch.setattr(
-            keycloak_oidc, "exchange_code", lambda code, verifier: {"id_token": "x"}
+            keycloak_oidc, "exchange_code", lambda code, verifier, config=None: {"id_token": "x"}
         )
         monkeypatch.setattr(
-            keycloak_oidc, "validate_id_token", lambda id_token, nonce: claims
+            keycloak_oidc, "validate_id_token", lambda id_token, nonce, config=None: claims
         )
         state, _ = await _start_flow(client, fake_redis)
 
@@ -435,10 +449,10 @@ class TestFluxosNegativos:
         self, client, org, sso_user, keycloak_enabled, fake_redis, audit_mock, monkeypatch
     ):
         monkeypatch.setattr(
-            keycloak_oidc, "exchange_code", lambda code, verifier: {"id_token": "x"}
+            keycloak_oidc, "exchange_code", lambda code, verifier, config=None: {"id_token": "x"}
         )
         monkeypatch.setattr(
-            keycloak_oidc, "validate_id_token", lambda id_token, nonce: dict(PROVIDER_CLAIMS)
+            keycloak_oidc, "validate_id_token", lambda id_token, nonce, config=None: dict(PROVIDER_CLAIMS)
         )
         state, _ = await _start_flow(
             client, fake_redis, redirect_to="//evil.com/phish"
@@ -457,10 +471,10 @@ class TestCallbackFluxoFeliz:
         self, client, org, sso_user, keycloak_enabled, fake_redis, audit_mock, monkeypatch
     ):
         monkeypatch.setattr(
-            keycloak_oidc, "exchange_code", lambda code, verifier: {"id_token": "opaco"}
+            keycloak_oidc, "exchange_code", lambda code, verifier, config=None: {"id_token": "opaco"}
         )
         monkeypatch.setattr(
-            keycloak_oidc, "validate_id_token", lambda id_token, nonce: dict(PROVIDER_CLAIMS)
+            keycloak_oidc, "validate_id_token", lambda id_token, nonce, config=None: dict(PROVIDER_CLAIMS)
         )
 
         state, _ = await _start_flow(client, fake_redis)
@@ -478,8 +492,8 @@ class TestCallbackFluxoFeliz:
         assert body["redirect_to"] == "/dash/cursos"
         # State consumido — uso único
         assert f"oidc_flow:{state}" not in fake_redis.store
-        # Auditoria de login com método sso, sem tokens
+        # Auditoria durável do desfecho federado (provisionamento), sem tokens
         audit_mock.assert_awaited()
         kwargs = audit_mock.await_args.kwargs
-        assert kwargs["metadata"]["method"] == "sso"
+        assert kwargs["event_type"] == UserAuditEventType.SSO_LINKED
         assert kwargs["metadata"]["provider"] == "keycloak"

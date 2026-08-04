@@ -16,15 +16,15 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.core.events.database import get_db_session
 from src.db.external_identities import ExternalIdentity
+from src.db.oidc_provider_config import OIDCProviderConfig
 from src.db.organizations import Organization
 from src.db.upstream_sessions import (
     REASON_BACKCHANNEL,
     REASON_USER_LOGOUT,
     STATUS_ACTIVE,
-    UpstreamSession,
 )
 from src.db.user_audit_events import UserAuditEventType
-from src.db.users import User, UserRead
+from src.db.users import UserRead
 from src.security.auth import (
     decode_jwt,
     extract_jwt_from_request,
@@ -34,8 +34,20 @@ from src.security.session_context import AUTH_METHOD_SSO, USID_CLAIM
 from src.services.audit.audit import record_audit_event
 from src.services.auth import keycloak_oidc as oidc
 from src.services.auth import upstream_session as upstream
+from src.services.auth.oidc_config import (
+    config_for_upstream_session,
+    get_effective_client_config,
+    to_client_config,
+)
+from src.services.auth.provisioning import (
+    FederatedClaims,
+    ProvisioningPolicy,
+    ProvisioningSuccess,
+    provision_federated_login,
+)
 from src.services.auth.session import mint_session_tokens
 from src.services.orgs.auth_policy import is_login_method_allowed
+from src.services.security.account_lockout import check_account_locked
 from src.services.users.users import security_get_user
 
 backchannel_logger = logging.getLogger("learnhouse.auth.backchannel")
@@ -98,12 +110,6 @@ ERRO_TOKEN_INVALIDO = (
     "TOKEN_INVALIDO",
     "Não foi possível validar sua identidade corporativa. Inicie o login novamente.",
 )
-ERRO_CONTA_NAO_ENCONTRADA = (
-    status.HTTP_403_FORBIDDEN,
-    "CONTA_NAO_ENCONTRADA",
-    "Sua identidade corporativa foi validada, mas não há uma conta correspondente "
-    "nesta plataforma. Contate a administração da sua organização.",
-)
 ERRO_METODO_NAO_PERMITIDO = (
     status.HTTP_403_FORBIDDEN,
     "METODO_NAO_PERMITIDO",
@@ -123,8 +129,7 @@ async def _resolve_org(db_session: AsyncSession, org_slug: str) -> Optional[Orga
     )
 
 
-def _config_ativa() -> bool:
-    config = oidc.get_keycloak_config()
+def _config_valida(config) -> bool:
     return bool(config.enabled and config.issuer and config.client_id)
 
 
@@ -140,11 +145,12 @@ async def keycloak_status(
     org: str,
     db_session: AsyncSession = Depends(get_db_session),
 ):
-    if not _config_ativa():
-        return {"enabled": False}
     organization = await _resolve_org(db_session, org)
     if organization is None:
         # Org desconhecida responde igual a org sem SSO — sem enumeração.
+        return {"enabled": False}
+    _, config = await get_effective_client_config(db_session, organization.id)
+    if not _config_valida(config):
         return {"enabled": False}
     allowed = await is_login_method_allowed(
         db_session, organization.id, AUTH_METHOD_SSO
@@ -164,18 +170,18 @@ async def keycloak_authorize(
     body: AuthorizeRequest,
     db_session: AsyncSession = Depends(get_db_session),
 ):
-    if not _config_ativa():
-        _log_outcome("authorize", "not_configured", body.org_slug)
-        raise _erro(*ERRO_SSO_NAO_CONFIGURADO)
     organization = await _resolve_org(db_session, body.org_slug)
     if organization is None:
         _log_outcome("authorize", "unknown_org")
+        raise _erro(*ERRO_SSO_NAO_CONFIGURADO)
+    _, config = await get_effective_client_config(db_session, organization.id)
+    if not _config_valida(config):
+        _log_outcome("authorize", "not_configured", body.org_slug)
         raise _erro(*ERRO_SSO_NAO_CONFIGURADO)
     if not await is_login_method_allowed(db_session, organization.id, AUTH_METHOD_SSO):
         _log_outcome("authorize", "method_not_allowed", body.org_slug)
         raise _erro(*ERRO_SSO_NAO_CONFIGURADO)
 
-    config = oidc.get_keycloak_config()
     try:
         discovery = oidc.get_discovery(config.issuer)
         flow = oidc.create_flow(body.org_slug, body.redirect_to)
@@ -184,7 +190,7 @@ async def keycloak_authorize(
         raise _erro(*ERRO_SSO_INDISPONIVEL)
 
     authorization_url = oidc.build_authorization_url(
-        discovery, flow["state"], flow["nonce"], flow["code_challenge"]
+        discovery, flow["state"], flow["nonce"], flow["code_challenge"], config
     )
     _log_outcome("authorize", "flow_created", body.org_slug)
     return {"authorization_url": authorization_url, "state": flow["state"]}
@@ -194,10 +200,11 @@ async def keycloak_authorize(
     "/callback",
     summary="Consome o fluxo, valida o ID token e emite a sessão interna",
     description=(
-        "Ordem obrigatória do contrato: state (uso único) → troca do código → "
-        "validação integral do ID token → resolução do usuário → política da "
-        "org → sessão interna. Tokens retornados são os internos da plataforma; "
-        "tokens do provedor nunca aparecem na resposta."
+        "Ordem do contrato: state (uso único) → org + política + config "
+        "efetiva → troca do código → validação integral do ID token → "
+        "provisionamento/vínculo federado → sessão interna. Tokens retornados "
+        "são os internos da plataforma; tokens do provedor nunca aparecem na "
+        "resposta."
     ),
 )
 async def keycloak_callback(
@@ -217,9 +224,25 @@ async def keycloak_callback(
     org_slug = flow.get("org_slug")
     _log_outcome("callback", "received", org_slug)
 
-    # 2. Troca do código (client confidencial + PKCE).
+    # 2. Org + política + config efetiva. A config da org (feature 004)
+    # determina issuer/client/segredo usados na troca e na validação; antes da
+    # troca porque o client é escolhido por ela.
+    organization = await _resolve_org(db_session, org_slug or "")
+    if organization is None:
+        _log_outcome("callback", "unknown_org", org_slug)
+        raise _erro(*ERRO_SSO_NAO_CONFIGURADO)
+    org_id = organization.id
+    if not await is_login_method_allowed(db_session, org_id, AUTH_METHOD_SSO):
+        _log_outcome("callback", "method_not_allowed", org_slug)
+        raise _erro(*ERRO_METODO_NAO_PERMITIDO)
+    config_row, config = await get_effective_client_config(db_session, org_id)
+    if not _config_valida(config):
+        _log_outcome("callback", "not_configured", org_slug)
+        raise _erro(*ERRO_SSO_NAO_CONFIGURADO)
+
+    # 3. Troca do código (client confidencial + PKCE).
     try:
-        provider_tokens = oidc.exchange_code(body.code, flow["code_verifier"])
+        provider_tokens = oidc.exchange_code(body.code, flow["code_verifier"], config)
     except oidc.CodeExchangeError:
         _log_outcome("callback", "code_rejected", org_slug)
         raise _erro(*ERRO_CODIGO_RECUSADO)
@@ -227,9 +250,11 @@ async def keycloak_callback(
         _log_outcome("callback", f"unavailable:{exc.category}", org_slug)
         raise _erro(*ERRO_SSO_INDISPONIVEL)
 
-    # 3. Validação integral do ID token.
+    # 4. Validação integral do ID token.
     try:
-        claims = oidc.validate_id_token(provider_tokens["id_token"], flow["nonce"])
+        claims = oidc.validate_id_token(
+            provider_tokens["id_token"], flow["nonce"], config
+        )
     except oidc.TokenValidationError as exc:
         _log_outcome("callback", f"token_invalid:{exc.category}", org_slug)
         raise _erro(*ERRO_TOKEN_INVALIDO)
@@ -237,41 +262,58 @@ async def keycloak_callback(
         _log_outcome("callback", f"unavailable:{exc.category}", org_slug)
         raise _erro(*ERRO_SSO_INDISPONIVEL)
 
-    # 4. Resolução interina do usuário (research §6): e-mail verificado no
-    # provedor → conta local existente; sem auto-provisionamento (feature 002).
-    email = claims.get("email")
-    if not email or claims.get("email_verified") is not True:
-        _log_outcome("callback", "email_unverified", org_slug)
-        raise _erro(*ERRO_CONTA_NAO_ENCONTRADA)
-    user = (
-        (await db_session.execute(select(User).where(User.email == email.lower())))
-        .scalars()
-        .first()
+    # 5. Provisionamento/vínculo federado (feature 002): identidade chaveada
+    # por (issuer, subject); cria/vincula ExternalIdentity conforme a política
+    # da org — também o que habilita a revogação por subject no back-channel.
+    subject = claims.get("sub")
+    if not subject:
+        _log_outcome("callback", "token_invalid:no_sub", org_slug)
+        raise _erro(*ERRO_TOKEN_INVALIDO)
+    federated = FederatedClaims(
+        issuer=config.issuer,
+        subject=subject,
+        email=claims.get("email"),
+        email_verified=claims.get("email_verified") is True,
+        given_name=claims.get("given_name"),
+        family_name=claims.get("family_name"),
+        preferred_username=claims.get("preferred_username"),
     )
-    if user is None:
-        _log_outcome("callback", "user_not_found", org_slug)
-        raise _erro(*ERRO_CONTA_NAO_ENCONTRADA)
+    # Sem config da org (fallback global), mantém a paridade com o comporta-
+    # mento interino (research 001 §6): conta existente com e-mail verificado
+    # entra — agora registrando o vínculo. Com config, vale a política da org.
+    policy = ProvisioningPolicy(allow_link_by_email=True) if config_row is None else None
+    result = await provision_federated_login(
+        db_session, request, federated, organization, policy=policy
+    )
+    if not isinstance(result, ProvisioningSuccess):
+        _log_outcome("callback", f"denied:{result.reason}", org_slug)
+        raise _erro(
+            status.HTTP_403_FORBIDDEN, "CONTA_NAO_ENCONTRADA", result.message_pt
+        )
+    user = result.user
 
-    # 5. Política de métodos da org (multi-tenant — Princípio IV).
-    organization = await _resolve_org(db_session, org_slug or "")
-    org_id = organization.id if organization else None
-    if not await is_login_method_allowed(db_session, org_id, AUTH_METHOD_SSO):
-        _log_outcome("callback", "method_not_allowed", org_slug)
-        raise _erro(*ERRO_METODO_NAO_PERMITIDO)
+    # Bloqueio de conta no chokepoint — cobre todos os desfechos (login,
+    # vínculo, conta recém-provisionada), como no login por senha.
+    locked, _ = check_account_locked(user)
+    if locked:
+        _log_outcome("callback", "account_locked", org_slug)
+        raise _erro(
+            status.HTTP_403_FORBIDDEN,
+            "CONTA_NAO_ENCONTRADA",
+            "Sua conta está bloqueada. Contate a administração da organização.",
+        )
 
     # 6. Vínculo com a sessão upstream (feature 003): cria a upstream_session
     # (issuer, sid do ID token, refresh upstream + ID token cifrados) e estampa
     # o claim usid nos tokens locais. Sessões sem usid seguem tratadas como
     # nativas — a fronteira 001/002 → 003.
-    from src.services.auth import upstream_session as upstream
-
     session_uuid = upstream.new_session_uuid()
     try:
         await upstream.create_upstream_session(
             db_session,
             session_uuid=session_uuid,
             user_id=user.id,
-            issuer=oidc.get_keycloak_config().issuer,
+            issuer=config.issuer,
             sid=claims.get("sid"),
             org_id=org_id,
             upstream_refresh_token=provider_tokens.get("refresh_token"),
@@ -289,14 +331,9 @@ async def keycloak_callback(
         user.email, amr=AUTH_METHOD_SSO, org_id=org_id, usid=session_uuid
     )
 
+    # Auditoria durável: o provisionamento já registra LOGIN / SSO_PROVISIONED /
+    # SSO_LINKED por desfecho — sem evento duplicado aqui.
     _log_outcome("callback", "success", org_slug)
-    await record_audit_event(
-        event_type=UserAuditEventType.LOGIN,
-        user_id=user.id,
-        org_id=org_id,
-        user_agent=request.headers.get("user-agent"),
-        metadata={"method": "sso", "provider": "keycloak"},
-    )
 
     from src.routers.auth import get_token_expiry_ms
 
@@ -353,16 +390,18 @@ async def keycloak_logout(
         session_uuid = payload.get(USID_CLAIM)
         if session_uuid:
             row = await upstream.get_by_uuid(db_session, session_uuid)
+            if row is not None:
+                config = await config_for_upstream_session(db_session, row)
             if row is not None and row.status == STATUS_ACTIVE:
                 id_token = upstream.decrypt(row.id_token_encrypted)
                 await upstream.revoke(db_session, row, REASON_USER_LOGOUT)
                 end_session_url = oidc.build_end_session_url(
-                    id_token, _post_logout_redirect_uri()
+                    id_token, _post_logout_redirect_uri(), config
                 )
             elif row is not None:
                 # Já terminal: ainda oferece o end_session (fallback client_id).
                 end_session_url = oidc.build_end_session_url(
-                    None, _post_logout_redirect_uri()
+                    None, _post_logout_redirect_uri(), config
                 )
 
         if user is not None and user.id is not None:
@@ -393,18 +432,46 @@ async def keycloak_backchannel_logout(
     db_session: AsyncSession = Depends(get_db_session),
 ):
     response.headers["Cache-Control"] = "no-store"
-    # Validação criptográfica integral — caminho de segurança (Princípio IV).
-    try:
-        claims = oidc.validate_logout_token(logout_token)
-    except oidc.TokenValidationError as exc:
-        backchannel_logger.warning("backchannel outcome=rejected_claims cat=%s", exc.category)
+    # Com config por org (feature 004) pode haver mais de um issuer ativo. O
+    # ``iss`` é lido SEM confiança apenas para selecionar as configs candidatas;
+    # a validação criptográfica integral (Princípio IV) decide.
+    token_iss = oidc.unverified_issuer(logout_token)
+    candidates = []
+    if token_iss:
+        rows = (
+            (
+                await db_session.execute(
+                    select(OIDCProviderConfig).where(
+                        OIDCProviderConfig.issuer_url == token_iss,
+                        OIDCProviderConfig.enabled == True,  # noqa: E712
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
+        candidates = [to_client_config(r) for r in rows]
+    global_config = oidc.get_keycloak_config()
+    if not candidates or (global_config.issuer or "").rstrip("/") == token_iss:
+        candidates.append(global_config)
+
+    claims = None
+    rejeicao = "invalid"
+    for candidate in candidates:
+        try:
+            claims = oidc.validate_logout_token(logout_token, candidate)
+            break
+        except oidc.TokenValidationError as exc:
+            rejeicao = exc.category
+        except oidc.ProviderUnavailableError:
+            backchannel_logger.warning("backchannel outcome=rejected_signature")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="")
+    if claims is None:
+        backchannel_logger.warning("backchannel outcome=rejected_claims cat=%s", rejeicao)
         # Corpo vazio, sem detalhe — efeito zero sobre sessões (SC-005).
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="")
-    except oidc.ProviderUnavailableError:
-        backchannel_logger.warning("backchannel outcome=rejected_signature")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="")
 
-    issuer = oidc.get_keycloak_config().issuer
+    issuer = (claims.get("iss") or "").rstrip("/")
     sid = claims.get("sid")
     subject = claims.get("sub")
 

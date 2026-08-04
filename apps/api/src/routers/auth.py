@@ -261,6 +261,7 @@ async def _refresh_federated_upstream(db_session, usid, user_id, jti):
     from src.security.auth import _unmark_refresh_jti_used
     from src.services.auth import keycloak_oidc as oidc
     from src.services.auth import upstream_session as upstream
+    from src.services.auth.oidc_config import config_for_upstream_session
     from src.services.audit.audit import record_audit_event
     from src.db.user_audit_events import UserAuditEventType
 
@@ -299,7 +300,8 @@ async def _refresh_federated_upstream(db_session, usid, user_id, jti):
         return credentials_exception
 
     try:
-        tokens = oidc.refresh_upstream(upstream_refresh)
+        config = await config_for_upstream_session(db_session, row)
+        tokens = oidc.refresh_upstream(upstream_refresh, config)
     except oidc.CodeExchangeError:
         # invalid_grant = rejeição DEFINITIVA → encerra a sessão local.
         await upstream.revoke(db_session, row, REASON_UPSTREAM_DENIED)

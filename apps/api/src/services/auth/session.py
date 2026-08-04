@@ -21,7 +21,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.users import User
 from src.security.auth import create_access_token, create_refresh_token, decode_jwt
-from src.security.session_context import AMR_CLAIM, SORG_CLAIM, USID_CLAIM, session_claims
+from src.security.session_context import AMR_CLAIM, SORG_CLAIM, session_claims
 from src.services.auth.mfa import is_mfa_active
 
 MFA_PENDING_PURPOSE = "mfa_pending"

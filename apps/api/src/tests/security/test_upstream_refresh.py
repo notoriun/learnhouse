@@ -137,7 +137,7 @@ class TestRefreshUpstreamPrimeiro:
         row = await _seed(db, sso_user)
         chamado = {"upstream": False}
 
-        def _refresh(rt):
+        def _refresh(rt, config=None):
             chamado["upstream"] = True
             return {"access_token": "up-access", "refresh_token": "upstream-refresh-v2"}
 
@@ -157,7 +157,7 @@ class TestRefreshUpstreamPrimeiro:
     ):
         row = await _seed(db, sso_user)
 
-        def _refresh(rt):
+        def _refresh(rt, config=None):
             raise oidc.CodeExchangeError("invalid_grant")
 
         monkeypatch.setattr(oidc, "refresh_upstream", _refresh)
@@ -192,7 +192,7 @@ class TestRefreshTransitorio:
     ):
         row = await _seed(db, sso_user)
 
-        def _refresh(rt):
+        def _refresh(rt, config=None):
             raise oidc.ProviderUnavailableError(f"upstream_refresh_error:{cat}")
 
         monkeypatch.setattr(oidc, "refresh_upstream", _refresh)
@@ -213,13 +213,13 @@ class TestRefreshTransitorio:
         self, client, db, sso_user, fake_redis, monkeypatch
     ):
         # invalid_grant → 401 (definitiva)
-        row1 = await _seed(db, sso_user, uuid="upsession_a")
+        await _seed(db, sso_user, uuid="upsession_a")
         monkeypatch.setattr(oidc, "refresh_upstream", Mock(side_effect=oidc.CodeExchangeError("invalid_grant")))
         r1 = await _do_refresh(client, _refresh_cookie(uuid="upsession_a"))
         assert r1.status_code == 401
 
         # timeout → 503 (transitória)
-        row2 = await _seed(db, sso_user, uuid="upsession_b")
+        await _seed(db, sso_user, uuid="upsession_b")
         monkeypatch.setattr(oidc, "refresh_upstream", Mock(side_effect=oidc.ProviderUnavailableError("t")))
         r2 = await _do_refresh(client, _refresh_cookie(uuid="upsession_b"))
         assert r2.status_code == 503

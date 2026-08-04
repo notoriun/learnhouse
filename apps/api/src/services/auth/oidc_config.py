@@ -18,6 +18,8 @@ from fastapi import HTTPException, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from config.config import KeycloakConfig
+
 from src.db.oidc_provider_config import (
     OIDCConnectionTestResult,
     OIDCProviderConfig,
@@ -229,6 +231,52 @@ def get_decrypted_client_secret(row: OIDCProviderConfig) -> str:
     if not row.client_secret_encrypted:
         return ""
     return decrypt_secret(row.client_secret_encrypted)
+
+
+def to_client_config(row: OIDCProviderConfig) -> KeycloakConfig:
+    """Config efetiva do fluxo OIDC (feature 001) a partir da config da org.
+
+    Reusa o mesmo shape da config global (``KeycloakConfig``) para que as
+    funções de ``keycloak_oidc`` sirvam às duas fontes sem duplicação.
+    """
+    return KeycloakConfig(
+        enabled=row.enabled,
+        issuer=row.issuer_url.rstrip("/"),
+        client_id=row.client_id,
+        client_secret=get_decrypted_client_secret(row),
+        clock_skew=row.clock_skew_seconds,
+    )
+
+
+async def get_effective_client_config(db_session: AsyncSession, org_id: Optional[int]):
+    """Config efetiva do fluxo de login da org: a configurada pela org
+    (``enabled=true``, feature 004) quando existe; senão a global de
+    env/config.yaml. Retorna ``(row, config)`` — ``row`` é ``None`` no
+    fallback global."""
+    from src.services.auth.keycloak_oidc import get_keycloak_config
+
+    row = await get_active_oidc_config(db_session, org_id) if org_id else None
+    if row is not None:
+        return row, to_client_config(row)
+    return None, get_keycloak_config()
+
+
+async def config_for_upstream_session(db_session: AsyncSession, row) -> KeycloakConfig:
+    """Config cujo issuer corresponde ao da sessão upstream (logout/refresh).
+
+    A sessão pertence ao issuer que a emitiu: usa a config da org somente se o
+    issuer bater; senão a global. Evita renovar/encerrar uma sessão contra o
+    endpoint de outro provedor após troca de configuração."""
+    from src.services.auth.keycloak_oidc import get_keycloak_config
+
+    issuer = (row.issuer or "").rstrip("/")
+    if row.org_id:
+        config_row = await get_active_oidc_config(db_session, row.org_id)
+        if config_row is not None:
+            candidate = to_client_config(config_row)
+            if candidate.issuer == issuer:
+                return candidate
+    return get_keycloak_config()
 
 
 async def upsert_oidc_config(
