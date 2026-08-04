@@ -1,0 +1,22 @@
+# Config do gitleaks (feature 006) — supressão auditável de falsos positivos
+# na varredura de segredos do pacote de fonte. Herda o conjunto padrão de
+# regras e adiciona apenas allowlist justificada.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Falsos positivos conhecidos (placeholders de config e chaves de teste)"
+paths = [
+  # Config de exemplo: valores vazios/placeholder, sem segredos reais.
+  '''apps/api/config/config\.yaml''',
+  # Lockfiles: hashes de integridade, não segredos.
+  '''apps/web/bun\.lock''',
+  '''apps/api/uv\.lock''',
+]
+regexes = [
+  # Chave JWT de teste fixada nos testes (não é segredo de produção).
+  '''test-secret-key-for-[a-z0-9-]+''',
+  # Exemplos de prefixo de token em documentação/comentários.
+  '''sk_(?:test|live)_\.\.\.''',
+  '''whsec_\.\.\.''',
+]

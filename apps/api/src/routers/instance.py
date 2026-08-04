@@ -11,6 +11,24 @@ from config.config import get_learnhouse_config
 router = APIRouter()
 
 
+def _get_app_version() -> str:
+    """Versão da API em execução (feature 006/FR-005). Lida dos metadados do
+    pacote instalado; fallback para app.py se o pacote não estiver instalado
+    (ex.: execução direta a partir do checkout). É a mesma string da tag de
+    release, usada para correlacionar a instância com a fonte AGPL publicada."""
+    try:
+        from importlib.metadata import version
+
+        return version("learnhouse-api")
+    except Exception:
+        try:
+            from app import app as _app  # type: ignore
+
+            return _app.version
+        except Exception:
+            return "unknown"
+
+
 def _strip_port(domain: str) -> str:
     """Strip port from a domain string (e.g. 'localhost:3000' -> 'localhost')."""
     return domain.split(":")[0] if ":" in domain else domain
@@ -58,6 +76,9 @@ async def get_instance_info(db_session: AsyncSession = Depends(get_db_session)):
         "default_org_slug": default_org_slug,
         "frontend_domain": frontend_domain,
         "top_domain": top_domain,
+        # Versão em execução (feature 006/FR-005): correlaciona a instância com
+        # a fonte AGPL publicada para a mesma tag de release.
+        "version": _get_app_version(),
     }
 
     set_cached_instance_info(result)

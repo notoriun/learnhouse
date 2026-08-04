@@ -12,9 +12,39 @@ import React from 'react'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import { getBrand } from '@services/config/brand'
+import { getConfig, getAPIUrl } from '@services/config/config'
 
 const TERMS_URL = getBrand().legal.terms
 const PRIVACY_URL = getBrand().legal.privacy
+
+// Repositório público do fork — destino da oferta de código-fonte AGPL
+// (feature 006). O link NUNCA desaparece: sem versão resolvida, aponta para a
+// lista de releases (FR-001).
+const FORK_REPO_URL = getConfig(
+  'NEXT_PUBLIC_LEARNHOUSE_SOURCE_REPO_URL',
+  'https://github.com/notoriun/learnhouse'
+)
+
+/** Link para a fonte da EXATA versão em execução (FR-005). Busca a versão da
+ * instância uma vez; enquanto não resolve, cai para a lista de releases. */
+function useSourceCodeUrl(): string {
+  const [version, setVersion] = React.useState<string | null>(null)
+  React.useEffect(() => {
+    let alive = true
+    fetch(`${getAPIUrl()}instance/info`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (alive && d?.version && d.version !== 'unknown') setVersion(d.version)
+      })
+      .catch(() => {})
+    return () => {
+      alive = false
+    }
+  }, [])
+  return version
+    ? `${FORK_REPO_URL}/releases/tag/${version}`
+    : `${FORK_REPO_URL}/releases`
+}
 
 export function AuthFooter({ className = '' }: { className?: string }) {
   const { t } = useTranslation()
@@ -58,6 +88,7 @@ export function CopyrightFooter({
   const { t } = useTranslation()
   const base = tone === 'dark' ? 'text-white/40' : 'text-black/35'
   const link = tone === 'dark' ? 'text-white/60 hover:text-white/80' : 'text-black/55 hover:text-black/75'
+  const sourceUrl = useSourceCodeUrl()
   return (
     <footer className={`w-full py-6 px-6 ${className}`}>
       <div className="flex flex-col sm:flex-row items-center justify-center gap-x-5 gap-y-2 text-[13px] font-medium">
@@ -80,6 +111,20 @@ export function CopyrightFooter({
             className={`${link} transition-colors`}
           >
             {t('auth.privacy_policy', { defaultValue: 'Privacy Policy' })}
+          </Link>
+          <Link
+            href={sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${link} transition-colors`}
+          >
+            {t('common.source_code', { defaultValue: 'Código-fonte (AGPL-3.0)' })}
+          </Link>
+          <Link
+            href={getBrand().legal.attribution}
+            className={`${link} transition-colors`}
+          >
+            {t('common.legal_notices', { defaultValue: 'Informações legais' })}
           </Link>
         </nav>
       </div>
