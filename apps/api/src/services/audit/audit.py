@@ -48,6 +48,9 @@ _USER_OPTIONAL_EVENT_TYPES = frozenset(
     {
         UserAuditEventType.SSO_LOGIN_DENIED,
         UserAuditEventType.SSO_CONFLICT,
+        # Back-channel por sid pode afetar múltiplos usuários — evento agregado
+        # sem user_id específico (feature 003).
+        UserAuditEventType.SESSION_REVOKED,
     }
 )
 

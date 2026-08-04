@@ -42,6 +42,9 @@ class UserAuditEventType:
     LOGIN = "login"
     LOGOUT = "logout"
 
+    # Revogação de sessão federada (feature 003 — ver nota de escopo)
+    SESSION_REVOKED = "session_revoked"
+
     # Provisionamento federado (feature 002 — ver nota de escopo acima)
     SSO_PROVISIONED = "sso_provisioned"
     SSO_LINKED = "sso_linked"

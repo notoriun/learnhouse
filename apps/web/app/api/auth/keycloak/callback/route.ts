@@ -105,6 +105,13 @@ export async function GET(request: NextRequest) {
     httpOnly: false,
     maxAge: REFRESH_TOKEN_MAX_AGE,
   })
+  // Marcador de sessão federada: permite ao cliente rotear o logout ao fluxo
+  // RP-Initiated (feature 003). Não-httpOnly, sem token.
+  response.cookies.set('LH_sso', '1', {
+    ...cookieOptions,
+    httpOnly: false,
+    maxAge: REFRESH_TOKEN_MAX_AGE,
+  })
 
   return response
 }
