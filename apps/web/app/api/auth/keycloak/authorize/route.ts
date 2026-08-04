@@ -1,0 +1,60 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getConfig } from '@services/config/config'
+
+const BACKEND_URL = (
+  getConfig('NEXT_PUBLIC_LEARNHOUSE_BACKEND_URL') || 'http://localhost:1338'
+).replace(/\/+$/, '')
+
+// Slug de organização: nunca ecoamos entrada não sanitizada em URLs (US2).
+const ORG_SLUG_RE = /^[a-z0-9][a-z0-9-_]{0,62}$/i
+
+function loginRedirect(request: NextRequest, org: string | null, error: string) {
+  const url = new URL('/auth/login', request.nextUrl.origin)
+  if (org && ORG_SLUG_RE.test(org)) url.searchParams.set('org', org)
+  url.searchParams.set('error', error)
+  return NextResponse.redirect(url)
+}
+
+/**
+ * Inicia o login corporativo: chama o FastAPI server-side e redireciona o
+ * navegador ao Keycloak. Nenhum corpo JSON é exposto ao navegador — apenas
+ * redirects (contracts/api-oidc.md §1).
+ */
+export async function GET(request: NextRequest) {
+  const org = request.nextUrl.searchParams.get('org')
+  const redirect = request.nextUrl.searchParams.get('redirect') || '/'
+
+  if (!org || !ORG_SLUG_RE.test(org)) {
+    return loginRedirect(request, null, 'sso_nao_disponivel')
+  }
+
+  let backendResponse: Response
+  try {
+    backendResponse = await fetch(`${BACKEND_URL}/api/v1/auth/keycloak/authorize`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ org_slug: org, redirect_to: redirect }),
+      signal: AbortSignal.timeout(8000),
+    })
+  } catch {
+    return loginRedirect(request, org, 'sso_indisponivel')
+  }
+
+  if (!backendResponse.ok) {
+    const error = backendResponse.status === 503 ? 'sso_indisponivel' : 'sso_nao_disponivel'
+    return loginRedirect(request, org, error)
+  }
+
+  let authorizationUrl: string | undefined
+  try {
+    const body = await backendResponse.json()
+    authorizationUrl = body?.authorization_url
+  } catch {
+    authorizationUrl = undefined
+  }
+  if (!authorizationUrl || !/^https?:\/\//.test(authorizationUrl)) {
+    return loginRedirect(request, org, 'sso_indisponivel')
+  }
+
+  return NextResponse.redirect(authorizationUrl)
+}

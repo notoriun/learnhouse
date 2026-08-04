@@ -16,7 +16,7 @@ from typing import Optional
 
 from fastapi import Request
 
-from src.db.user_audit_events import UserAuditEvent
+from src.db.user_audit_events import UserAuditEvent, UserAuditEventType
 
 logger = logging.getLogger(__name__)
 
@@ -41,10 +41,24 @@ def extract_request_context(request: Optional[Request]) -> tuple[Optional[str], 
     return ip, user_agent
 
 
+# Eventos federados (feature 002) que podem ocorrer ANTES de existir conta —
+# negação/conflito no primeiro acesso não têm usuário local. Para esses tipos,
+# ``user_id`` nulo é registrado (a coluna é anulável), em vez de descartado.
+_USER_OPTIONAL_EVENT_TYPES = frozenset(
+    {
+        UserAuditEventType.SSO_LOGIN_DENIED,
+        UserAuditEventType.SSO_CONFLICT,
+        # Back-channel por sid pode afetar múltiplos usuários — evento agregado
+        # sem user_id específico (feature 003).
+        UserAuditEventType.SESSION_REVOKED,
+    }
+)
+
+
 async def record_audit_event(
     *,
     event_type: str,
-    user_id: int,
+    user_id: Optional[int] = None,
     org_id: Optional[int] = None,
     ip: Optional[str] = None,
     user_agent: Optional[str] = None,
@@ -55,9 +69,16 @@ async def record_audit_event(
 
     Emit this only for STUDENT learning actions (see ``UserAuditEventType``). Do not
     call from authoring/admin paths — that data is intentionally out of scope.
+
+    Exceção deliberada: os eventos ``oidc_config_*`` (feature 004) registram a
+    trilha administrativa da configuração do provedor de identidade, e os
+    ``sso_*`` (feature 002) registram provisionamento/vínculo/negação/conflito —
+    ver a nota de escopo em ``UserAuditEventType``. Os tipos em
+    ``_USER_OPTIONAL_EVENT_TYPES`` são gravados mesmo sem ``user_id``.
     """
-    # Anonymous / system actors (user_id 0) have nothing to audit.
-    if not user_id:
+    # Anonymous / system actors (user_id 0/None) have nothing to audit —
+    # exceto os eventos federados que precedem a existência da conta.
+    if not user_id and event_type not in _USER_OPTIONAL_EVENT_TYPES:
         return
 
     try:

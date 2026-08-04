@@ -280,6 +280,22 @@ def check_webhook_mutation_rate_limit(
     return is_allowed, retry_after
 
 
+def check_oidc_config_rate_limit(org_id: int, action: str) -> Tuple[bool, int]:
+    """
+    Rate limit das mutações e do teste de conexão da configuração OIDC
+    (20 operações/hora por org). O teste de conexão dispara requisição de
+    discovery para fora — sem teto, um admin comprometido o usaria como
+    oráculo/amplificador de rede (mesma razão do teto de webhooks).
+    """
+    key = f"oidc_config_{action}:{org_id}"
+    is_allowed, _count, retry_after = check_rate_limit(
+        key=key,
+        max_attempts=20,
+        window_seconds=60 * 60,  # 1 hora
+    )
+    return is_allowed, retry_after
+
+
 def check_invite_acceptance_rate_limit(request: Request, org_id: int) -> Tuple[bool, int]:
     """
     Rate limit invite-code acceptance at 20 attempts / 15 minutes per IP+org.

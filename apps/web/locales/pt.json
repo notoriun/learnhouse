@@ -327,6 +327,13 @@
     "email_verification_required_join": "Verifique seu endereço de e-mail antes de entrar em uma organização. Verifique sua caixa de entrada para o e-mail de verificação.",
     "login_failed": "Falha no login",
     "sign_in_with_sso": "Entrar com SSO",
+    "keycloak_sso_button": "Entrar com identidade corporativa",
+    "sso_erro_acesso_nao_concluido": "O acesso não foi concluído no provedor corporativo. Tente novamente.",
+    "sso_erro_sessao_expirada": "A sessão de login expirou ou já foi utilizada. Inicie o login novamente.",
+    "sso_erro_login_invalido": "Não foi possível validar seu login corporativo. Tente novamente.",
+    "sso_erro_conta_nao_encontrada": "Sua identidade corporativa foi validada, mas não há uma conta correspondente nesta plataforma. Contate a administração da sua organização.",
+    "sso_erro_nao_disponivel": "O login corporativo não está disponível para esta organização.",
+    "sso_erro_indisponivel": "O login corporativo está temporariamente indisponível. Tente novamente em instantes.",
     "sso_callback": {
       "auth_failed": "Falha na autenticação",
       "authenticating": "Autenticando...",

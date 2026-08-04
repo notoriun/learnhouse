@@ -175,6 +175,7 @@ async def create_user(
     org_id: int,
     is_oauth: bool = False,
     signup_provider: str = "email",
+    role_id: int = 4,
 ):
     # Validate password complexity (skip for OAuth users who have empty passwords)
     if user_object.password and not is_oauth:
@@ -280,7 +281,7 @@ async def create_user(
     user_organization = UserOrganization(
         user_id=user.id if user.id else 0,
         org_id=org_id,
-        role_id=4,
+        role_id=role_id,
         creation_date=str(datetime.now()),
         update_date=str(datetime.now()),
     )
