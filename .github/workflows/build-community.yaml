@@ -7,10 +7,10 @@ name: Build Community Images
 # twice because GitHub Actions does not support YAML anchors — keep both copies
 # in sync.
 on:
+  # A imagem da comunidade é publicada SOMENTE em push para main. PRs contra
+  # main ainda constroem para validação (sem publicar — ver push=... abaixo).
   push:
     branches:
-      - prod
-      - dev
       - main
     paths-ignore:
       - '**.md'
@@ -21,8 +21,6 @@ on:
       - 'LICENSE'
   pull_request:
     branches:
-      - prod
-      - dev
       - main
     paths-ignore:
       - '**.md'
