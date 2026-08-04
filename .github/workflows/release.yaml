@@ -27,9 +27,39 @@ jobs:
       - name: Auditoria de marca
         run: node scripts/brand-audit.mjs --json
 
+  # Pacote de fonte AGPL (feature 006 — FR-002/FR-003/FR-004): gera, valida e
+  # anexa a fonte correspondente à Release ANTES de qualquer imagem. Embutida a
+  # varredura de segredos (gitleaks) e a auditoria de ausência de ee/. Sem este
+  # job verde, nenhuma imagem é publicada.
+  source-package:
+    name: Source package (AGPL gate)
+    needs: brand-audit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Install gitleaks
+        run: |
+          GITLEAKS_VERSION=8.21.2
+          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            | tar -xz -C /usr/local/bin gitleaks
+      - name: Gerar e validar o pacote de fonte
+        run: bash scripts/package-source.sh "${GITHUB_REF_NAME}"
+      - name: Anexar fonte à Release (cria a release se não existir)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          gh release view "$TAG" >/dev/null 2>&1 || \
+            gh release create "$TAG" --title "$TAG" --notes "Release $TAG"
+          gh release upload "$TAG" "source-${TAG}.tar.gz" SHA256SUMS --clobber
+
   build:
     name: Build (${{ matrix.platform }})
-    needs: brand-audit
+    needs: source-package
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -66,9 +96,26 @@ jobs:
           platforms: ${{ matrix.platform }}
           build-args: |
             LEARNHOUSE_PUBLIC=true
+          # Labels OCI (feature 006/FR-009): apontam a imagem à fonte AGPL.
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.version=${{ github.ref_name }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=AGPL-3.0-or-later
           cache-from: type=gha,scope=release-${{ steps.prep.outputs.platform_pair }}
           cache-to: type=gha,mode=max,scope=release-${{ steps.prep.outputs.platform_pair }}
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+
+      - name: Auditoria Enterprise da imagem (FR-008)
+        run: |
+          # LEARNHOUSE_PUBLIC=true remove /app/api/ee no Dockerfile; confirma
+          # que a imagem publicada não contém código Enterprise.
+          IMG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}"
+          if docker run --rm --entrypoint sh "$IMG" -c 'test -d /app/api/ee'; then
+            echo "ERRO: /app/api/ee presente na imagem publicada" >&2
+            exit 1
+          fi
+          echo "OK: imagem sem diretório ee/"
 
       - name: Export digest
         run: |

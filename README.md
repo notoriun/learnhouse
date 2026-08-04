@@ -71,3 +71,12 @@ copyright e licença são preservados. **Notoriun é um produto independente, n�
 afiliado, não endossado e não patrocinado pela LearnHouse, Inc.** O nome
 "LearnHouse" aparece neste repositório apenas como atribuição factual exigida
 pela licença.
+
+O código-fonte correspondente a cada release é publicado automaticamente junto
+da imagem, e a aplicação expõe um link **"Código-fonte (AGPL-3.0)"** apontando
+para a fonte da exata versão em execução.
+
+> **Nota:** a conformidade técnica descrita aqui orienta o trabalho de
+> engenharia e **não substitui parecer jurídico**. A operação comercial deve
+> validar o modelo final com profissional especializado em software livre e
+> marcas antes do go-live.

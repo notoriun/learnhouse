@@ -228,7 +228,9 @@
     "leave_organization_title": "Sair da organização?",
     "leave_organization_desc": "Você perderá o acesso a {{org}} e será removido dos membros. Poderá entrar novamente depois se receber um convite.",
     "leave_organization_error": "Não foi possível sair desta organização. Tente novamente.",
-    "leaving": "Saindo…"
+    "leaving": "Saindo…",
+    "source_code": "Código-fonte (AGPL-3.0)",
+    "legal_notices": "Informações legais"
   },
   "banner": {
     "viewing_as_guest": "Você está visualizando {{name}} como convidado.",

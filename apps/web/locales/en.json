@@ -228,7 +228,9 @@
     "leave_organization_title": "Leave organization?",
     "leave_organization_desc": "You will lose access to {{org}} and be removed from its members. You can re-join later if invited.",
     "leave_organization_error": "Could not leave this organization. Please try again.",
-    "leaving": "Leaving…"
+    "leaving": "Leaving…",
+    "source_code": "Source code (AGPL-3.0)",
+    "legal_notices": "Legal notices"
   },
   "banner": {
     "viewing_as_guest": "You're viewing {{name}} as a guest.",

@@ -84,6 +84,10 @@ jobs:
           platforms: ${{ matrix.platform }}
           build-args: |
             LEARNHOUSE_PUBLIC=true
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=AGPL-3.0-or-later
           cache-from: type=gha,scope=${{ steps.prep.outputs.platform_pair }}
           cache-to: type=gha,mode=max,scope=${{ steps.prep.outputs.platform_pair }}
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=${{ github.event_name == 'push' }}
