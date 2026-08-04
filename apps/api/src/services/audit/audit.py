@@ -55,6 +55,10 @@ async def record_audit_event(
 
     Emit this only for STUDENT learning actions (see ``UserAuditEventType``). Do not
     call from authoring/admin paths — that data is intentionally out of scope.
+
+    Exceção deliberada: os eventos ``oidc_config_*`` (feature 004) registram a
+    trilha administrativa da configuração do provedor de identidade — ver a
+    nota de escopo em ``UserAuditEventType``.
     """
     # Anonymous / system actors (user_id 0) have nothing to audit.
     if not user_id:

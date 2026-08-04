@@ -10,7 +10,8 @@ decifrado no backend, na troca de código; nenhuma função de leitura o expõe.
 """
 
 import logging
-from typing import Optional
+import re
+from typing import List, Optional
 
 import httpx
 from fastapi import HTTPException, status
@@ -23,7 +24,9 @@ from src.db.oidc_provider_config import (
     OIDCProviderConfigRead,
     OIDCProviderConfigWrite,
 )
+from src.db.user_audit_events import UserAuditEventType
 from src.db.users import PublicUser
+from src.services.audit.audit import record_audit_event
 from src.services.security.url_validation import validate_external_https_url
 from src.services.webhooks.crypto import decrypt_secret, encrypt_secret
 
@@ -119,6 +122,63 @@ def run_discovery_check(issuer_url: str) -> OIDCConnectionTestResult:
     )
 
 
+_DOMAIN_RE = re.compile(
+    r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?"
+    r"(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$"
+)
+
+
+def _normalize_email_domains(domains: List[str]) -> List[str]:
+    """Minúsculas, sem ``@``, sem duplicatas, formato de domínio válido."""
+    vistos: set[str] = set()
+    resultado: List[str] = []
+    for bruto in domains:
+        dominio = (bruto or "").strip().lower().lstrip("@")
+        if not _DOMAIN_RE.match(dominio):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "code": "DOMINIO_INVALIDO",
+                    "message": "A lista de domínios contém um valor inválido.",
+                },
+            )
+        if dominio not in vistos:
+            vistos.add(dominio)
+            resultado.append(dominio)
+    return resultado
+
+
+async def _validate_default_role(
+    db_session: AsyncSession, org_id: int, role_id: int
+) -> None:
+    """Papel padrão de MENOR privilégio: existe, pertence à org (ou é global)
+    e nunca é admin/maintainer — mesma regra do provisionamento administrativo."""
+    from src.db.roles import Role, RoleTypeEnum
+    from src.security.rbac.constants import ADMIN_OR_MAINTAINER_ROLE_IDS
+
+    erro = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail={
+            "code": "PAPEL_INVALIDO",
+            "message": (
+                "O papel padrão deve existir, pertencer à organização e ser um "
+                "papel de menor privilégio (não administrativo)."
+            ),
+        },
+    )
+    if role_id in ADMIN_OR_MAINTAINER_ROLE_IDS:
+        raise erro
+    role = (
+        (await db_session.execute(select(Role).where(Role.id == role_id)))
+        .scalars()
+        .first()
+    )
+    if role is None:
+        raise erro
+    if role.role_type != RoleTypeEnum.TYPE_GLOBAL and role.org_id != org_id:
+        raise erro
+
+
 async def _get_row(
     db_session: AsyncSession, org_id: int
 ) -> Optional[OIDCProviderConfig]:
@@ -184,6 +244,8 @@ async def upsert_oidc_config(
     não vazia substitui; vazia é 422 pelo schema.
     """
     row = await _get_row(db_session, org_id)
+    criada = row is None
+    enabled_antes = row.enabled if row else False
 
     novo_issuer = data.issuer_url.rstrip("/") if data.issuer_url else None
     issuer_mudou = novo_issuer is not None and (
@@ -197,6 +259,36 @@ async def upsert_oidc_config(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail={"code": "ISSUER_INVALIDO", "message": resultado.detail},
             )
+
+    # Políticas de provisionamento (US3) — validadas sobre o estado FINAL,
+    # antes de qualquer mutação do objeto na sessão.
+    if data.allowed_email_domains is not None:
+        data.allowed_email_domains = _normalize_email_domains(
+            data.allowed_email_domains
+        )
+    role_final = (
+        data.default_role_id
+        if data.default_role_id is not None
+        else (row.default_role_id if row else None)
+    )
+    auto_final = (
+        data.auto_provision_users
+        if data.auto_provision_users is not None
+        else (row.auto_provision_users if row else False)
+    )
+    if data.default_role_id is not None:
+        await _validate_default_role(db_session, org_id, data.default_role_id)
+    if auto_final and not role_final:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "code": "PAPEL_OBRIGATORIO",
+                "message": (
+                    "Defina o papel padrão de menor privilégio antes de ativar "
+                    "o auto-provisionamento."
+                ),
+            },
+        )
 
     # Barreira de ativação (US2) — avaliada sobre o estado FINAL, antes de
     # qualquer mutação do objeto na sessão: ligar sem segredo configurado
@@ -263,10 +355,47 @@ async def upsert_oidc_config(
     db_session.add(row)
     await db_session.commit()
     await db_session.refresh(row)
+
+    # Trilha administrativa (FR-008): exatamente um evento por operação, com
+    # os NOMES dos campos alterados — nunca valores nem segredos.
+    campos_alterados = [
+        nome
+        for nome in (
+            "issuer_url",
+            "client_id",
+            "client_secret",
+            "scopes",
+            "enabled",
+            "allowed_email_domains",
+            "auto_provision_users",
+            "default_role_id",
+            "required_acr",
+            "clock_skew_seconds",
+        )
+        if getattr(data, nome) is not None
+    ]
+    if criada:
+        evento = UserAuditEventType.OIDC_CONFIG_CREATED
+    elif data.enabled is True and not enabled_antes:
+        evento = UserAuditEventType.OIDC_CONFIG_ACTIVATED
+    elif data.enabled is False and enabled_antes:
+        evento = UserAuditEventType.OIDC_CONFIG_DEACTIVATED
+    elif data.client_secret is not None:
+        evento = UserAuditEventType.OIDC_CONFIG_SECRET_ROTATED
+    else:
+        evento = UserAuditEventType.OIDC_CONFIG_UPDATED
+    await record_audit_event(
+        event_type=evento,
+        user_id=current_user.id,
+        org_id=org_id,
+        metadata={"fields": campos_alterados},
+    )
     return _to_read(row)
 
 
-async def delete_oidc_config(db_session: AsyncSession, org_id: int) -> bool:
+async def delete_oidc_config(
+    db_session: AsyncSession, org_id: int, current_user: PublicUser
+) -> bool:
     """Exclui apenas a configuração — contas, vínculos e identidades externas
     são preservados (edge case da spec: reativação religa os mesmos vínculos)."""
     row = await _get_row(db_session, org_id)
@@ -274,6 +403,12 @@ async def delete_oidc_config(db_session: AsyncSession, org_id: int) -> bool:
         return False
     await db_session.delete(row)
     await db_session.commit()
+    await record_audit_event(
+        event_type=UserAuditEventType.OIDC_CONFIG_DELETED,
+        user_id=current_user.id,
+        org_id=org_id,
+        metadata={},
+    )
     return True
 
 

@@ -212,6 +212,117 @@ class TestCifragemERotacao:
         assert self.CANARIO not in caplog.text
 
 
+class TestPoliticasDeProvisionamento:
+    """US3 (T017) — validações da política consumida pela feature 002."""
+
+    async def test_default_role_id_inexistente_e_400(
+        self, db, org, admin_user, discovery_ok
+    ):
+        with pytest.raises(HTTPException) as exc:
+            await _config_valida(db, org, admin_user, default_role_id=9999)
+        assert exc.value.status_code == 400
+
+    async def test_default_role_de_outra_org_e_400(
+        self, db, org, other_org, admin_user, discovery_ok
+    ):
+        from src.db.roles import Role, RoleTypeEnum
+
+        db.add(
+            Role(
+                id=88,
+                name="Papel Outra Org",
+                org_id=other_org.id,
+                role_type=RoleTypeEnum.TYPE_ORGANIZATION,
+                role_uuid="role_outra",
+                rights={},
+                creation_date=str(datetime.now()),
+                update_date=str(datetime.now()),
+            )
+        )
+        await db.commit()
+
+        with pytest.raises(HTTPException) as exc:
+            await _config_valida(db, org, admin_user, default_role_id=88)
+        assert exc.value.status_code == 400
+
+    async def test_default_role_admin_ou_maintainer_e_400(
+        self, db, org, admin_user, admin_role, discovery_ok
+    ):
+        # Menor privilégio: papel administrativo nunca é papel padrão.
+        with pytest.raises(HTTPException) as exc:
+            await _config_valida(db, org, admin_user, default_role_id=admin_role.id)
+        assert exc.value.status_code == 400
+
+    async def test_auto_provision_exige_default_role(
+        self, db, org, admin_user, discovery_ok
+    ):
+        with pytest.raises(HTTPException) as exc:
+            await _config_valida(db, org, admin_user, auto_provision_users=True)
+        assert exc.value.status_code == 400
+
+    async def test_auto_provision_com_papel_de_menor_privilegio_ok(
+        self, db, org, admin_user, user_role, discovery_ok
+    ):
+        lida = await _config_valida(
+            db,
+            org,
+            admin_user,
+            auto_provision_users=True,
+            default_role_id=user_role.id,
+        )
+
+        assert lida.auto_provision_users is True
+        assert lida.default_role_id == user_role.id
+
+    async def test_dominios_normalizados(self, db, org, admin_user, discovery_ok):
+        lida = await _config_valida(
+            db,
+            org,
+            admin_user,
+            allowed_email_domains=["  ACME.dev ", "@acme.dev", "Outra.COM", "acme.dev"],
+        )
+
+        assert lida.allowed_email_domains == ["acme.dev", "outra.com"]
+
+    async def test_dominio_com_formato_invalido_e_400(
+        self, db, org, admin_user, discovery_ok
+    ):
+        with pytest.raises(HTTPException) as exc:
+            await _config_valida(
+                db, org, admin_user, allowed_email_domains=["nao é dominio!"]
+            )
+        assert exc.value.status_code == 400
+
+    async def test_clock_skew_fora_da_faixa_e_rejeitado_pelo_schema(self):
+        with pytest.raises(Exception):
+            OIDCProviderConfigWrite(clock_skew_seconds=301)
+        with pytest.raises(Exception):
+            OIDCProviderConfigWrite(clock_skew_seconds=-1)
+
+    async def test_get_active_entrega_politica_completa(
+        self, db, org, admin_user, user_role, discovery_ok
+    ):
+        await _config_valida(
+            db,
+            org,
+            admin_user,
+            enabled=True,
+            auto_provision_users=True,
+            default_role_id=user_role.id,
+            allowed_email_domains=["acme.dev"],
+            required_acr="urn:acr:mfa",
+            clock_skew_seconds=45,
+        )
+
+        ativa = await svc.get_active_oidc_config(db, org.id)
+
+        assert ativa.auto_provision_users is True
+        assert ativa.default_role_id == user_role.id
+        assert ativa.allowed_email_domains == ["acme.dev"]
+        assert ativa.required_acr == "urn:acr:mfa"
+        assert ativa.clock_skew_seconds == 45
+
+
 class TestConfigAtiva:
     """A parte de FR-007/SC-005 que esta feature controla: `enabled` persiste
     e é refletido pela camada de serviço (contrato com as features 001/002)."""

@@ -26,11 +26,26 @@ class UserAuditEventType:
     Deliberately scoped to LEARNER actions — authoring/admin actions (board or
     playground creation, content authorship, token/webhook management, course
     management, AI editor generation) are out of scope and are NOT recorded here.
+
+    EXTENSÃO DELIBERADA DE ESCOPO (feature 004-admin-config-oidc): os eventos
+    ``oidc_config_*`` registram mudanças administrativas na configuração do
+    provedor de identidade — trilha exigida por FR-008 daquela spec (autor,
+    momento, org e NOMES dos campos alterados; nunca valores nem segredos).
+    São a única família administrativa neste log; demais ações administrativas
+    permanecem fora de escopo.
     """
 
     # Connections
     LOGIN = "login"
     LOGOUT = "logout"
+
+    # Configuração OIDC (administrativa — ver nota de escopo acima)
+    OIDC_CONFIG_CREATED = "oidc_config_created"
+    OIDC_CONFIG_UPDATED = "oidc_config_updated"
+    OIDC_CONFIG_ACTIVATED = "oidc_config_activated"
+    OIDC_CONFIG_DEACTIVATED = "oidc_config_deactivated"
+    OIDC_CONFIG_DELETED = "oidc_config_deleted"
+    OIDC_CONFIG_SECRET_ROTATED = "oidc_config_secret_rotated"
 
     # Course progress
     COURSE_ENROLLED = "course_enrolled"

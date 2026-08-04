@@ -139,7 +139,7 @@ async def api_delete_oidc_config(
                 ),
             },
         )
-    removida = await delete_oidc_config(db_session, org_id)
+    removida = await delete_oidc_config(db_session, org_id, current_user)
     if not removida:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

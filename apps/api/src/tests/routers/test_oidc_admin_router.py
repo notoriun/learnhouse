@@ -222,6 +222,100 @@ class TestSegredoProtegido:
         assert r_ativa.json()["detail"]["code"] == "SEGREDO_NAO_CONFIGURADO"
 
 
+@pytest.fixture
+def audit_mock(monkeypatch):
+    from unittest.mock import AsyncMock
+
+    mock = AsyncMock()
+    monkeypatch.setattr("src.services.auth.oidc_config.record_audit_event", mock)
+    return mock
+
+
+class TestAuditoria:
+    """Polish (T023) — SC-004: cada operação gera exatamente um evento com
+    autor, momento e org corretos; metadata só com NOMES de campos."""
+
+    CANARIO = "segredo-canario-004"
+
+    async def _put(self, client, org, payload):
+        r = await client.put(f"/api/v1/orgs/{org.id}/oidc-config", json=payload)
+        assert r.status_code == 200, r.text
+        return r
+
+    async def test_criacao_gera_evento_created(
+        self, app, client, org, admin_user, audit_mock
+    ):
+        _como(app, admin_user)
+
+        await self._put(client, org, PAYLOAD_VALIDO)
+
+        audit_mock.assert_awaited_once()
+        kwargs = audit_mock.await_args.kwargs
+        assert kwargs["event_type"] == "oidc_config_created"
+        assert kwargs["user_id"] == admin_user.id
+        assert kwargs["org_id"] == org.id
+        assert self.CANARIO not in str(kwargs["metadata"])
+
+    async def test_ativacao_e_desativacao_geram_eventos_proprios(
+        self, app, client, org, admin_user, audit_mock
+    ):
+        _como(app, admin_user)
+        await self._put(client, org, PAYLOAD_VALIDO)
+        audit_mock.reset_mock()
+
+        await self._put(client, org, {"enabled": True})
+        assert (
+            audit_mock.await_args.kwargs["event_type"] == "oidc_config_activated"
+        )
+        audit_mock.reset_mock()
+
+        await self._put(client, org, {"enabled": False})
+        assert (
+            audit_mock.await_args.kwargs["event_type"] == "oidc_config_deactivated"
+        )
+
+    async def test_rotacao_de_segredo_gera_apenas_secret_rotated(
+        self, app, client, org, admin_user, audit_mock
+    ):
+        _como(app, admin_user)
+        await self._put(client, org, PAYLOAD_VALIDO)
+        audit_mock.reset_mock()
+
+        await self._put(client, org, {"client_secret": "novo-segredo-rotacao"})
+
+        audit_mock.assert_awaited_once()
+        kwargs = audit_mock.await_args.kwargs
+        assert kwargs["event_type"] == "oidc_config_secret_rotated"
+        assert "novo-segredo-rotacao" not in str(kwargs["metadata"])
+
+    async def test_edicao_comum_gera_updated_com_nomes_de_campos(
+        self, app, client, org, admin_user, audit_mock
+    ):
+        _como(app, admin_user)
+        await self._put(client, org, PAYLOAD_VALIDO)
+        audit_mock.reset_mock()
+
+        await self._put(client, org, {"client_id": "outro-client"})
+
+        audit_mock.assert_awaited_once()
+        kwargs = audit_mock.await_args.kwargs
+        assert kwargs["event_type"] == "oidc_config_updated"
+        assert "client_id" in kwargs["metadata"]["fields"]
+
+    async def test_exclusao_gera_evento_deleted(
+        self, app, client, org, admin_user, audit_mock
+    ):
+        _como(app, admin_user)
+        await self._put(client, org, PAYLOAD_VALIDO)
+        audit_mock.reset_mock()
+
+        r = await client.delete(f"/api/v1/orgs/{org.id}/oidc-config?confirm=true")
+
+        assert r.status_code == 200
+        audit_mock.assert_awaited_once()
+        assert audit_mock.await_args.kwargs["event_type"] == "oidc_config_deleted"
+
+
 class TestCRUD:
     async def test_get_404_sem_config(self, app, client, org, admin_user):
         _como(app, admin_user)
@@ -271,6 +365,34 @@ class TestCRUD:
         assert r.status_code == 200
         assert r.json()["status"] == "ok"
         assert r.headers.get("cache-control") == "no-store"
+
+    async def test_put_de_politica_persiste_sem_efeito_colateral(
+        self, app, client, org, admin_user, user_role
+    ):
+        """US3 (T018) — política persiste na forma do contrato; mudança de
+        política não altera `enabled` (FR-009, sem efeito colateral)."""
+        _como(app, admin_user)
+        await client.put(f"/api/v1/orgs/{org.id}/oidc-config", json=PAYLOAD_VALIDO)
+
+        r = await client.put(
+            f"/api/v1/orgs/{org.id}/oidc-config",
+            json={
+                "allowed_email_domains": ["ACME.dev"],
+                "auto_provision_users": True,
+                "default_role_id": user_role.id,
+                "required_acr": "urn:acr:mfa",
+                "clock_skew_seconds": 45,
+            },
+        )
+
+        assert r.status_code == 200, r.text
+        body = r.json()
+        assert body["allowed_email_domains"] == ["acme.dev"]
+        assert body["auto_provision_users"] is True
+        assert body["default_role_id"] == user_role.id
+        assert body["required_acr"] == "urn:acr:mfa"
+        assert body["clock_skew_seconds"] == 45
+        assert body["enabled"] is False  # política não liga o provedor
 
     async def test_respostas_get_com_no_store(self, app, client, org, admin_user):
         _como(app, admin_user)
