@@ -1266,6 +1266,17 @@ export async function signIn(
 export async function signOut(options?: SignOutOptions): Promise<void> {
   const { callbackUrl = '/', redirect = true } = options || {}
 
+  // Sessão federada (feature 003): o logout precisa ser coordenado com o
+  // provedor (RP-Initiated Logout). Detectado pelo marcador não-httpOnly
+  // LH_sso posto no callback. Navegação top-level (não fetch) — o BFF revoga,
+  // limpa cookies e redireciona ao end_session do Keycloak. Sessões nativas
+  // seguem o caminho abaixo, inalterado (FR-010).
+  if (typeof document !== 'undefined' && /(?:^|;\s*)LH_sso=1(?:;|$)/.test(document.cookie)) {
+    const dest = safeRedirectUrl(callbackUrl)
+    window.location.href = `/api/auth/keycloak/logout?redirect=${encodeURIComponent(dest)}`
+    return
+  }
+
   try {
     // Use Next.js API route to ensure cookies are cleared correctly
     await fetch('/api/auth/logout', {

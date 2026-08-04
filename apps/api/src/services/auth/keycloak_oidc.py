@@ -333,6 +333,124 @@ def validate_id_token(id_token: str, nonce: str) -> dict[str, Any]:
     return claims
 
 
+BACKCHANNEL_LOGOUT_EVENT = "http://schemas.openid.net/event/backchannel-logout"
+
+
+def validate_logout_token(logout_token: str) -> dict[str, Any]:
+    """Valida o logout token do back-channel (research R3). Caminho de
+    segurança — nenhum atalho de dev/teste desabilita a validação.
+
+    Exige: assinatura via JWKS, ``iss`` esperado, ``aud`` contém o client,
+    ``iat`` recente, claim ``events`` com o evento de back-channel logout, ao
+    menos um entre ``sid``/``sub``, e ``nonce`` AUSENTE (presença é rejeição).
+    """
+    config = get_keycloak_config()
+    discovery = get_discovery(config.issuer)
+    try:
+        signing_key = _get_jwks_client(discovery["jwks_uri"]).get_signing_key_from_jwt(
+            logout_token
+        )
+    except jwt.exceptions.PyJWKClientConnectionError:
+        raise ProviderUnavailableError("jwks_unavailable")
+    except jwt.exceptions.PyJWKClientError:
+        raise TokenValidationError(FAILURE_UNKNOWN_KID)
+    except jwt.exceptions.InvalidTokenError:
+        raise TokenValidationError(FAILURE_MALFORMED)
+
+    try:
+        claims = jwt.decode(
+            logout_token,
+            signing_key.key,
+            algorithms=["RS256"],
+            audience=config.client_id,
+            issuer=config.issuer,
+            leeway=config.clock_skew,
+            options={"require": ["iat"], "verify_exp": False},
+        )
+    except jwt.InvalidIssuerError:
+        raise TokenValidationError(FAILURE_ISSUER)
+    except jwt.InvalidAudienceError:
+        raise TokenValidationError(FAILURE_AUDIENCE)
+    except jwt.InvalidSignatureError:
+        raise TokenValidationError(FAILURE_SIGNATURE)
+    except jwt.InvalidTokenError:
+        raise TokenValidationError(FAILURE_MALFORMED)
+
+    # Um logout token NUNCA carrega nonce (OIDC Back-Channel Logout §2.4).
+    if "nonce" in claims:
+        raise TokenValidationError(FAILURE_NONCE)
+    events = claims.get("events")
+    if not isinstance(events, dict) or BACKCHANNEL_LOGOUT_EVENT not in events:
+        raise TokenValidationError("events_missing")
+    if not claims.get("sid") and not claims.get("sub"):
+        raise TokenValidationError("no_sid_or_sub")
+    return claims
+
+
+def refresh_upstream(refresh_token: str) -> dict[str, Any]:
+    """Renova a sessão no provedor (``grant_type=refresh_token``).
+
+    Classificação da falha (research R5): ``invalid_grant`` = rejeição
+    DEFINITIVA (``CodeExchangeError``); timeout/conexão/5xx/429/``invalid_client``/
+    200 malformada = TRANSITÓRIA (``ProviderUnavailableError``). Definitiva
+    NUNCA é reclassificada como transitória (Princípio IV).
+    """
+    config = get_keycloak_config()
+    discovery = get_discovery(config.issuer)
+    try:
+        response = httpx.post(
+            discovery["token_endpoint"],
+            data={
+                "grant_type": "refresh_token",
+                "refresh_token": refresh_token,
+                "client_id": config.client_id,
+                "client_secret": config.client_secret,
+            },
+            timeout=HTTP_TIMEOUT_SECONDS,
+        )
+    except Exception:
+        raise ProviderUnavailableError("upstream_refresh_unreachable")
+    if response.status_code == 200:
+        try:
+            tokens = response.json()
+        except ValueError:
+            raise ProviderUnavailableError("upstream_refresh_malformed")
+        if "access_token" not in tokens:
+            raise ProviderUnavailableError("upstream_refresh_malformed")
+        return tokens
+    # Distinção definitiva vs transitória pelo corpo de erro OAuth.
+    error = ""
+    try:
+        error = (response.json() or {}).get("error", "")
+    except ValueError:
+        error = ""
+    if error == "invalid_grant":
+        raise CodeExchangeError("invalid_grant")  # DEFINITIVA
+    # invalid_client, 5xx, 429 e demais → transitória (não derruba o usuário).
+    raise ProviderUnavailableError(f"upstream_refresh_error:{response.status_code}")
+
+
+def build_end_session_url(
+    id_token: Optional[str], post_logout_redirect_uri: str
+) -> Optional[str]:
+    """URL de RP-Initiated Logout. ``id_token_hint`` quando disponível; senão
+    ``client_id`` como fallback."""
+    config = get_keycloak_config()
+    try:
+        discovery = get_discovery(config.issuer)
+    except ProviderUnavailableError:
+        return None
+    endpoint = discovery.get("end_session_endpoint")
+    if not endpoint:
+        return None
+    params = {"post_logout_redirect_uri": post_logout_redirect_uri}
+    if id_token:
+        params["id_token_hint"] = id_token
+    else:
+        params["client_id"] = config.client_id
+    return f"{endpoint}?{httpx.QueryParams(params)}"
+
+
 def build_authorization_url(
     discovery: dict[str, Any], state: str, nonce: str, code_challenge: str
 ) -> str:

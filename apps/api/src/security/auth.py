@@ -20,6 +20,7 @@ from src.security.session_context import (
     AUTH_METHOD_API_TOKEN,
     LEGACY_GRACE_CLAIM,
     SORG_CLAIM,
+    USID_CLAIM,
     SessionProvenance,
     set_session_provenance,
 )
@@ -335,6 +336,19 @@ def decode_refresh_token(token: str) -> Optional[dict]:
         return None
 
 
+def _unmark_refresh_jti_used(user_id: int, jti: str) -> None:
+    """Desfaz o consumo do jti (feature 003): numa falha transitória do refresh
+    upstream, nada rotaciona e o MESMO refresh cookie deve funcionar na próxima
+    tentativa. Sem isso, o gate one-time-use derrubaria o usuário à toa."""
+    r = _get_revocation_redis_client()
+    if r is None:
+        return
+    try:
+        r.delete(f"refresh_used:{user_id}:{jti}")
+    except Exception:
+        pass
+
+
 def _mark_refresh_jti_used(user_id: int, jti: str) -> bool:
     """
     Atomically record a refresh token jti as consumed. Returns True on the
@@ -632,6 +646,16 @@ async def get_current_user(
         # without requiring a full DB-backed session store.
         if user.id is not None and _is_token_revoked_for_user(user.id, issued_at):
             raise credentials_exception
+
+        # Revogação por sessão federada (feature 003): se o claim usid está na
+        # blocklist de sessão upstream, rejeita. Custo zero para sessões nativas
+        # (só corre quando o claim existe) — espelha o padrão jwt_revoked_before.
+        usid = payload.get(USID_CLAIM) if token else None
+        if usid:
+            from src.services.auth.upstream_session import is_revoked_in_redis
+
+            if is_revoked_in_redis(usid):
+                raise credentials_exception
 
         public_user = PublicUser(**user.model_dump())
         request.state.user = public_user

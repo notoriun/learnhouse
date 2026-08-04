@@ -52,6 +52,7 @@ LEGACY_SESSION_GRACE = _legacy_session_grace()
 AMR_CLAIM = "amr"       # authentication method: password | magic_login | google | sso | api_token
 SORG_CLAIM = "sorg"     # id of the org the session was established for (int), or absent
 LEGACY_GRACE_CLAIM = "lgc"  # unix seconds after which a method-less session stops being admitted
+USID_CLAIM = "usid"     # id da sessão upstream (feature 003), ausente em sessões nativas
 
 # Recognised authentication methods. "api_token" is internal — a machine
 # credential that already carries its own org boundary and is exempt from the
@@ -95,11 +96,13 @@ def session_claims(
     amr: Optional[str],
     org_id: Optional[int],
     legacy_grace_expires: Optional[int] = None,
+    usid: Optional[str] = None,
 ) -> dict:
     """Build the provenance claims to merge into a token's ``data`` dict.
 
     Omits keys that are ``None`` so a central (org-less) or method-less token
-    stays as small as it was before this feature.
+    stays as small as it was before this feature. ``usid`` vincula a sessão à
+    sessão upstream (feature 003) e só é estampado em logins federados.
     """
     claims: dict = {}
     if amr is not None:
@@ -108,6 +111,8 @@ def session_claims(
         claims[SORG_CLAIM] = org_id
     if legacy_grace_expires is not None:
         claims[LEGACY_GRACE_CLAIM] = legacy_grace_expires
+    if usid is not None:
+        claims[USID_CLAIM] = usid
     return claims
 
 
@@ -128,4 +133,9 @@ def carry_session_claims(payload: dict) -> dict:
         grace = int(time.time()) + int(LEGACY_SESSION_GRACE.total_seconds())
     if amr is not None:
         grace = None
-    return session_claims(amr, payload.get(SORG_CLAIM), grace)
+    claims = session_claims(amr, payload.get(SORG_CLAIM), grace)
+    # Carrega o vínculo com a sessão upstream (feature 003) através da rotação.
+    usid = payload.get(USID_CLAIM)
+    if usid is not None:
+        claims[USID_CLAIM] = usid
+    return claims
