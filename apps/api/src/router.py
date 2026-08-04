@@ -10,6 +10,7 @@ from src.routers import plans
 from src.routers import usergroups
 from src.routers import dev, trail, users, auth, orgs, roles, search
 from src.routers import keycloak_auth
+from src.routers import oidc_admin
 from src.routers import mfa as mfa_router_module
 from src.routers import monitoring
 from src.routers import stream
@@ -118,6 +119,13 @@ v1_router.include_router(
     prefix="/orgs",
     tags=["api-tokens"],
     dependencies=[Depends(require_authenticated_user), Depends(require_plan("pro", "API Access"))]
+)
+v1_router.include_router(
+    oidc_admin.router,
+    prefix="/orgs",
+    tags=["oidc-config"],
+    # Sem require_plan: a configuracao OIDC e nucleo AGPL do fork (spec 004).
+    dependencies=[Depends(require_authenticated_user)]
 )
 v1_router.include_router(
     webhooks.router,
