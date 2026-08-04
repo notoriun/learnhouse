@@ -20,7 +20,7 @@ import httpx
 import jwt
 from jwt import PyJWKClient
 
-from config.config import get_learnhouse_config
+from config.config import KeycloakConfig, get_learnhouse_config
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +95,16 @@ def _redis():  # pragma: no cover - shim fino; substituído nos testes
 
 def get_keycloak_config():
     return get_learnhouse_config().keycloak_config
+
+
+def unverified_issuer(token: str) -> Optional[str]:
+    """Lê o ``iss`` SEM verificar assinatura — exclusivamente para ROTEAR a
+    validação multi-issuer (config por org, feature 004). O valor nunca é
+    identidade confiável; a validação integral vem em seguida."""
+    try:
+        return jwt.decode(token, options={"verify_signature": False}).get("iss")
+    except jwt.InvalidTokenError:
+        return None
 
 
 def get_discovery(issuer: str) -> dict[str, Any]:
@@ -230,15 +240,18 @@ def get_callback_redirect_uri() -> str:
     return f"{scheme}://{hosting.frontend_domain}/api/auth/keycloak/callback"
 
 
-def exchange_code(code: str, code_verifier: str) -> dict[str, Any]:
+def exchange_code(
+    code: str, code_verifier: str, config: Optional[KeycloakConfig] = None
+) -> dict[str, Any]:
     """Troca o authorization code por tokens no token_endpoint (client
     confidencial + PKCE). O corpo da resposta (tokens do provedor) nunca é
     logado.
 
-    Recusa do provedor (``invalid_grant`` etc.) → ``CodeExchangeError`` (401);
-    indisponibilidade → ``ProviderUnavailableError`` (503).
+    ``config`` é a config efetiva (por org, feature 004) — ausente, usa a
+    global. Recusa do provedor (``invalid_grant`` etc.) → ``CodeExchangeError``
+    (401); indisponibilidade → ``ProviderUnavailableError`` (503).
     """
-    config = get_keycloak_config()
+    config = config or get_keycloak_config()
     discovery = get_discovery(config.issuer)
     try:
         response = httpx.post(
@@ -272,14 +285,16 @@ def exchange_code(code: str, code_verifier: str) -> dict[str, Any]:
     return tokens
 
 
-def validate_id_token(id_token: str, nonce: str) -> dict[str, Any]:
+def validate_id_token(
+    id_token: str, nonce: str, config: Optional[KeycloakConfig] = None
+) -> dict[str, Any]:
     """Validação integral do ID token (FR-005): assinatura via JWKS, iss,
     aud/azp, exp/nbf/iat com leeway configurado e nonce do fluxo.
 
     Qualquer falha → ``TokenValidationError`` com a categoria (nunca o valor do
     claim). JWKS inacessível → ``ProviderUnavailableError``.
     """
-    config = get_keycloak_config()
+    config = config or get_keycloak_config()
     discovery = get_discovery(config.issuer)
     try:
         signing_key = _get_jwks_client(discovery["jwks_uri"]).get_signing_key_from_jwt(
@@ -336,7 +351,9 @@ def validate_id_token(id_token: str, nonce: str) -> dict[str, Any]:
 BACKCHANNEL_LOGOUT_EVENT = "http://schemas.openid.net/event/backchannel-logout"
 
 
-def validate_logout_token(logout_token: str) -> dict[str, Any]:
+def validate_logout_token(
+    logout_token: str, config: Optional[KeycloakConfig] = None
+) -> dict[str, Any]:
     """Valida o logout token do back-channel (research R3). Caminho de
     segurança — nenhum atalho de dev/teste desabilita a validação.
 
@@ -344,7 +361,7 @@ def validate_logout_token(logout_token: str) -> dict[str, Any]:
     ``iat`` recente, claim ``events`` com o evento de back-channel logout, ao
     menos um entre ``sid``/``sub``, e ``nonce`` AUSENTE (presença é rejeição).
     """
-    config = get_keycloak_config()
+    config = config or get_keycloak_config()
     discovery = get_discovery(config.issuer)
     try:
         signing_key = _get_jwks_client(discovery["jwks_uri"]).get_signing_key_from_jwt(
@@ -387,7 +404,9 @@ def validate_logout_token(logout_token: str) -> dict[str, Any]:
     return claims
 
 
-def refresh_upstream(refresh_token: str) -> dict[str, Any]:
+def refresh_upstream(
+    refresh_token: str, config: Optional[KeycloakConfig] = None
+) -> dict[str, Any]:
     """Renova a sessão no provedor (``grant_type=refresh_token``).
 
     Classificação da falha (research R5): ``invalid_grant`` = rejeição
@@ -395,7 +414,7 @@ def refresh_upstream(refresh_token: str) -> dict[str, Any]:
     200 malformada = TRANSITÓRIA (``ProviderUnavailableError``). Definitiva
     NUNCA é reclassificada como transitória (Princípio IV).
     """
-    config = get_keycloak_config()
+    config = config or get_keycloak_config()
     discovery = get_discovery(config.issuer)
     try:
         response = httpx.post(
@@ -431,11 +450,13 @@ def refresh_upstream(refresh_token: str) -> dict[str, Any]:
 
 
 def build_end_session_url(
-    id_token: Optional[str], post_logout_redirect_uri: str
+    id_token: Optional[str],
+    post_logout_redirect_uri: str,
+    config: Optional[KeycloakConfig] = None,
 ) -> Optional[str]:
     """URL de RP-Initiated Logout. ``id_token_hint`` quando disponível; senão
     ``client_id`` como fallback."""
-    config = get_keycloak_config()
+    config = config or get_keycloak_config()
     try:
         discovery = get_discovery(config.issuer)
     except ProviderUnavailableError:
@@ -452,9 +473,13 @@ def build_end_session_url(
 
 
 def build_authorization_url(
-    discovery: dict[str, Any], state: str, nonce: str, code_challenge: str
+    discovery: dict[str, Any],
+    state: str,
+    nonce: str,
+    code_challenge: str,
+    config: Optional[KeycloakConfig] = None,
 ) -> str:
-    config = get_keycloak_config()
+    config = config or get_keycloak_config()
     params = httpx.QueryParams(
         {
             "response_type": "code",

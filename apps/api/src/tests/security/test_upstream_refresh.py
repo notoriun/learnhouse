@@ -137,7 +137,7 @@ class TestRefreshUpstreamPrimeiro:
         row = await _seed(db, sso_user)
         chamado = {"upstream": False}
 
-        def _refresh(rt):
+        def _refresh(rt, config=None):
             chamado["upstream"] = True
             return {"access_token": "up-access", "refresh_token": "upstream-refresh-v2"}
 
@@ -157,7 +157,7 @@ class TestRefreshUpstreamPrimeiro:
     ):
         row = await _seed(db, sso_user)
 
-        def _refresh(rt):
+        def _refresh(rt, config=None):
             raise oidc.CodeExchangeError("invalid_grant")
 
         monkeypatch.setattr(oidc, "refresh_upstream", _refresh)
@@ -192,7 +192,7 @@ class TestRefreshTransitorio:
     ):
         row = await _seed(db, sso_user)
 
-        def _refresh(rt):
+        def _refresh(rt, config=None):
             raise oidc.ProviderUnavailableError(f"upstream_refresh_error:{cat}")
 
         monkeypatch.setattr(oidc, "refresh_upstream", _refresh)
