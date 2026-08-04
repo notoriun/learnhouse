@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import PlanBadge from '@components/Dashboard/Shared/PlanRestricted/PlanBadge'
 import { PlanLevel } from '@services/plans/plans'
 import Image from 'next/image'
-import lrnaiIcon from 'public/lrnai_icon.png'
+import aiIcon from '@components/Objects/aiIcon'
 import { useOrg } from '@components/Contexts/OrgContext'
 
 interface CourseCreationTypeSelectorProps {
@@ -55,7 +55,7 @@ function CourseCreationTypeSelector({ onSelectType, currentPlan }: CourseCreatio
           }`}>
             {canUseAI ? (
               <Image
-                src={lrnaiIcon}
+                src={aiIcon}
                 alt="AI"
                 width={28}
                 height={28}

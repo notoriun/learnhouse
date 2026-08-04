@@ -38,7 +38,8 @@ export async function addContactWithLoops(
   const c = client()
   if (!c) return null
   try {
-    const props: ContactProps = { userGroup, source: 'learnhouse.io', ...(extra || {}) }
+    // ponytail: tag de origem no CRM — valor de dado, não marca visível.
+    const props: ContactProps = { userGroup, source: 'web', ...(extra || {}) }
     const res = await c.createContact({ email, properties: props })
     // Already exists → update instead so the call is idempotent.
     if ((res as any)?.success === false) {

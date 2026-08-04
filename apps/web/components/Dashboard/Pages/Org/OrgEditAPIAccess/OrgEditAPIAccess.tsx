@@ -1,6 +1,7 @@
 'use client'
 import React, { useState } from 'react'
 import { useOrg } from '@components/Contexts/OrgContext'
+import { getBrand } from '@services/config/brand'
 import { useLHSession } from '@components/Contexts/LHSessionContext'
 import { toast } from 'react-hot-toast'
 import { Button } from '@components/ui/button'
@@ -230,11 +231,11 @@ const OrgEditAPIAccess: React.FC = () => {
             </TabsTrigger>
           </TabsList>
           <a
-            href="mailto:hello@learnhouse.app"
+            href={`mailto:${getBrand().contactEmail}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors border border-gray-200"
-            title="Contact LearnHouse support"
+            title="Contact support"
           >
             <LifeBuoy size={14} />
             {t('dashboard.organization.api_access.something_not_working')}

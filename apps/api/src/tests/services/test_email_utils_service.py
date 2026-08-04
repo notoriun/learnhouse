@@ -40,6 +40,7 @@ def _config(**overrides):
         smtp_use_tls=overrides.pop("smtp_use_tls", True),
     )
     return SimpleNamespace(
+        site_name=overrides.pop("site_name", "LearnHouse"),
         hosting_config=hosting,
         general_config=general,
         mailing_config=mailing,

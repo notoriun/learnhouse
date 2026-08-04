@@ -22,6 +22,7 @@ import {
   type ContentResultType,
 } from '@/lib/dashboard-search/useContentSearch'
 import { useOrgMembership } from '@components/Contexts/OrgContext'
+import { getBrand } from '@services/config/brand'
 import { isFeatureAvailable } from '@services/plans/plans'
 import { normalizeForSearch } from '@/lib/search/normalize'
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
@@ -251,7 +252,7 @@ export default function CommandPalette() {
                 />
               </div>
               <img
-                src="/lrn-dash.svg"
+                src={getBrand().logos.symbolDark}
                 alt=""
                 aria-hidden="true"
                 draggable={false}

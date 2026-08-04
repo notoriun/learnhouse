@@ -25,7 +25,7 @@ import {
 // NOTE: strings are hardcoded English here rather than routed through i18n,
 // because the shared locale files live outside the assignments dashboard area
 // (which this task is scoped to). Everything else mirrors the surrounding
-// LearnHouse design language (neutral palette, nice-shadow, rounded-lg,
+// dashboard design language (neutral palette, nice-shadow, rounded-lg,
 // lucide icons — no AI-gradient styling).
 // ---------------------------------------------------------------------------
 

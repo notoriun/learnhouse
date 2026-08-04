@@ -1,6 +1,7 @@
 'use client'
 import React from 'react'
 import { useOrg } from '@components/Contexts/OrgContext'
+import { getBrand } from '@services/config/brand'
 import { useLHSession } from '@components/Contexts/LHSessionContext'
 import { toast } from 'react-hot-toast'
 import { useQueryClient } from '@tanstack/react-query'
@@ -92,8 +93,9 @@ const OrgEditAI: React.FC = () => {
         {/* Header */}
         <div className="flex items-center gap-3">
           <Image
-            src="/learnhouse_ai_simple_colored.png"
-            alt="LearnHouse AI"
+            unoptimized
+            src={getBrand().logos.symbol}
+            alt={`${getBrand().name} AI`}
             width={28}
             height={28}
           />

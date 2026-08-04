@@ -30,7 +30,7 @@ import { invoiceSubscriptionId } from "./activeUserBillingUtils";
 // Resolve the Stripe secret key. Prefer the billing-specific STRIPE_SECRET_KEY,
 // but fall back to LEARNHOUSE_STRIPE_SECRET_KEY (the platform Stripe account's
 // secret key — the same account the SaaS subscription prices live in) so
-// deployments that only set the LEARNHOUSE_-prefixed var still work. Shared by
+// deployments that only set the legacy-prefixed var still work. Shared by
 // the lazy Stripe client here, the webhook route, and the billing guard.
 export function getStripeSecretKey(): string | undefined {
   return process.env.STRIPE_SECRET_KEY || process.env.LEARNHOUSE_STRIPE_SECRET_KEY;
@@ -86,7 +86,7 @@ function getPeriodStart(subscription: any): number | undefined {
 
 // ── Customer resolution ──────────────────────────────────────────────────────
 // A single email can map to MULTIPLE Stripe customers. Duplicates arise because
-// other LearnHouse products share this Stripe account and create their own
+// other sibling products share this Stripe account and create their own
 // customer per email. `customers.list({ email, limit: 1 })` returns an arbitrary
 // (most-recently created) customer, which may not be the one holding this org's
 // subscription — that made getActiveSubscription return null and wrongly route
@@ -556,7 +556,7 @@ export async function getUpcomingInvoice(
  *
  * Invoices carry no org metadata, so they are matched by the subscriptions they
  * belong to — the org's plan subscription plus its packs. Invoices belonging to
- * another org (or another LearnHouse product) on the same shared customer are
+ * another org (or another sibling product) on the same shared customer are
  * therefore excluded.
  */
 export async function listInvoices(

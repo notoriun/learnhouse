@@ -6,9 +6,9 @@ import "server-only";
 // stripping the @vercel/kv trial-status helper and the email coupling: billing
 // correctness only requires this authenticated internal plan PUT.
 import { getServerAPIUrl } from "@services/config/config";
-import type { LearnHousePlanType } from "./plans";
+import type { PlanType } from "./plans";
 
-export async function updateOrganizationConfigInternally(org_id: any, plan: LearnHousePlanType) {
+export async function updateOrganizationConfigInternally(org_id: any, plan: PlanType) {
   console.log(`[updateOrgConfig] Updating org ${org_id} to plan "${plan}"`);
 
   // The API guard (apps/api/.../orgs/org_plan.py) compares X-Internal-Key to env

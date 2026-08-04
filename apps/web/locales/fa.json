@@ -48,11 +48,11 @@
     "help": "راهنما",
     "help_menu": {
       "documentation": "مستندات",
-      "website": "وب‌سایت LearnHouse",
+      "website": "وب‌سایت {{brand}}",
       "discord": "دیسکورد",
       "report_feedback": "گزارش مشکل یا بازخورد",
       "feedback_title": "ارسال بازخورد",
-      "feedback_description": "با به اشتراک گذاشتن نظرات، گزارش اشکالات یا پیشنهاد ویژگی‌های جدید به ما در بهبود LearnHouse کمک کنید.",
+      "feedback_description": "با به اشتراک گذاشتن نظرات، گزارش اشکالات یا پیشنهاد ویژگی‌های جدید به ما در بهبود {{brand}} کمک کنید.",
       "feedback_placeholder": "به ما بگویید چه فکری دارید...",
       "feedback_success": "از بازخورد شما متشکریم!",
       "send_feedback": "ارسال بازخورد",
@@ -216,7 +216,7 @@
     "organizations": "سازمان‌ها",
     "billing": "صورت‌حساب",
     "create_organization": "ایجاد سازمان",
-    "copyright": "© {{year}} LearnHouse, Inc.",
+    "copyright": "© {{year}} {{legalName}}",
     "delete_organization_error": "حذف این سازمان ممکن نشد. لطفاً دوباره تلاش کنید.",
     "org_actions": "اقدامات سازمان",
     "manage_upgrade": "مدیریت / ارتقا",
@@ -353,17 +353,17 @@
     "invite_required_desc": "برای پیوستن به {{org}} کد دعوت الزامی است",
     "invite_code": "کد دعوت",
     "validate_invite": "تأیید دعوت",
-    "terms_text": "با ادامه دادن، شما با موارد زیر در LearnHouse موافقت می‌کنید:",
+    "terms_text": "با ادامه دادن، شما با موارد زیر در {{brand}} موافقت می‌کنید:",
     "terms_of_service": "شرایط استفاده از خدمات",
     "and": "و",
     "privacy_policy": "سیاست حفظ حریم خصوصی",
     "image_title_forgot": "گذرواژه خود را بازنشانی کنید.",
     "image_subtitle_forgot": "در کمترین زمان به شما کمک می‌کنیم به حساب خود بازگردید.",
-    "image_title_login": "به LearnHouse خوش آمدید.",
+    "image_title_login": "به {{brand}} خوش آمدید.",
     "image_subtitle_login": "از همان‌جا که رها کردید ادامه دهید — دوره‌ها، دانشجویان و ابزارهایتان منتظرند.",
     "image_title_reset": "تقریباً تمام شد.",
     "image_subtitle_reset": "برای حفظ امنیت حساب خود یک گذرواژه قوی بسازید.",
-    "image_title_signup": "تدریس را با LearnHouse آغاز کنید.",
+    "image_title_signup": "تدریس را با {{brand}} آغاز کنید.",
     "image_subtitle_signup": "حساب خود را بسازید و اولین دوره‌تان را در چند دقیقه راه‌اندازی کنید.",
     "image_title_verify": "ایمیل خود را تأیید کنید.",
     "image_subtitle_verify": "یک گام سریع برای ایمن‌سازی حساب و شروع کار.",
@@ -542,14 +542,14 @@
     "import": {
       "scorm_package": "بسته SCORM",
       "scorm_description": "وارد کردن بسته‌های SCORM 1.2 یا SCORM 2004",
-      "learnhouse_courses": "دوره‌های LearnHouse",
-      "learnhouse_description": "وارد کردن دوره‌های خروجی‌گرفته شده از LearnHouse",
+      "learnhouse_courses": "دوره‌های {{brand}}",
+      "learnhouse_description": "وارد کردن دوره‌های خروجی‌گرفته شده از {{brand}}",
       "upload_package": "آپلود بسته",
       "configure": "پیکربندی",
       "complete": "تکمیل",
       "click_to_upload": "برای آپلود کلیک کنید یا بکشید و رها کنید",
-      "learnhouse_format": "خروجی دوره LearnHouse (.zip)",
-      "learnhouse_info": "یک بسته خروجی دوره LearnHouse (.zip) آپلود کنید. می‌توانید انتخاب کنید کدام دوره‌ها را وارد کنید و گزینه‌های واردات را پیکربندی کنید.",
+      "learnhouse_format": "خروجی دوره {{brand}} (.zip)",
+      "learnhouse_info": "یک بسته خروجی دوره {{brand}} (.zip) آپلود کنید. می‌توانید انتخاب کنید کدام دوره‌ها را وارد کنید و گزینه‌های واردات را پیکربندی کنید.",
       "analyze_package": "تحلیل بسته",
       "ready_to_analyze": "آماده برای تحلیل",
       "invalid_file_format": "لطفاً یک فایل .zip آپلود کنید",
@@ -1274,7 +1274,7 @@
     "not_supported_title": "این فعالیت پشتیبانی نمی‌شود",
     "not_supported_description": "این نوع فعالیت نیاز به احراز هویت دارد و قابل جاسازی نیست.",
     "visit_activity": "بازدید از صفحه فعالیت",
-    "powered_by": "پشتیبانی شده توسط LearnHouse"
+    "powered_by": "پشتیبانی شده توسط {{brand}}"
   },
   "assignments": {
     "submit_assignment": "ارسال تکلیف",
@@ -1724,7 +1724,7 @@
           "description": "پیکربندی تنظیمات شخصی، رمزهای عبور، ایمیل"
         }
       },
-      "learnhouse_university": "دانشگاه LearnHouse",
+      "learnhouse_university": "دانشگاه {{brand}}",
       "welcome_back": "خوش آمدید",
       "plan": "طرح",
       "create_course": "ایجاد دوره",
@@ -1781,8 +1781,8 @@
       "import_course": "وارد کردن دوره",
       "import_scorm": "وارد کردن SCORM",
       "import_scorm_description": "برای ایجاد یک دوره جدید، یک بسته SCORM وارد کنید",
-      "import_learnhouse": "وارد کردن دوره LearnHouse",
-      "import_learnhouse_description": "وارد کردن یک دوره صادر شده از LearnHouse",
+      "import_learnhouse": "وارد کردن دوره {{brand}}",
+      "import_learnhouse_description": "وارد کردن یک دوره صادر شده از {{brand}}",
       "import_select_type": "نوع دوره مورد نظر برای وارد کردن را انتخاب کنید",
       "no_courses": "هنوز دوره‌ای وجود ندارد",
       "create_course_placeholder": "برای افزودن محتوا، یک دوره ایجاد کنید",
@@ -2630,8 +2630,8 @@
         "footer_text_desc": "متن سفارشی که در پایین صفحات سازمان شما نمایش داده می‌شود",
         "default_language": "زبان پیش‌فرض",
         "default_language_desc": "زبانی که بازدیدکنندگان جدید به طور پیش‌فرض می‌بینند و زبانی که برای ایمیل‌های ارسال شده از طرف این سازمان استفاده می‌شود. اعضا همچنان می‌توانند زبان رابط کاربری خود را تغییر دهند.",
-        "watermark_label": "واترمارک \"ساخته شده با LearnHouse\"",
-        "watermark_desc": "نمایش واترمارک برند LearnHouse در صفحات سازمان شما",
+        "watermark_label": "واترمارک \"ساخته شده با {{brand}}\"",
+        "watermark_desc": "نمایش واترمارک برند {{brand}} در صفحات سازمان شما",
         "watermark_free_plan": "واترمارک همیشه در طرح رایگان نشان داده می‌شود",
         "watermark_ee": "با مجوز نسخه سازمانی شما پنهان شده است"
       },
@@ -3297,19 +3297,97 @@
         "failed_load": "بارگذاری پرونده دانشجو ناموفق بود.",
         "back_to_students": "بازگشت به دانشجویان",
         "no_behavioral": "داده رفتاری وجود ندارد (ممکن است تحلیل‌ها برای این بازه پیکربندی نشده باشد).",
-        "ranges": { "d30": "۳۰ روز", "d90": "۹۰ روز", "y1": "۱ سال" },
-        "kpi": { "courses": "دوره‌ها", "completed": "{{count}} تکمیل‌شده", "avg_progress": "میانگین پیشرفت", "time_spent": "زمان صرف‌شده", "assignments": "تکالیف", "avg_grade": "میانگین {{grade}}", "certificates": "گواهی‌ها", "connections": "اتصال‌ها", "last": "آخرین {{date}}" },
-        "tabs": { "connections": "اتصال‌ها", "courses": "دوره‌ها", "assignments": "تکالیف", "code": "کد", "community": "انجمن", "certificates": "گواهی‌ها", "behavior": "رفتار" },
-        "identity": { "verified": "تأییدشده", "unverified": "تأییدنشده", "via": "از طریق {{method}}" },
-        "connections": { "title": "اتصال‌ها", "empty": "هنوز هیچ اتصالی ثبت نشده است." },
-        "courses": { "title": "پیشرفت دوره", "empty": "در هیچ دوره‌ای ثبت‌نام نشده است.", "activities": "{{done}}/{{total}} فعالیت", "enrolled": "ثبت‌نام در {{date}}" },
-        "assignments": { "title": "تکالیف", "empty": "هیچ تکلیفی ارسال نشده است.", "attempt": "تلاش {{number}}", "feedback": "بازخورد:" },
-        "code": { "title": "تمرین‌های کد", "empty": "هیچ کدی ارسال نشده است.", "activity": "فعالیت", "result": "نتیجه", "tests": "آزمون‌ها", "time": "زمان", "when": "چه زمانی", "passed": "قبول", "failed": "مردود" },
-        "community": { "title": "مشارکت در انجمن", "empty": "هیچ فعالیت انجمنی وجود ندارد.", "discussions": "بحث‌ها", "comments": "نظرات" },
-        "certificates": { "title": "گواهی‌های کسب‌شده", "empty": "هیچ گواهی‌ای کسب نشده است." },
-        "behavior": { "title": "تحلیل‌های رفتاری", "time_by_course": "زمان صرف‌شده بر اساس دوره", "searches": "جستجوها" },
-        "status": { "completed": "تکمیل‌شده", "in_progress": "در حال انجام", "paused": "متوقف‌شده", "cancelled": "لغوشده", "graded": "نمره‌داده‌شده", "submitted": "ارسال‌شده", "pending": "در انتظار", "late": "با تأخیر", "not_submitted": "ارسال‌نشده" },
-        "comparison": { "student": "دانشجو", "enrolled": "ثبت‌نام‌شده", "completed": "تکمیل‌شده", "certificates": "گواهی‌ها", "last_connection": "آخرین اتصال", "view": "مشاهده" }
+        "ranges": {
+          "d30": "۳۰ روز",
+          "d90": "۹۰ روز",
+          "y1": "۱ سال"
+        },
+        "kpi": {
+          "courses": "دوره‌ها",
+          "completed": "{{count}} تکمیل‌شده",
+          "avg_progress": "میانگین پیشرفت",
+          "time_spent": "زمان صرف‌شده",
+          "assignments": "تکالیف",
+          "avg_grade": "میانگین {{grade}}",
+          "certificates": "گواهی‌ها",
+          "connections": "اتصال‌ها",
+          "last": "آخرین {{date}}"
+        },
+        "tabs": {
+          "connections": "اتصال‌ها",
+          "courses": "دوره‌ها",
+          "assignments": "تکالیف",
+          "code": "کد",
+          "community": "انجمن",
+          "certificates": "گواهی‌ها",
+          "behavior": "رفتار"
+        },
+        "identity": {
+          "verified": "تأییدشده",
+          "unverified": "تأییدنشده",
+          "via": "از طریق {{method}}"
+        },
+        "connections": {
+          "title": "اتصال‌ها",
+          "empty": "هنوز هیچ اتصالی ثبت نشده است."
+        },
+        "courses": {
+          "title": "پیشرفت دوره",
+          "empty": "در هیچ دوره‌ای ثبت‌نام نشده است.",
+          "activities": "{{done}}/{{total}} فعالیت",
+          "enrolled": "ثبت‌نام در {{date}}"
+        },
+        "assignments": {
+          "title": "تکالیف",
+          "empty": "هیچ تکلیفی ارسال نشده است.",
+          "attempt": "تلاش {{number}}",
+          "feedback": "بازخورد:"
+        },
+        "code": {
+          "title": "تمرین‌های کد",
+          "empty": "هیچ کدی ارسال نشده است.",
+          "activity": "فعالیت",
+          "result": "نتیجه",
+          "tests": "آزمون‌ها",
+          "time": "زمان",
+          "when": "چه زمانی",
+          "passed": "قبول",
+          "failed": "مردود"
+        },
+        "community": {
+          "title": "مشارکت در انجمن",
+          "empty": "هیچ فعالیت انجمنی وجود ندارد.",
+          "discussions": "بحث‌ها",
+          "comments": "نظرات"
+        },
+        "certificates": {
+          "title": "گواهی‌های کسب‌شده",
+          "empty": "هیچ گواهی‌ای کسب نشده است."
+        },
+        "behavior": {
+          "title": "تحلیل‌های رفتاری",
+          "time_by_course": "زمان صرف‌شده بر اساس دوره",
+          "searches": "جستجوها"
+        },
+        "status": {
+          "completed": "تکمیل‌شده",
+          "in_progress": "در حال انجام",
+          "paused": "متوقف‌شده",
+          "cancelled": "لغوشده",
+          "graded": "نمره‌داده‌شده",
+          "submitted": "ارسال‌شده",
+          "pending": "در انتظار",
+          "late": "با تأخیر",
+          "not_submitted": "ارسال‌نشده"
+        },
+        "comparison": {
+          "student": "دانشجو",
+          "enrolled": "ثبت‌نام‌شده",
+          "completed": "تکمیل‌شده",
+          "certificates": "گواهی‌ها",
+          "last_connection": "آخرین اتصال",
+          "view": "مشاهده"
+        }
       },
       "active_users": {
         "title": "کاربران فعال",
@@ -5133,10 +5211,10 @@
       },
       "teach_the_world": {
         "title": "یاد بگیرید و رشد کنید",
-        "description": "منابعی برای کمک به شما در استفاده حداکثری از LearnHouse.",
+        "description": "منابعی برای کمک به شما در استفاده حداکثری از {{brand}}.",
         "classroom": "کلاس درس",
         "classroom_desc": "نحوه رشد و مدیریت دوره‌های خود را بیاموزید",
-        "university": "دانشگاه LearnHouse",
+        "university": "دانشگاه {{brand}}",
         "university_desc": "راهنماها، نکات و بهترین روش‌ها"
       },
       "add_content": {
@@ -5166,7 +5244,7 @@
       }
     },
     "welcome": {
-      "title": "به LearnHouse خوش آمدید",
+      "title": "به {{brand}} خوش آمدید",
       "subtitle": "دوره ایجاد کنید، زبان‌آموزان را دعوت کنید و دانش را با جهان به اشتراک بگذارید.",
       "get_started": "شروع کنید",
       "features_title": "همه چیزهایی که نیاز دارید",
@@ -5509,7 +5587,7 @@
         "title": "می‌خواهید امتحان کنید؟",
         "body": "به",
         "link": "صفحه توسعه‌دهندگان",
-        "suffix": "بروید تا LearnHouse را امتحان کنید."
+        "suffix": "بروید تا {{brand}} را امتحان کنید."
       },
       "validation": {
         "required": "الزامی",

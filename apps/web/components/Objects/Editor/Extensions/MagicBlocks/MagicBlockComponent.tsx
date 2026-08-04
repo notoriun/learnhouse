@@ -4,7 +4,7 @@ import { X, Edit3, Expand, GripHorizontal, Lock } from 'lucide-react'
 import React from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import Image from 'next/image'
-import lrnaiIcon from 'public/lrnai_icon.png'
+import aiIcon from '@components/Objects/aiIcon'
 import { useEditorProvider } from '@components/Contexts/Editor/EditorContext'
 import { useLHSession } from '@components/Contexts/LHSessionContext'
 import { useCourse } from '@components/Contexts/CourseContext'
@@ -247,7 +247,7 @@ function MagicBlockComponent(props: ExtendedNodeViewProps) {
                 <Image
                   className="outline outline-1 outline-neutral-200/20 rounded-lg"
                   width={20}
-                  src={lrnaiIcon}
+                  src={aiIcon}
                   alt="Magic Block"
                 />
                 <span className="text-sm font-semibold text-white/70">
@@ -283,7 +283,7 @@ function MagicBlockComponent(props: ExtendedNodeViewProps) {
                     }}
                     className="p-4 rounded-full drop-shadow-md"
                   >
-                    <Image src={lrnaiIcon} alt="Magic Block" width={32} height={32} />
+                    <Image src={aiIcon} alt="Magic Block" width={32} height={32} />
                   </div>
                   <div className="space-y-1">
                     <p className="font-semibold text-white/80">
@@ -303,7 +303,7 @@ function MagicBlockComponent(props: ExtendedNodeViewProps) {
                     <Image
                       className="outline outline-1 outline-neutral-200/20 rounded-md"
                       width={16}
-                      src={lrnaiIcon}
+                      src={aiIcon}
                       alt=""
                     />
                     {t('editor.blocks.magic_block_content.generate_with_ai')}
@@ -327,7 +327,7 @@ function MagicBlockComponent(props: ExtendedNodeViewProps) {
                     <Image
                       className="outline outline-1 outline-neutral-200/20 rounded-md opacity-50 grayscale"
                       width={16}
-                      src={lrnaiIcon}
+                      src={aiIcon}
                       alt=""
                     />
                     {t('editor.blocks.magic_block_content.generate_with_ai')}

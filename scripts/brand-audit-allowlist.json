@@ -1,0 +1,85 @@
+{
+  "_comment": "Allowlist da auditoria de marca (feature 005). Cada entrada tem justificativa. Padrões 'patterns' são regex removidos da linha ANTES da varredura (identificadores técnicos protegidos por FR-009/ADR-07 — nunca renomeados). 'paths' são glob-prefixos onde o nome original é permitido (ALLOW, nunca FAIL).",
+  "patterns": [
+    {
+      "regex": "LH_[A-Za-z_]+",
+      "reason": "Cookies e marcadores técnicos (LH_access, LH_refresh, LH_session...) — FR-009: nunca renomeados"
+    },
+    {
+      "regex": "NEXT_PUBLIC_LEARNHOUSE_[A-Z_]+",
+      "reason": "Env vars públicas do frontend — FR-009: nomes preservados, só valores mudam"
+    },
+    {
+      "regex": "LEARNHOUSE_[A-Z_]+",
+      "reason": "Env vars da API — FR-009: nomes preservados"
+    },
+    {
+      "regex": "get_learnhouse_config|getLEARNHOUSE_[A-Za-z_]+|LearnHouseConfig",
+      "reason": "Símbolos internos de código herdados do upstream — invisíveis ao usuário; renomeação é o item P2 do backlog"
+    },
+    {
+      "regex": "(?:import_)?learnhouse(?:_[a-z]+)*",
+      "reason": "Chaves técnicas de tradução i18n (learnhouse_courses, import_learnhouse...) — os VALORES já estão rebrandeados com {{brand}}; renomear as chaves quebraria os lookups t() dos componentes (item P2)"
+    },
+    {
+      "regex": "showlearnhouselogo",
+      "reason": "Query param público da API de embeds já publicados em sites de terceiros — renomear quebraria embeds existentes (FR-009); coberto explicitamente, não por acidente"
+    },
+    {
+      "regex": "npx learnhouse|learnhouse@latest|\"learnhouse\"|'learnhouse'|`learnhouse`|cd learnhouse",
+      "reason": "Nome técnico do pacote CLI e do diretório do repositório — renomeação gradual é o item P2 do backlog (compatibilidade 10.3)"
+    },
+    {
+      "regex": "github\\.com/learnhouse/learnhouse|github\\.com/notoriun/learnhouse|learnhouse/learnhouse|notoriun/learnhouse|github\\.com/learnhouse",
+      "reason": "Referências factuais ao repositório de origem (atribuição AGPL exige preservá-las) — alternativas mais longas primeiro para não deixar resíduo"
+    },
+    {
+      "regex": "formato LearnHouse|LearnHouse format",
+      "reason": "Entrada factual de importação de conteúdo — descreve compatibilidade, não é uso promocional"
+    },
+    {
+      "regex": "\\[LearnHouse\\]\\(|derivado do(?:\\s+projeto[^.]*)? LearnHouse|patrocinad[oa] pela LearnHouse, Inc\\.|\"LearnHouse\" (?:é marca|aparece)|LearnHouse, Inc\\.\\*\\*",
+      "reason": "Frases de ATRIBUIÇÃO factual e declaração de independência (AGPL/feature 006) — obrigatórias no README e na área legal, sem uso promocional"
+    }
+  ],
+  "paths": [
+    {
+      "prefix": "apps/web/app/legal/",
+      "reason": "Área legal — ÚNICO lugar visível com o nome original (atribuição AGPL + declaração de independência, FR-008)"
+    },
+    {
+      "prefix": "apps/web/bun.lock",
+      "reason": "Lockfile — nomes de pacote técnicos"
+    },
+    {
+      "prefix": "apps/web/package.json",
+      "reason": "Nome técnico do pacote — renomeação gradual é P2"
+    },
+    {
+      "suffix": ".test.ts",
+      "reason": "Testes — não são superfície de usuário"
+    },
+    {
+      "suffix": ".test.tsx",
+      "reason": "Testes — não são superfície de usuário"
+    }
+  ],
+  "forbiddenAssets": [
+    "favicon.ico",
+    "learnhouse_logo.png",
+    "learnhouse_icon.png",
+    "learnhouse_bigicon.png",
+    "learnhouse_bigicon_1.png",
+    "learnhouse_text_white.png",
+    "learnhouse_ai_black_logo.png",
+    "learnhouse_ai_simple.png",
+    "learnhouse_ai_simple_colored.png",
+    "black_logo.png",
+    "dashLogo.png",
+    "lrn.svg",
+    "lrn-dash.svg",
+    "lrn-text.svg",
+    "lrnai_icon.png"
+  ],
+  "_forbiddenAssetsNote": "Presença destes arquivos em apps/web/public/ (fora de /brand/) é FAIL; favicon.ico só é proibido na RAIZ de public/ (o de /brand/ é o novo)."
+}

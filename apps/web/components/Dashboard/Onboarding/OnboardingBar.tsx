@@ -38,6 +38,7 @@ import {
 import { FilePenLine } from 'lucide-react'
 import { useOrg } from '@components/Contexts/OrgContext'
 import { getUriWithOrg } from '@services/config/config'
+import { getBrand } from '@services/config/brand'
 import { usePlan } from '@components/Hooks/usePlan'
 import { PlanLevel, planMeetsRequirement } from '@services/plans/plans'
 import PlanBadge from '@components/Dashboard/Shared/PlanRestricted/PlanBadge'
@@ -662,20 +663,17 @@ export default function OnboardingBar() {
                                       </div>
                                     )}
 
-                                  {/* Teach the world — LearnHouse University link */}
+                                  {/* Teach the world — learning resources */}
                                   {step.id === 'teach_the_world' &&
                                     !step.completed && (
                                       <div className="relative px-3 pb-3 space-y-2">
-                                        <a
-                                          href="https://university.learnhouse.io"
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white nice-shadow hover:bg-gray-50 transition-colors"
+                                        <div
+                                          className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white nice-shadow"
                                         >
                                           <img
-                                            src="/UNI_LOGO.png"
-                                            alt="LearnHouse University"
-                                            className="h-9 w-auto shrink-0 rounded"
+                                            src={getBrand().logos.symbol}
+                                            alt={t('onboarding.steps.teach_the_world.university')}
+                                            className="h-9 w-9 shrink-0 rounded"
                                           />
                                           <div className="min-w-0">
                                             <p className="text-xs font-semibold text-gray-700">
@@ -685,8 +683,7 @@ export default function OnboardingBar() {
                                               {t('onboarding.steps.teach_the_world.university_desc')}
                                             </p>
                                           </div>
-                                          <span className="text-gray-300 shrink-0 ml-auto">→</span>
-                                        </a>
+                                        </div>
                                         <a
                                           href="https://classroom.learnhouse.io"
                                           target="_blank"

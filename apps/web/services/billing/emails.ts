@@ -7,6 +7,7 @@ import "server-only";
 // Plain server module (no `"use server"`) — internal helpers invoked only from
 // server actions / route handlers, never directly from the client.
 import { send, planColor } from "@services/emails/resend";
+import { getBrand } from "@services/config/brand";
 
 const prettyPlan = (plan?: string) =>
   (plan || "free")
@@ -64,7 +65,7 @@ export async function sendPurchaseCompleteMail(args: {
   await send(email, `Welcome to ${prettyPlan(plan)} 🎉`, {
     accentColor: planColor(plan),
     heading: "Payment received — you're all set!",
-    subtitle: `Your ${prettyPlan(plan)} plan is now active. Thanks for supporting LearnHouse.`,
+    subtitle: `Your ${prettyPlan(plan)} plan is now active. Thanks for supporting ${getBrand().name}.`,
     card: {
       label: "Your plan",
       title: prettyPlan(plan),

@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { getUriWithOrg } from '@services/config/config'
 import { ArrowLeft, Users } from 'lucide-react'
 import { Breadcrumbs } from '@components/Objects/Breadcrumbs/Breadcrumbs'
-import LearnHouseSpinner from '@components/Objects/Loaders/LearnHouseSpinner'
+import BrandSpinner from '@components/Objects/Loaders/BrandSpinner'
 import UserDossier from '@components/Dashboard/Pages/Users/UserAnalytics/UserDossier'
 import { useUserDossier } from '@components/Dashboard/Pages/Users/UserAnalytics/useUserAudit'
 
@@ -62,7 +62,7 @@ export default function UserAnalyticsDetailPage(props: { params: Promise<PagePar
         transition={{ duration: 0.15 }}
         className="min-w-0 overflow-y-auto overflow-x-hidden px-4 sm:px-10 py-6"
       >
-        {isLoading && <div className="py-24 flex justify-center"><LearnHouseSpinner /></div>}
+        {isLoading && <div className="py-24 flex justify-center"><BrandSpinner /></div>}
         {isError && <div className="py-24 text-center text-sm text-gray-500">{t('dashboard.users.analytics.failed_load')}</div>}
         {data && !isLoading && <UserDossier dossier={data} />}
       </motion.div>

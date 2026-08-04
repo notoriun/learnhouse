@@ -41,7 +41,7 @@ import ToolTip from '@components/Objects/StyledElements/Tooltip/Tooltip'
 import React from 'react'
 import Image from 'next/image'
 import LinkInputTooltip from './LinkInputTooltip'
-import lrnaiIcon from 'public/lrnai_icon.png'
+import aiIcon from '@components/Objects/aiIcon'
 import { useOrg } from '@components/Contexts/OrgContext'
 import { useTranslation } from 'react-i18next'
 
@@ -640,11 +640,11 @@ export const ToolbarButtons = React.memo(({ editor }: any) => {
             }
             aria-label={t('editor.blocks.magic_block')}
           >
-            <Image src={lrnaiIcon} alt="Magic Block" width={15} height={15} />
+            <Image src={aiIcon} alt="Magic Block" width={15} height={15} />
           </div>
         ) : (
           <div className="editor-tool-btn editor-tool-btn-magic editor-tool-btn-magic-disabled" aria-label={t('editor.blocks.magic_block_disabled')}>
-            <Image src={lrnaiIcon} alt="Magic Block" width={15} height={15} />
+            <Image src={aiIcon} alt="Magic Block" width={15} height={15} />
           </div>
         )}
       </ToolTip>

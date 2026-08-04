@@ -14,8 +14,22 @@ env:
   IMAGE_NAME: learnhouse/app
 
 jobs:
+  # Gate de marca (feature 005 — FR-010/SC-001): a release NÃO publica com a
+  # auditoria vermelha. Job requerido: build/release dependem dele.
+  brand-audit:
+    name: Brand audit (gate)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Auditoria de marca
+        run: node scripts/brand-audit.mjs --json
+
   build:
     name: Build (${{ matrix.platform }})
+    needs: brand-audit
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
