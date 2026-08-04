@@ -31,13 +31,22 @@ class UserAuditEventType:
     ``oidc_config_*`` registram mudanças administrativas na configuração do
     provedor de identidade — trilha exigida por FR-008 daquela spec (autor,
     momento, org e NOMES dos campos alterados; nunca valores nem segredos).
-    São a única família administrativa neste log; demais ações administrativas
-    permanecem fora de escopo.
+
+    EXTENSÃO DELIBERADA DE ESCOPO (feature 002-identidade-provisionamento): os
+    eventos ``sso_*`` registram provisionamento, vínculo, negação e conflito de
+    identidades federadas — FR-011 daquela spec. Alguns ocorrem ANTES de existir
+    conta (``user_id`` nulo). NUNCA contêm tokens, códigos ou segredos.
     """
 
     # Connections
     LOGIN = "login"
     LOGOUT = "logout"
+
+    # Provisionamento federado (feature 002 — ver nota de escopo acima)
+    SSO_PROVISIONED = "sso_provisioned"
+    SSO_LINKED = "sso_linked"
+    SSO_LOGIN_DENIED = "sso_login_denied"
+    SSO_CONFLICT = "sso_conflict"
 
     # Configuração OIDC (administrativa — ver nota de escopo acima)
     OIDC_CONFIG_CREATED = "oidc_config_created"
@@ -95,13 +104,16 @@ class UserAuditEvent(SQLModel, table=True):
             nullable=True,
         ),
     )
-    user_id: int = Field(
+    # Anulável: eventos federados (feature 002) podem ocorrer antes de existir
+    # conta — uma negação/conflito no primeiro acesso não tem usuário local.
+    user_id: Optional[int] = Field(
+        default=None,
         sa_column=Column(
             Integer,
             ForeignKey("user.id", ondelete="CASCADE"),
-            nullable=False,
+            nullable=True,
             index=True,
-        )
+        ),
     )
 
     event_type: str = Field(sa_column=Column(String(64), nullable=False))
