@@ -1,0 +1,485 @@
+"""Testes dos endpoints /api/v1/auth/keycloak/* (contracts/api-oidc.md).
+
+Keycloak não sobe em teste: discovery/token_endpoint são monkeypatch das funções
+do serviço; Redis é um fake em memória via patch de ``_redis`` (padrão dos
+testes de magic link). Fluxo feliz aqui (T009); negativos na US3 (T024) e
+asserções de vazamento na US2 (T019).
+"""
+
+from datetime import datetime
+from types import SimpleNamespace
+from unittest.mock import AsyncMock
+
+import pytest
+from fastapi import FastAPI
+from httpx import ASGITransport, AsyncClient
+
+from src.core.events.database import get_db_session
+from src.db.users import User
+from src.routers.keycloak_auth import router as keycloak_router
+from src.services.auth import keycloak_oidc
+
+ISSUER = "https://kc.test/realms/plataforma"
+CLIENT_ID = "learnhouse-web"
+
+DISCOVERY_DOC = {
+    "issuer": ISSUER,
+    "authorization_endpoint": f"{ISSUER}/protocol/openid-connect/auth",
+    "token_endpoint": f"{ISSUER}/protocol/openid-connect/token",
+    "jwks_uri": f"{ISSUER}/protocol/openid-connect/certs",
+}
+
+
+class FakeRedis:
+    """Fake mínimo em memória: apenas o que o serviço usa (set EX / getdel)."""
+
+    def __init__(self):
+        self.store: dict[str, str] = {}
+
+    def set(self, key, value, ex=None, nx=False):
+        if nx and key in self.store:
+            return None
+        self.store[key] = value
+        return True
+
+    def getdel(self, key):
+        return self.store.pop(key, None)
+
+
+@pytest.fixture
+def fake_redis(monkeypatch):
+    fake = FakeRedis()
+    monkeypatch.setattr(keycloak_oidc, "_redis", lambda: fake)
+    return fake
+
+
+@pytest.fixture
+def keycloak_enabled(monkeypatch):
+    config = SimpleNamespace(
+        enabled=True,
+        issuer=ISSUER,
+        client_id=CLIENT_ID,
+        client_secret="segredo-de-teste",
+        clock_skew=30,
+    )
+    monkeypatch.setattr(keycloak_oidc, "get_keycloak_config", lambda: config)
+    monkeypatch.setattr(keycloak_oidc, "get_discovery", lambda issuer: DISCOVERY_DOC)
+    monkeypatch.setattr(
+        keycloak_oidc,
+        "get_callback_redirect_uri",
+        lambda: "http://localhost:3000/api/auth/keycloak/callback",
+    )
+    return config
+
+
+@pytest.fixture
+def audit_mock(monkeypatch):
+    mock = AsyncMock()
+    monkeypatch.setattr("src.routers.keycloak_auth.record_audit_event", mock)
+    return mock
+
+
+@pytest.fixture
+def app(db):
+    app = FastAPI()
+    app.include_router(keycloak_router, prefix="/api/v1/auth/keycloak")
+    app.dependency_overrides[get_db_session] = lambda: db
+    yield app
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+async def client(app):
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as c:
+        yield c
+
+
+@pytest.fixture
+async def sso_user(db):
+    """Usuário local pré-existente com e-mail igual ao do provedor (research §6)."""
+    user = User(
+        id=42,
+        username="aluno",
+        first_name="Aluno",
+        last_name="Teste",
+        email="aluno@acme.dev",
+        password="hash-irrelevante",
+        user_uuid="user_sso",
+        email_verified=True,
+        creation_date=str(datetime.now()),
+        update_date=str(datetime.now()),
+    )
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
+PROVIDER_CLAIMS = {
+    "sub": "f0e1d2c3-usuario",
+    "email": "aluno@acme.dev",
+    "email_verified": True,
+}
+
+
+async def _start_flow(client, fake_redis, org_slug="test-org", redirect_to="/dash/cursos"):
+    """Executa o authorize e devolve (state, resposta)."""
+    response = await client.post(
+        "/api/v1/auth/keycloak/authorize",
+        json={"org_slug": org_slug, "redirect_to": redirect_to},
+    )
+    assert response.status_code == 200, response.text
+    return response.json()["state"], response.json()
+
+
+class TestStatus:
+    async def test_status_enabled_para_org_com_provedor(
+        self, client, org, keycloak_enabled
+    ):
+        response = await client.get("/api/v1/auth/keycloak/status?org=test-org")
+
+        assert response.status_code == 200
+        assert response.json() == {"enabled": True}
+
+    async def test_status_disabled_quando_config_desligada(
+        self, client, org, monkeypatch
+    ):
+        monkeypatch.setattr(
+            keycloak_oidc,
+            "get_keycloak_config",
+            lambda: SimpleNamespace(
+                enabled=False, issuer="", client_id="", client_secret="", clock_skew=30
+            ),
+        )
+
+        response = await client.get("/api/v1/auth/keycloak/status?org=test-org")
+
+        assert response.status_code == 200
+        assert response.json() == {"enabled": False}
+
+    async def test_status_org_desconhecida_e_disabled_sem_erro(
+        self, client, keycloak_enabled
+    ):
+        response = await client.get("/api/v1/auth/keycloak/status?org=nao-existe")
+
+        assert response.status_code == 200
+        assert response.json() == {"enabled": False}
+
+
+class TestAuthorize:
+    async def test_authorize_monta_url_e_grava_fluxo(
+        self, client, org, keycloak_enabled, fake_redis
+    ):
+        state, body = await _start_flow(client, fake_redis)
+
+        url = body["authorization_url"]
+        assert url.startswith(DISCOVERY_DOC["authorization_endpoint"])
+        assert "response_type=code" in url
+        assert "code_challenge_method=S256" in url
+        assert "code_challenge=" in url
+        assert f"state={state}" in url
+        assert "nonce=" in url
+        assert "scope=openid+email+profile" in url
+        assert f"client_id={CLIENT_ID}" in url
+        # Fluxo persistido com uso único pendente
+        assert f"oidc_flow:{state}" in fake_redis.store
+
+
+class TestVazamentos:
+    """US2 (T019) — FR-004/FR-010: nenhuma resposta ou log contém tokens do
+    provedor, authorization code, code_verifier ou client_secret."""
+
+    # Valores-sentinela: se qualquer um aparecer em resposta ou log, vazou.
+    SENTINELAS = [
+        "id-token-sentinela-do-provedor",
+        "access-token-sentinela-do-provedor",
+        "refresh-token-sentinela-do-provedor",
+        "codigo-sentinela-do-provedor",
+        "segredo-de-teste",
+    ]
+
+    def _assert_sem_sentinelas(self, texto: str):
+        for sentinela in self.SENTINELAS:
+            assert sentinela not in texto, f"vazou: {sentinela}"
+
+    async def test_callback_200_contem_apenas_tokens_internos(
+        self, client, org, sso_user, keycloak_enabled, fake_redis, audit_mock,
+        monkeypatch, caplog
+    ):
+        import logging
+
+        caplog.set_level(logging.DEBUG)
+        monkeypatch.setattr(
+            keycloak_oidc,
+            "exchange_code",
+            lambda code, verifier: {
+                "id_token": "id-token-sentinela-do-provedor",
+                "access_token": "access-token-sentinela-do-provedor",
+                "refresh_token": "refresh-token-sentinela-do-provedor",
+            },
+        )
+        monkeypatch.setattr(
+            keycloak_oidc, "validate_id_token", lambda id_token, nonce: dict(PROVIDER_CLAIMS)
+        )
+
+        state, _ = await _start_flow(client, fake_redis)
+        response = await client.post(
+            "/api/v1/auth/keycloak/callback",
+            json={"code": "codigo-sentinela-do-provedor", "state": state},
+        )
+
+        assert response.status_code == 200
+        self._assert_sem_sentinelas(response.text)
+        self._assert_sem_sentinelas(caplog.text)
+        # Tokens presentes são os internos da plataforma (JWT próprios).
+        body = response.json()
+        assert body["tokens"]["access_token"].count(".") == 2
+        assert "id_token" not in body.get("tokens", {})
+
+    async def test_erros_sem_dados_sensiveis_na_resposta_ou_log(
+        self, client, org, keycloak_enabled, fake_redis, monkeypatch, caplog
+    ):
+        import logging
+
+        caplog.set_level(logging.DEBUG)
+
+        # 410 — state desconhecido
+        r410 = await client.post(
+            "/api/v1/auth/keycloak/callback",
+            json={"code": "codigo-sentinela-do-provedor", "state": "state-inexistente"},
+        )
+        assert r410.status_code == 410
+
+        # 401 — código recusado pelo token_endpoint
+        def recusa(code, verifier):
+            raise keycloak_oidc.CodeExchangeError()
+
+        monkeypatch.setattr(keycloak_oidc, "exchange_code", recusa)
+        state, _ = await _start_flow(client, fake_redis)
+        r401 = await client.post(
+            "/api/v1/auth/keycloak/callback",
+            json={"code": "codigo-sentinela-do-provedor", "state": state},
+        )
+        assert r401.status_code == 401
+
+        for response in (r410, r401):
+            self._assert_sem_sentinelas(response.text)
+        self._assert_sem_sentinelas(caplog.text)
+
+    async def test_redis_indisponivel_e_503_sem_detalhe_tecnico(
+        self, client, org, keycloak_enabled, monkeypatch, caplog
+    ):
+        import logging
+
+        caplog.set_level(logging.DEBUG)
+        monkeypatch.setattr(keycloak_oidc, "_redis", lambda: None)
+
+        r_auth = await client.post(
+            "/api/v1/auth/keycloak/authorize",
+            json={"org_slug": "test-org", "redirect_to": "/"},
+        )
+        r_cb = await client.post(
+            "/api/v1/auth/keycloak/callback",
+            json={"code": "qualquer", "state": "qualquer"},
+        )
+
+        assert r_auth.status_code == 503
+        assert r_cb.status_code == 503
+        for response in (r_auth, r_cb):
+            body = response.json()
+            assert body["detail"]["code"] == "SSO_INDISPONIVEL"
+            assert "Traceback" not in response.text
+            assert "redis" not in response.text.lower()
+            self._assert_sem_sentinelas(response.text)
+
+
+@pytest.fixture
+def sem_sessao(monkeypatch):
+    """Guarda dos casos negativos: mint_session_tokens não pode ser chamado."""
+
+    def explode(*args, **kwargs):
+        raise AssertionError("mint_session_tokens chamado em caso negativo")
+
+    monkeypatch.setattr("src.routers.keycloak_auth.mint_session_tokens", explode)
+
+
+class TestFluxosNegativos:
+    """US3 (T024) — falhas de fluxo negam acesso sem sessão, com código pt-BR."""
+
+    async def test_state_reutilizado_apos_fluxo_feliz_e_410(
+        self, client, org, sso_user, keycloak_enabled, fake_redis, audit_mock, monkeypatch
+    ):
+        monkeypatch.setattr(
+            keycloak_oidc, "exchange_code", lambda code, verifier: {"id_token": "x"}
+        )
+        monkeypatch.setattr(
+            keycloak_oidc, "validate_id_token", lambda id_token, nonce: dict(PROVIDER_CLAIMS)
+        )
+        state, _ = await _start_flow(client, fake_redis)
+        primeiro = await client.post(
+            "/api/v1/auth/keycloak/callback", json={"code": "c", "state": state}
+        )
+        assert primeiro.status_code == 200
+
+        replay = await client.post(
+            "/api/v1/auth/keycloak/callback", json={"code": "c", "state": state}
+        )
+
+        assert replay.status_code == 410
+        assert replay.json()["detail"]["code"] == "FLUXO_INVALIDO"
+
+    async def test_state_desconhecido_e_410_sem_sessao(
+        self, client, org, keycloak_enabled, fake_redis, sem_sessao
+    ):
+        response = await client.post(
+            "/api/v1/auth/keycloak/callback", json={"code": "c", "state": "inexistente"}
+        )
+
+        assert response.status_code == 410
+        assert response.json()["detail"]["code"] == "FLUXO_INVALIDO"
+
+    async def test_provedor_indisponivel_na_troca_e_503_sem_stack_trace(
+        self, client, org, keycloak_enabled, fake_redis, sem_sessao, monkeypatch
+    ):
+        def fora_do_ar(code, verifier):
+            raise keycloak_oidc.ProviderUnavailableError("token_endpoint_unavailable")
+
+        monkeypatch.setattr(keycloak_oidc, "exchange_code", fora_do_ar)
+        state, _ = await _start_flow(client, fake_redis)
+
+        response = await client.post(
+            "/api/v1/auth/keycloak/callback", json={"code": "c", "state": state}
+        )
+
+        assert response.status_code == 503
+        assert response.json()["detail"]["code"] == "SSO_INDISPONIVEL"
+        assert "Traceback" not in response.text
+
+    async def test_org_sem_metodo_sso_authorize_404(
+        self, client, org, keycloak_enabled, fake_redis, monkeypatch
+    ):
+        monkeypatch.setattr(
+            "src.routers.keycloak_auth.is_login_method_allowed", AsyncMock(return_value=False)
+        )
+
+        response = await client.post(
+            "/api/v1/auth/keycloak/authorize",
+            json={"org_slug": "test-org", "redirect_to": "/"},
+        )
+
+        assert response.status_code == 404
+        assert response.json()["detail"]["code"] == "SSO_NAO_CONFIGURADO"
+
+    async def test_org_sem_metodo_sso_callback_403_sem_sessao(
+        self, client, org, sso_user, keycloak_enabled, fake_redis, sem_sessao, monkeypatch
+    ):
+        monkeypatch.setattr(
+            keycloak_oidc, "exchange_code", lambda code, verifier: {"id_token": "x"}
+        )
+        monkeypatch.setattr(
+            keycloak_oidc, "validate_id_token", lambda id_token, nonce: dict(PROVIDER_CLAIMS)
+        )
+        state, _ = await _start_flow(client, fake_redis)
+        monkeypatch.setattr(
+            "src.routers.keycloak_auth.is_login_method_allowed", AsyncMock(return_value=False)
+        )
+
+        response = await client.post(
+            "/api/v1/auth/keycloak/callback", json={"code": "c", "state": state}
+        )
+
+        assert response.status_code == 403
+        assert response.json()["detail"]["code"] == "METODO_NAO_PERMITIDO"
+
+    async def test_email_nao_verificado_e_403_sem_sessao(
+        self, client, org, sso_user, keycloak_enabled, fake_redis, sem_sessao, monkeypatch
+    ):
+        claims = dict(PROVIDER_CLAIMS, email_verified=False)
+        monkeypatch.setattr(
+            keycloak_oidc, "exchange_code", lambda code, verifier: {"id_token": "x"}
+        )
+        monkeypatch.setattr(
+            keycloak_oidc, "validate_id_token", lambda id_token, nonce: claims
+        )
+        state, _ = await _start_flow(client, fake_redis)
+
+        response = await client.post(
+            "/api/v1/auth/keycloak/callback", json={"code": "c", "state": state}
+        )
+
+        assert response.status_code == 403
+        assert response.json()["detail"]["code"] == "CONTA_NAO_ENCONTRADA"
+
+    async def test_usuario_inexistente_e_403_sem_sessao(
+        self, client, org, keycloak_enabled, fake_redis, sem_sessao, monkeypatch
+    ):
+        claims = dict(PROVIDER_CLAIMS, email="ninguem@acme.dev")
+        monkeypatch.setattr(
+            keycloak_oidc, "exchange_code", lambda code, verifier: {"id_token": "x"}
+        )
+        monkeypatch.setattr(
+            keycloak_oidc, "validate_id_token", lambda id_token, nonce: claims
+        )
+        state, _ = await _start_flow(client, fake_redis)
+
+        response = await client.post(
+            "/api/v1/auth/keycloak/callback", json={"code": "c", "state": state}
+        )
+
+        assert response.status_code == 403
+        assert response.json()["detail"]["code"] == "CONTA_NAO_ENCONTRADA"
+
+    async def test_redirect_malicioso_no_authorize_vira_raiz_no_callback(
+        self, client, org, sso_user, keycloak_enabled, fake_redis, audit_mock, monkeypatch
+    ):
+        monkeypatch.setattr(
+            keycloak_oidc, "exchange_code", lambda code, verifier: {"id_token": "x"}
+        )
+        monkeypatch.setattr(
+            keycloak_oidc, "validate_id_token", lambda id_token, nonce: dict(PROVIDER_CLAIMS)
+        )
+        state, _ = await _start_flow(
+            client, fake_redis, redirect_to="//evil.com/phish"
+        )
+
+        response = await client.post(
+            "/api/v1/auth/keycloak/callback", json={"code": "c", "state": state}
+        )
+
+        assert response.status_code == 200
+        assert response.json()["redirect_to"] == "/"
+
+
+class TestCallbackFluxoFeliz:
+    async def test_callback_emite_sessao_interna_e_consome_state(
+        self, client, org, sso_user, keycloak_enabled, fake_redis, audit_mock, monkeypatch
+    ):
+        monkeypatch.setattr(
+            keycloak_oidc, "exchange_code", lambda code, verifier: {"id_token": "opaco"}
+        )
+        monkeypatch.setattr(
+            keycloak_oidc, "validate_id_token", lambda id_token, nonce: dict(PROVIDER_CLAIMS)
+        )
+
+        state, _ = await _start_flow(client, fake_redis)
+
+        response = await client.post(
+            "/api/v1/auth/keycloak/callback",
+            json={"code": "codigo-do-provedor", "state": state},
+        )
+
+        assert response.status_code == 200, response.text
+        body = response.json()
+        assert body["user"]["email"] == "aluno@acme.dev"
+        assert body["tokens"]["access_token"]
+        assert body["tokens"]["refresh_token"]
+        assert body["redirect_to"] == "/dash/cursos"
+        # State consumido — uso único
+        assert f"oidc_flow:{state}" not in fake_redis.store
+        # Auditoria de login com método sso, sem tokens
+        audit_mock.assert_awaited()
+        kwargs = audit_mock.await_args.kwargs
+        assert kwargs["metadata"]["method"] == "sso"
+        assert kwargs["metadata"]["provider"] == "keycloak"

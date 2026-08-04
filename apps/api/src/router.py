@@ -9,6 +9,8 @@ from src.routers import instance
 from src.routers import plans
 from src.routers import usergroups
 from src.routers import dev, trail, users, auth, orgs, roles, search
+from src.routers import keycloak_auth
+from src.routers import oidc_admin
 from src.routers import mfa as mfa_router_module
 from src.routers import monitoring
 from src.routers import stream
@@ -89,6 +91,11 @@ v1_router.include_router(
 v1_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 # Two-factor: enrollment/management plus the /auth/login/mfa challenge.
 v1_router.include_router(mfa_router_module.router, prefix="/auth", tags=["auth"])
+# Login corporativo via Keycloak (OIDC) — endpoints pré-autenticação chamados
+# pelo BFF; a política por org é reaplicada dentro dos handlers.
+v1_router.include_router(
+    keycloak_auth.router, prefix="/auth/keycloak", tags=["auth"]
+)
 v1_router.include_router(
     orgs.router,
     prefix="/orgs",
@@ -112,6 +119,13 @@ v1_router.include_router(
     prefix="/orgs",
     tags=["api-tokens"],
     dependencies=[Depends(require_authenticated_user), Depends(require_plan("pro", "API Access"))]
+)
+v1_router.include_router(
+    oidc_admin.router,
+    prefix="/orgs",
+    tags=["oidc-config"],
+    # Sem require_plan: a configuracao OIDC e nucleo AGPL do fork (spec 004).
+    dependencies=[Depends(require_authenticated_user)]
 )
 v1_router.include_router(
     webhooks.router,

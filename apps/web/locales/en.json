@@ -317,6 +317,7 @@
     "password_req_number": "At least one number (0-9)",
     "password_req_special": "At least one special character (!@#$%...)",
     "sign_in_with_sso": "Sign in with SSO",
+    "keycloak_sso_button": "Entrar com identidade corporativa",
     "sso_error": "SSO authentication failed. Please try again.",
     "sso_callback": {
       "missing_params": "Invalid SSO callback. Missing required parameters.",
@@ -367,7 +368,13 @@
     "image_subtitle_signup": "Create your account and launch your first course in minutes.",
     "image_title_verify": "Verify your email.",
     "image_subtitle_verify": "One quick step to secure your account and get started.",
-    "resend_verification": "Didn't get it? Resend email"
+    "resend_verification": "Didn't get it? Resend email",
+    "sso_erro_acesso_nao_concluido": "Sign-in was not completed at the corporate provider. Please try again.",
+    "sso_erro_sessao_expirada": "The sign-in session expired or was already used. Please start again.",
+    "sso_erro_login_invalido": "Your corporate sign-in could not be validated. Please try again.",
+    "sso_erro_conta_nao_encontrada": "Your corporate identity was verified, but there is no matching account on this platform. Contact your organization's administrator.",
+    "sso_erro_nao_disponivel": "Corporate sign-in is not available for this organization.",
+    "sso_erro_indisponivel": "Corporate sign-in is temporarily unavailable. Please try again shortly."
   },
   "validation": {
     "required": "Required",

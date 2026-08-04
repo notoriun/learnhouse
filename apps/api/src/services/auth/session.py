@@ -21,7 +21,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.users import User
 from src.security.auth import create_access_token, create_refresh_token, decode_jwt
-from src.security.session_context import AMR_CLAIM, SORG_CLAIM, session_claims
+from src.security.session_context import AMR_CLAIM, SORG_CLAIM, USID_CLAIM, session_claims
 from src.services.auth.mfa import is_mfa_active
 
 MFA_PENDING_PURPOSE = "mfa_pending"
@@ -81,7 +81,10 @@ def decode_mfa_pending_provenance(token: str) -> tuple[Optional[str], Optional[i
 
 
 def mint_session_tokens(
-    email: str, amr: Optional[str] = None, org_id: Optional[int] = None
+    email: str,
+    amr: Optional[str] = None,
+    org_id: Optional[int] = None,
+    usid: Optional[str] = None,
 ) -> SessionIssueResult:
     """Mint a real session unconditionally. Only for callers that have already
     satisfied (or deliberately bypassed) the second factor.
@@ -89,8 +92,9 @@ def mint_session_tokens(
     ``amr`` records how the user authenticated and ``org_id`` records which org
     the session was established for; both are stamped into the token so the
     per-org auth-method / session-sharing policy can evaluate the session later.
+    ``usid`` binds a federated session to its upstream session (feature 003).
     """
-    claims = session_claims(amr, org_id)
+    claims = session_claims(amr, org_id, usid=usid)
     return SessionIssueResult(
         mfa_required=False,
         access_token=create_access_token(data={"sub": email, "purpose": "session", **claims}),
