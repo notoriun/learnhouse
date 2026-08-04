@@ -22,7 +22,6 @@ from src.db.upstream_sessions import (
     REASON_BACKCHANNEL,
     REASON_USER_LOGOUT,
     STATUS_ACTIVE,
-    UpstreamSession,
 )
 from src.db.user_audit_events import UserAuditEventType
 from src.db.users import UserRead

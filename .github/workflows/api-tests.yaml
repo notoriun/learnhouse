@@ -58,7 +58,10 @@ jobs:
           files: apps/api/coverage.xml
           flags: api
           name: api-coverage
-          fail_ci_if_error: true
+          # Best-effort: este fork não tem o repositório ativado no Codecov
+          # (upload tokenless é rejeitado). O piso de cobertura continua
+          # imposto pelo --cov-fail-under do pytest acima.
+          fail_ci_if_error: false
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v7

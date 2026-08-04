@@ -18,6 +18,8 @@ from fastapi import HTTPException, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from config.config import KeycloakConfig
+
 from src.db.oidc_provider_config import (
     OIDCConnectionTestResult,
     OIDCProviderConfig,
@@ -231,14 +233,12 @@ def get_decrypted_client_secret(row: OIDCProviderConfig) -> str:
     return decrypt_secret(row.client_secret_encrypted)
 
 
-def to_client_config(row: OIDCProviderConfig) -> "KeycloakConfig":
+def to_client_config(row: OIDCProviderConfig) -> KeycloakConfig:
     """Config efetiva do fluxo OIDC (feature 001) a partir da config da org.
 
     Reusa o mesmo shape da config global (``KeycloakConfig``) para que as
     funções de ``keycloak_oidc`` sirvam às duas fontes sem duplicação.
     """
-    from config.config import KeycloakConfig
-
     return KeycloakConfig(
         enabled=row.enabled,
         issuer=row.issuer_url.rstrip("/"),
@@ -261,7 +261,7 @@ async def get_effective_client_config(db_session: AsyncSession, org_id: Optional
     return None, get_keycloak_config()
 
 
-async def config_for_upstream_session(db_session: AsyncSession, row) -> "KeycloakConfig":
+async def config_for_upstream_session(db_session: AsyncSession, row) -> KeycloakConfig:
     """Config cujo issuer corresponde ao da sessão upstream (logout/refresh).
 
     A sessão pertence ao issuer que a emitiu: usa a config da org somente se o

@@ -8,7 +8,7 @@ Chamam ``provision_federated_login`` diretamente com fixtures de
 from datetime import datetime, timedelta, timezone
 
 import pytest
-from sqlmodel import func, select
+from sqlmodel import select
 
 from src.db.external_identities import ExternalIdentity
 from src.db.user_audit_events import UserAuditEvent

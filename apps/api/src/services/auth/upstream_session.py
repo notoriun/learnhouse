@@ -17,7 +17,6 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.upstream_sessions import (
-    REASON_ADMIN,
     STATUS_ACTIVE,
     STATUS_EXPIRED,
     STATUS_REVOKED,

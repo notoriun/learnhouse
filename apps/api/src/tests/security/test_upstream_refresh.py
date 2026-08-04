@@ -213,13 +213,13 @@ class TestRefreshTransitorio:
         self, client, db, sso_user, fake_redis, monkeypatch
     ):
         # invalid_grant → 401 (definitiva)
-        row1 = await _seed(db, sso_user, uuid="upsession_a")
+        await _seed(db, sso_user, uuid="upsession_a")
         monkeypatch.setattr(oidc, "refresh_upstream", Mock(side_effect=oidc.CodeExchangeError("invalid_grant")))
         r1 = await _do_refresh(client, _refresh_cookie(uuid="upsession_a"))
         assert r1.status_code == 401
 
         # timeout → 503 (transitória)
-        row2 = await _seed(db, sso_user, uuid="upsession_b")
+        await _seed(db, sso_user, uuid="upsession_b")
         monkeypatch.setattr(oidc, "refresh_upstream", Mock(side_effect=oidc.ProviderUnavailableError("t")))
         r2 = await _do_refresh(client, _refresh_cookie(uuid="upsession_b"))
         assert r2.status_code == 503
