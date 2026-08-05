@@ -319,7 +319,8 @@
     "password_req_number": "At least one number (0-9)",
     "password_req_special": "At least one special character (!@#$%...)",
     "sign_in_with_sso": "Sign in with SSO",
-    "keycloak_sso_button": "Entrar com identidade corporativa",
+    "keycloak_sso_button": "Sign in with corporate identity",
+    "keycloak_register_button": "Create account with corporate identity",
     "sso_error": "SSO authentication failed. Please try again.",
     "sso_callback": {
       "missing_params": "Invalid SSO callback. Missing required parameters.",
@@ -1700,7 +1701,9 @@
         "updating": "Updating...",
         "password_updated": "Password updated successfully",
         "relogin_message": "Please login again with your new password",
-        "logout_warning": "You will be logged out after changing your password"
+        "logout_warning": "You will be logged out after changing your password",
+        "federated_notice": "Your account is managed by the corporate identity provider. Change your password and email in the account console.",
+        "federated_cta": "Account console"
       },
       "profile_builder": {
         "title": "Profile Builder",

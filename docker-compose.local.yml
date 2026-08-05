@@ -1,0 +1,90 @@
+name: learnhouse-local
+
+services:
+  learnhouse-app:
+    build:
+      context: .
+    image: learnhouse:local
+    container_name: learnhouse-app-local
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - HOSTNAME=0.0.0.0
+      - LEARNHOUSE_API_URL=http://localhost:9000
+    ports:
+      - "80:80"
+    volumes:
+      - learnhouse_content:/app/api/content
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: learnhouse-db-local
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-learnhouse}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-learnhouse}
+      - POSTGRES_DB=${POSTGRES_DB:-learnhouse}
+    volumes:
+      - learnhouse_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-learnhouse}"]
+      interval: 5s
+      timeout: 4s
+      retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3
+    container_name: learnhouse-keycloak-local
+    restart: unless-stopped
+    command: start-dev --import-realm
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./docker/keycloak/realm-dev.json:/opt/keycloak/data/import/realm-dev.json:ro
+
+  # Encaminha 127.0.0.1:8080 (dentro do netns do app) -> keycloak:8080, para o
+  # issuer ser http://localhost:8080 tanto no navegador quanto na API.
+  keycloak-fwd:
+    image: alpine/socat:1.8.0.0
+    container_name: learnhouse-keycloak-fwd-local
+    restart: unless-stopped
+    network_mode: "service:learnhouse-app"
+    command: TCP-LISTEN:8080,fork,reuseaddr,bind=127.0.0.1 TCP:keycloak:8080
+    depends_on:
+      learnhouse-app:
+        condition: service_started
+      keycloak:
+        condition: service_started
+
+  redis:
+    image: redis:7.2.3-alpine
+    container_name: learnhouse-redis-local
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - learnhouse_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 4s
+      retries: 5
+
+volumes:
+  learnhouse_db_data:
+  learnhouse_redis_data:
+  learnhouse_content:

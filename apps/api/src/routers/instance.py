@@ -29,6 +29,14 @@ def _get_app_version() -> str:
             return "unknown"
 
 
+def _account_console_url(config) -> str | None:
+    """``<issuer>/account`` quando o Keycloak da plataforma está ativo."""
+    kc = getattr(config, "keycloak_config", None)
+    if kc and kc.enabled and kc.issuer:
+        return f"{kc.issuer.rstrip('/')}/account"
+    return None
+
+
 def _strip_port(domain: str) -> str:
     """Strip port from a domain string (e.g. 'localhost:3000' -> 'localhost')."""
     return domain.split(":")[0] if ":" in domain else domain
@@ -79,6 +87,10 @@ async def get_instance_info(db_session: AsyncSession = Depends(get_db_session)):
         # Versão em execução (feature 006/FR-005): correlaciona a instância com
         # a fonte AGPL publicada para a mesma tag de release.
         "version": _get_app_version(),
+        # Central de conta do provedor da plataforma (feature 007): contas
+        # federadas gerenciam senha/e-mail lá. Público — o issuer já aparece
+        # em todo redirect de login corporativo.
+        "account_console_url": _account_console_url(config),
     }
 
     set_cached_instance_info(result)

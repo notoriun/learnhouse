@@ -328,6 +328,7 @@
     "login_failed": "Falha no login",
     "sign_in_with_sso": "Entrar com SSO",
     "keycloak_sso_button": "Entrar com identidade corporativa",
+    "keycloak_register_button": "Criar conta pela identidade corporativa",
     "sso_erro_acesso_nao_concluido": "O acesso não foi concluído no provedor corporativo. Tente novamente.",
     "sso_erro_sessao_expirada": "A sessão de login expirou ou já foi utilizada. Inicie o login novamente.",
     "sso_erro_login_invalido": "Não foi possível validar seu login corporativo. Tente novamente.",
@@ -1249,7 +1250,9 @@
         "updating": "Atualizando...",
         "password_updated": "Senha atualizada com sucesso",
         "relogin_message": "Por favor, faça login novamente com sua nova senha",
-        "logout_warning": "Você será desconectado após alterar sua senha"
+        "logout_warning": "Você será desconectado após alterar sua senha",
+        "federated_notice": "Sua conta é gerenciada pelo provedor de identidade corporativo. Altere senha e e-mail na central de conta.",
+        "federated_cta": "Central de conta"
       },
       "profile_builder": {
         "title": "Construtor de Perfil",

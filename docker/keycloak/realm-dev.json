@@ -1,0 +1,60 @@
+{
+  "realm": "dev",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": true,
+  "duplicateEmailsAllowed": false,
+  "clients": [
+    {
+      "clientId": "learnhouse-migration",
+      "name": "LearnHouse Migration (offline)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "learnhouse-migration-secret",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true
+    },
+    {
+      "clientId": "learnhouse",
+      "name": "LearnHouse (dev local)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "learnhouse-dev-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost/api/auth/keycloak/callback"],
+      "webOrigins": ["http://localhost"],
+      "attributes": {
+        "post.logout.redirect.uris": "http://localhost/*"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "teste",
+      "enabled": true,
+      "email": "teste@example.com",
+      "emailVerified": true,
+      "firstName": "Usuario",
+      "lastName": "Teste",
+      "credentials": [
+        { "type": "password", "value": "teste123", "temporary": false }
+      ]
+    },
+    {
+      "username": "nao-verificado",
+      "enabled": true,
+      "email": "nao-verificado@example.com",
+      "emailVerified": false,
+      "firstName": "Email",
+      "lastName": "NaoVerificado",
+      "credentials": [
+        { "type": "password", "value": "teste123", "temporary": false }
+      ]
+    }
+  ]
+}

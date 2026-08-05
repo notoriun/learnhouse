@@ -588,6 +588,11 @@ async def update_user(
     # while keeping the trusted-since-signup flag set.
     incoming_email = user_data.get("email")
     if incoming_email is not None and incoming_email != user.email:
+        # Conta federada à plataforma (feature 007, FR-008): o e-mail é do
+        # provedor — muda lá e reflete aqui no login seguinte.
+        from src.services.auth.federation import ensure_not_platform_federated
+
+        await ensure_not_platform_federated(db_session, user.id)
         user.email_verified = False
         user.email_verified_at = None
 
@@ -669,6 +674,12 @@ async def update_user_password(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only change your own password",
         )
+
+    # Conta federada à plataforma (feature 007, FR-008): a senha vive no
+    # provedor — troca acontece na central de conta, nunca aqui.
+    from src.services.auth.federation import ensure_not_platform_federated
+
+    await ensure_not_platform_federated(db_session, user_id)
 
     # Validate new password complexity
     validation_result = validate_password_complexity(form.new_password)

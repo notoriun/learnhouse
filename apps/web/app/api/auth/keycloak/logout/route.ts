@@ -6,6 +6,7 @@ import {
   REFRESH_TOKEN_COOKIE,
 } from '@services/auth/cookies'
 import { appendClearAuthCookies } from '../../[...path]/route'
+import { publicOrigin } from '@services/auth/public-origin'
 
 const BACKEND_URL = (
   getConfig('NEXT_PUBLIC_LEARNHOUSE_BACKEND_URL') || 'http://localhost:1338'
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
   const destination =
     endSessionUrl && /^https?:\/\//.test(endSessionUrl)
       ? endSessionUrl
-      : new URL(fallback, request.nextUrl.origin).toString()
+      : new URL(fallback, publicOrigin(request)).toString()
 
   const response = NextResponse.redirect(destination)
   response.headers.set('Cache-Control', 'no-store')
