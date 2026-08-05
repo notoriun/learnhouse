@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getConfig } from '@services/config/config'
+import { publicOrigin } from '@services/auth/public-origin'
 
 const BACKEND_URL = (
   getConfig('NEXT_PUBLIC_LEARNHOUSE_BACKEND_URL') || 'http://localhost:1338'
@@ -9,7 +10,7 @@ const BACKEND_URL = (
 const ORG_SLUG_RE = /^[a-z0-9][a-z0-9-_]{0,62}$/i
 
 function loginRedirect(request: NextRequest, org: string | null, error: string) {
-  const url = new URL('/auth/login', request.nextUrl.origin)
+  const url = new URL('/auth/login', publicOrigin(request))
   if (org && ORG_SLUG_RE.test(org)) url.searchParams.set('org', org)
   url.searchParams.set('error', error)
   return NextResponse.redirect(url)

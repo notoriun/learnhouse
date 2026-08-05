@@ -7,6 +7,7 @@ import {
   REFRESH_TOKEN_MAX_AGE,
   getCookieOptions,
 } from '@services/auth/cookies'
+import { publicOrigin } from '@services/auth/public-origin'
 
 const BACKEND_URL = (
   getConfig('NEXT_PUBLIC_LEARNHOUSE_BACKEND_URL') || 'http://localhost:1338'
@@ -24,7 +25,7 @@ function mapApiError(status: number, code: string | undefined): string {
 }
 
 function loginRedirect(request: NextRequest, error: string) {
-  const url = new URL('/auth/login', request.nextUrl.origin)
+  const url = new URL('/auth/login', publicOrigin(request))
   url.searchParams.set('error', error)
   return NextResponse.redirect(url)
 }
@@ -86,7 +87,7 @@ export async function GET(request: NextRequest) {
     return loginRedirect(request, 'login_invalido')
   }
 
-  const destination = new URL(safeInternalPath(body?.redirect_to), request.nextUrl.origin)
+  const destination = new URL(safeInternalPath(body?.redirect_to), publicOrigin(request))
   const response = NextResponse.redirect(destination)
   const cookieOptions = getCookieOptions(request)
 
