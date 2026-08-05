@@ -2,8 +2,21 @@
   "realm": "dev",
   "enabled": true,
   "sslRequired": "none",
-  "registrationAllowed": false,
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": true,
+  "duplicateEmailsAllowed": false,
   "clients": [
+    {
+      "clientId": "learnhouse-migration",
+      "name": "LearnHouse Migration (offline)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "learnhouse-migration-secret",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true
+    },
     {
       "clientId": "learnhouse",
       "name": "LearnHouse (dev local)",

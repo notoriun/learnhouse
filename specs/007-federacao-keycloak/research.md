@@ -43,6 +43,12 @@ não é idempotente por conta.
 falha no teste do quickstart), o rollout usa `--reset-passwords` sem mudança de escopo — já
 previsto na spec (FR-007, Assumptions).
 
+**Resultado da validação (T010, 2026-08-05)**: importação **confirmada** contra Keycloak
+26.3 — conta `admin@example.com` migrada com o hash Argon2 do passlib entrou via SSO com a
+senha antiga, sem reset. Observação operacional: conta local sem nome/sobrenome cai no
+required action `VERIFY_PROFILE` do realm no primeiro login (completa uma vez e segue) —
+comportamento do provedor, não do sistema; o nome preenchido sincroniza de volta via claims.
+
 ## 3. Credencial administrativa da migração
 
 **Decision**: client confidencial **dedicado** (`learnhouse-migration`) com *service account*

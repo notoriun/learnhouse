@@ -427,3 +427,25 @@ class TestUS4ReusoDeSessao:
         refresh = decode_jwt(issue.refresh_token)
         assert refresh["purpose"] == "session"
         assert refresh.get("jti")  # jti presente → rotação/replay já cobertos
+
+
+# ---------------------------------------------------------------------------
+# Feature 007 — realm com e-mail-como-username
+# ---------------------------------------------------------------------------
+
+
+class TestFeature007Username:
+    async def test_preferred_username_em_forma_de_email_vira_parte_local(
+        self, db, org, audit_to_test_db
+    ):
+        """O guard anti-URL do create_user rejeita e-mail cru como username;
+        o provisionamento deve usar a parte local (antes do @)."""
+        result = await _provision(
+            db,
+            claims(preferred_username="nova@example.com", email="nova@example.com"),
+            org,
+            policy(),
+        )
+
+        assert isinstance(result, ProvisioningSuccess)
+        assert result.user.username == "nova"

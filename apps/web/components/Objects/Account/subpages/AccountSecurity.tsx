@@ -1053,6 +1053,20 @@ function AccountSecurity() {
   const access_token = session?.data?.tokens?.access_token;
   const { t } = useTranslation();
 
+  // Conta federada (feature 007): sessão via SSO da plataforma (cookie LH_sso)
+  // → senha/e-mail se gerenciam na central de conta do provedor. Dica de UX —
+  // a autoridade é o 403 CONTA_FEDERADA da API, tratado no submit.
+  const [federated, setFederated] = React.useState(false)
+  const [accountConsoleUrl, setAccountConsoleUrl] = React.useState<string | null>(null)
+  React.useEffect(() => {
+    if (!document.cookie.split('; ').includes('LH_sso=1')) return
+    setFederated(true)
+    fetch(`${getAPIUrl()}instance/info`)
+      .then((res) => res.json())
+      .then((info) => setAccountConsoleUrl(info?.account_console_url || null))
+      .catch(() => setAccountConsoleUrl(null))
+  }, [])
+
   // Current device/browser, parsed client-side from the user agent (in an effect
   // to avoid SSR hydration mismatch).
   const [device, setDevice] = React.useState<{ browser: string; os: string } | null>(null)
@@ -1154,6 +1168,30 @@ function AccountSecurity() {
           </h2>
         </div>
 
+        {federated ? (
+          <div className="mx-5 mb-5">
+            <div className="flex items-start justify-between gap-4 rounded-lg border border-gray-200 p-4 flex-wrap">
+              <div className="flex items-start gap-2 text-gray-700 min-w-0">
+                <ShieldCheck size={16} className="mt-0.5 shrink-0 text-gray-400" />
+                <span className="text-sm">
+                  {t('user.settings.password.federated_notice', {
+                    defaultValue:
+                      'Sua conta é gerenciada pelo provedor de identidade corporativo. Altere senha e e-mail na central de conta.',
+                  })}
+                </span>
+              </div>
+              {accountConsoleUrl && (
+                <Button asChild variant="outline" className="shrink-0">
+                  <a href={accountConsoleUrl} target="_blank" rel="noreferrer">
+                    {t('user.settings.password.federated_cta', {
+                      defaultValue: 'Central de conta',
+                    })}
+                  </a>
+                </Button>
+              )}
+            </div>
+          </div>
+        ) : (
         <div className="mx-5 mb-5">
           <Formik
             initialValues={{ old_password: '', new_password: '' }}
@@ -1219,6 +1257,7 @@ function AccountSecurity() {
             )}
           </Formik>
         </div>
+        )}
 
         {/* Two-factor authentication (TOTP) */}
         <TwoFactorAuthSection />

@@ -15,11 +15,11 @@ Corpo existente ganha campo opcional:
 - `action: "register"` → `authorization_url` retorna o endpoint `registrations` do provedor
   com os **mesmos** parâmetros do login (client_id, redirect_uri, scope, state, nonce,
   PKCE S256). Nada mais muda na resposta.
-- **Guarda FR-010**: `action: "register"` só é aceito quando a config efetiva do login da
-  org é a **global da plataforma** (sem row de config própria da feature 004). Org com
-  provedor próprio de terceiro → `400 {code: "REGISTRO_NAO_DISPONIVEL"}`, mapeado pelo BFF
-  ao tratamento de erro existente da tela de login. Nunca trocamos o path de um IdP de
-  terceiro.
+- **Guarda FR-010**: `action: "register"` só é aceito quando o issuer da config efetiva do
+  login da org **é o issuer global da plataforma** (um row da feature 004 apontando o mesmo
+  issuer conta como plataforma; IdP de terceiro nunca casa). Caso contrário → `400 {code:
+  "REGISTRO_NAO_DISPONIVEL"}`, mapeado pelo BFF ao tratamento de erro existente da tela de
+  login. Nunca trocamos o path de um IdP de terceiro.
 - Valores fora de `{"login", "register"}` → 422 (validação de schema).
 - Org sem login corporativo ativo → mesmo erro do fluxo atual (sem vazamento de config).
 - O callback (`POST /auth/keycloak/callback`) permanece **inalterado** — o retorno do
@@ -49,6 +49,10 @@ HTTP 403
 ```
 
 - Contas não federadas: comportamento atual byte a byte (SC-006).
+- Descoberta pública da central de conta para a UI (dica, fora do fluxo de erro):
+  `GET /api/v1/instance/info` passa a incluir `account_console_url`
+  (`<issuer>/account` quando o Keycloak da plataforma está ativo; `null` caso
+  contrário). O front usa o cookie `LH_sso` como sinal de sessão federada.
 - Demais campos do `PUT` (nome, bio, avatar…): editáveis normalmente para todos.
 - O front (tela Security) exibe a mensagem e o link; nenhuma regra é duplicada no cliente
   (Princípio II) — o front pode *ocultar* os formulários como dica de UX, mas a autoridade é
@@ -62,9 +66,9 @@ Resposta ganha o campo `platform`:
 { "enabled": true, "platform": true }
 ```
 
-`platform: true` ⇔ a config efetiva do login da org é a global da plataforma (registro
-federado disponível). `false` para org com IdP próprio de terceiro. Nenhum outro dado da
-config é exposto.
+`platform: true` ⇔ o issuer da config efetiva do login da org é o issuer global da
+plataforma (registro federado disponível). `false` para org com IdP próprio de terceiro.
+Nenhum outro dado da config é exposto.
 
 ## 4. Front: tela de login (alterado)
 

@@ -34,6 +34,9 @@ const LoginClient = (props: LoginClientProps) => {
   // sobre o SSO Enterprise: apenas um botão de identidade corporativa aparece
   // (Assumptions da spec 001; fronteira OSS/Enterprise no plan.md).
   const [keycloakEnabled, setKeycloakEnabled] = useState(false)
+  // Registro federado (feature 007): true somente quando o provedor efetivo é
+  // o da plataforma — IdP de terceiro nunca recebe o caminho de registro.
+  const [keycloakPlatform, setKeycloakPlatform] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const turnstileRef = React.useRef<TurnstileWidgetHandle>(null)
   const turnstileRequired = useTurnstileRequired()
@@ -293,6 +296,7 @@ const LoginClient = (props: LoginClientProps) => {
     const checkKeycloak = async () => {
       if (!ssoAllowed || !props.org?.slug) {
         setKeycloakEnabled(false)
+        setKeycloakPlatform(false)
         return
       }
       try {
@@ -301,8 +305,10 @@ const LoginClient = (props: LoginClientProps) => {
         )
         const data = await res.json()
         setKeycloakEnabled(Boolean(data?.enabled))
+        setKeycloakPlatform(Boolean(data?.platform))
       } catch {
         setKeycloakEnabled(false)
+        setKeycloakPlatform(false)
       }
     }
     checkKeycloak()
@@ -315,6 +321,15 @@ const LoginClient = (props: LoginClientProps) => {
     // cookies httpOnly — nenhum token transita pelo JavaScript (US2).
     window.location.assign(
       `/api/auth/keycloak/authorize?org=${encodeURIComponent(props.org.slug)}&redirect=${encodeURIComponent('/home')}`
+    )
+  }
+
+  const handleKeycloakRegister = () => {
+    setSsoLoading(true)
+    // Mesmo BFF do login; action=register leva à tela de registro do provedor
+    // da plataforma e o retorno cai no callback/JIT existentes (feature 007).
+    window.location.assign(
+      `/api/auth/keycloak/authorize?org=${encodeURIComponent(props.org.slug)}&action=register&redirect=${encodeURIComponent('/home')}`
     )
   }
 
@@ -898,7 +913,7 @@ const LoginClient = (props: LoginClientProps) => {
                 </button>
                 )}
 
-                {keycloakEnabled ? (
+                {keycloakEnabled && (
                   <button
                     onClick={handleKeycloakLogin}
                     disabled={ssoLoading}
@@ -907,7 +922,18 @@ const LoginClient = (props: LoginClientProps) => {
                     <Shield size={16} />
                     <span>{ssoLoading ? t('common.loading') : t('auth.keycloak_sso_button', { defaultValue: 'Entrar com identidade corporativa' })}</span>
                   </button>
-                ) : ssoEnabled && (
+                )}
+                {keycloakEnabled && keycloakPlatform && (
+                  <button
+                    onClick={handleKeycloakRegister}
+                    disabled={ssoLoading}
+                    className="flex justify-center items-center w-full bg-white hover:bg-neutral-50 text-black space-x-3 font-medium p-3 rounded-lg border border-neutral-200 transition-all text-sm disabled:opacity-50"
+                  >
+                    <Shield size={16} />
+                    <span>{ssoLoading ? t('common.loading') : t('auth.keycloak_register_button', { defaultValue: 'Criar conta pela identidade corporativa' })}</span>
+                  </button>
+                )}
+                {!keycloakEnabled && ssoEnabled && (
                   <button
                     onClick={handleSSOLogin}
                     disabled={ssoLoading}

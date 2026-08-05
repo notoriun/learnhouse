@@ -274,7 +274,10 @@ async def _create_and_link(db_session, request, claims, org, policy, org_meta):
     from src.services.users.users import create_user
 
     role_id = policy.default_role_id or DEFAULT_MEMBER_ROLE_ID
-    username = claims.preferred_username or (claims.email or claims.subject).split("@")[0]
+    # Realm com e-mail-como-username (feature 007) manda o e-mail em
+    # preferred_username; o username local é sempre a parte antes do "@" —
+    # um e-mail cru seria rejeitado pelo guard anti-URL do create_user.
+    username = (claims.preferred_username or claims.email or claims.subject).split("@")[0]
     user_create = UserCreate(
         username=username,
         first_name=claims.given_name or "",

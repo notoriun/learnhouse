@@ -155,7 +155,7 @@ class TestStatus:
         response = await client.get("/api/v1/auth/keycloak/status?org=test-org")
 
         assert response.status_code == 200
-        assert response.json() == {"enabled": True}
+        assert response.json() == {"enabled": True, "platform": True}
 
     async def test_status_disabled_quando_config_desligada(
         self, client, org, monkeypatch
@@ -171,7 +171,7 @@ class TestStatus:
         response = await client.get("/api/v1/auth/keycloak/status?org=test-org")
 
         assert response.status_code == 200
-        assert response.json() == {"enabled": False}
+        assert response.json() == {"enabled": False, "platform": False}
 
     async def test_status_org_desconhecida_e_disabled_sem_erro(
         self, client, keycloak_enabled
@@ -179,7 +179,81 @@ class TestStatus:
         response = await client.get("/api/v1/auth/keycloak/status?org=nao-existe")
 
         assert response.status_code == 200
-        assert response.json() == {"enabled": False}
+        assert response.json() == {"enabled": False, "platform": False}
+
+
+TERCEIRO_CONFIG = SimpleNamespace(
+    enabled=True,
+    issuer="https://idp.cliente.example/realms/corp",
+    client_id="cliente-app",
+    client_secret="segredo-cliente",
+    clock_skew=30,
+)
+
+
+class TestRegistroFederado:
+    """Feature 007 — action=register no /authorize e campo platform no /status."""
+
+    async def test_register_troca_o_path_e_preserva_parametros(
+        self, client, org, keycloak_enabled, fake_redis
+    ):
+        response = await client.post(
+            "/api/v1/auth/keycloak/authorize",
+            json={"org_slug": "test-org", "redirect_to": "/home", "action": "register"},
+        )
+
+        assert response.status_code == 200, response.text
+        url = response.json()["authorization_url"]
+        assert "/protocol/openid-connect/registrations?" in url
+        assert "/protocol/openid-connect/auth?" not in url
+        for param in ("state=", "nonce=", "code_challenge=", "code_challenge_method=S256"):
+            assert param in url
+
+    async def test_action_invalida_retorna_422(
+        self, client, org, keycloak_enabled, fake_redis
+    ):
+        response = await client.post(
+            "/api/v1/auth/keycloak/authorize",
+            json={"org_slug": "test-org", "action": "delete"},
+        )
+
+        assert response.status_code == 422
+
+    async def test_sem_action_mantem_o_path_de_login(
+        self, client, org, keycloak_enabled, fake_redis
+    ):
+        _, body = await _start_flow(client, fake_redis)
+
+        assert "/protocol/openid-connect/auth?" in body["authorization_url"]
+
+    async def test_register_recusado_para_idp_de_terceiro(
+        self, client, org, keycloak_enabled, fake_redis, monkeypatch
+    ):
+        monkeypatch.setattr(
+            "src.routers.keycloak_auth.get_effective_client_config",
+            AsyncMock(return_value=(object(), TERCEIRO_CONFIG)),
+        )
+
+        response = await client.post(
+            "/api/v1/auth/keycloak/authorize",
+            json={"org_slug": "test-org", "action": "register"},
+        )
+
+        assert response.status_code == 400
+        assert response.json()["detail"]["code"] == "REGISTRO_NAO_DISPONIVEL"
+
+    async def test_status_platform_false_para_idp_de_terceiro(
+        self, client, org, keycloak_enabled, monkeypatch
+    ):
+        monkeypatch.setattr(
+            "src.routers.keycloak_auth.get_effective_client_config",
+            AsyncMock(return_value=(object(), TERCEIRO_CONFIG)),
+        )
+
+        response = await client.get("/api/v1/auth/keycloak/status?org=test-org")
+
+        assert response.status_code == 200
+        assert response.json() == {"enabled": True, "platform": False}
 
 
 class TestAuthorize:

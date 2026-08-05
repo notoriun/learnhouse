@@ -24,6 +24,9 @@ function loginRedirect(request: NextRequest, org: string | null, error: string) 
 export async function GET(request: NextRequest) {
   const org = request.nextUrl.searchParams.get('org')
   const redirect = request.nextUrl.searchParams.get('redirect') || '/'
+  // Feature 007: action=register leva à tela de registro do provedor da
+  // plataforma; qualquer outro valor é tratado como login (contrato §2).
+  const action = request.nextUrl.searchParams.get('action') === 'register' ? 'register' : 'login'
 
   if (!org || !ORG_SLUG_RE.test(org)) {
     return loginRedirect(request, null, 'sso_nao_disponivel')
@@ -34,7 +37,7 @@ export async function GET(request: NextRequest) {
     backendResponse = await fetch(`${BACKEND_URL}/api/v1/auth/keycloak/authorize`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ org_slug: org, redirect_to: redirect }),
+      body: JSON.stringify({ org_slug: org, redirect_to: redirect, action }),
       signal: AbortSignal.timeout(8000),
     })
   } catch {

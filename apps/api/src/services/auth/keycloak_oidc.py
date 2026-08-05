@@ -478,6 +478,7 @@ def build_authorization_url(
     nonce: str,
     code_challenge: str,
     config: Optional[KeycloakConfig] = None,
+    action: str = "login",
 ) -> str:
     config = config or get_keycloak_config()
     params = httpx.QueryParams(
@@ -492,4 +493,13 @@ def build_authorization_url(
             "code_challenge_method": "S256",
         }
     )
-    return f"{discovery['authorization_endpoint']}?{params}"
+    endpoint = discovery["authorization_endpoint"]
+    if action == "register":
+        # Registro nativo do Keycloak (feature 007): o MESMO fluxo de
+        # autorização (state/nonce/PKCE válidos), apenas com o path trocado —
+        # o retorno é um authorization code normal, processado pelo callback
+        # e pela admissão existentes sem regra nova.
+        endpoint = endpoint.replace(
+            "/protocol/openid-connect/auth", "/protocol/openid-connect/registrations"
+        )
+    return f"{endpoint}?{params}"

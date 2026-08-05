@@ -7,7 +7,7 @@ claim/passo que falhou vira uma *categoria* nos logs, nunca o valor.
 """
 
 import logging
-from typing import Optional
+from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response, status
 from pydantic import BaseModel
@@ -60,6 +60,9 @@ router = APIRouter()
 class AuthorizeRequest(BaseModel):
     org_slug: str
     redirect_to: Optional[str] = None
+    # Feature 007: "register" leva à tela de registro do provedor da
+    # plataforma (guarda FR-010 aplicada no handler).
+    action: Literal["login", "register"] = "login"
 
 
 class CallbackRequest(BaseModel):
@@ -115,6 +118,22 @@ ERRO_METODO_NAO_PERMITIDO = (
     "METODO_NAO_PERMITIDO",
     "Esta organização não permite login com identidade corporativa.",
 )
+ERRO_REGISTRO_NAO_DISPONIVEL = (
+    status.HTTP_400_BAD_REQUEST,
+    "REGISTRO_NAO_DISPONIVEL",
+    "A criação de conta corporativa não está disponível para esta organização.",
+)
+
+
+def _is_platform_config(config) -> bool:
+    """Config efetiva aponta o provedor da plataforma? (FR-010, feature 007)
+
+    Comparação por issuer: um row de org (feature 004) apontando o MESMO
+    issuer global É o provedor da plataforma; IdP de terceiro nunca casa.
+    Sem issuer global configurado, não há provedor da plataforma.
+    """
+    global_config = oidc.get_keycloak_config()
+    return bool(global_config.issuer) and config.issuer == global_config.issuer
 
 
 async def _resolve_org(db_session: AsyncSession, org_slug: str) -> Optional[Organization]:
@@ -148,14 +167,19 @@ async def keycloak_status(
     organization = await _resolve_org(db_session, org)
     if organization is None:
         # Org desconhecida responde igual a org sem SSO — sem enumeração.
-        return {"enabled": False}
+        return {"enabled": False, "platform": False}
     _, config = await get_effective_client_config(db_session, organization.id)
     if not _config_valida(config):
-        return {"enabled": False}
+        return {"enabled": False, "platform": False}
     allowed = await is_login_method_allowed(
         db_session, organization.id, AUTH_METHOD_SSO
     )
-    return {"enabled": bool(allowed)}
+    # "platform" libera o caminho de registro no front (feature 007, FR-010):
+    # true somente quando o provedor efetivo é o da plataforma.
+    return {
+        "enabled": bool(allowed),
+        "platform": bool(allowed) and _is_platform_config(config),
+    }
 
 
 @router.post(
@@ -181,6 +205,11 @@ async def keycloak_authorize(
     if not await is_login_method_allowed(db_session, organization.id, AUTH_METHOD_SSO):
         _log_outcome("authorize", "method_not_allowed", body.org_slug)
         raise _erro(*ERRO_SSO_NAO_CONFIGURADO)
+    if body.action == "register" and not _is_platform_config(config):
+        # FR-010 (feature 007): nunca trocamos o path de autorização de um
+        # IdP de terceiro — registro só existe no provedor da plataforma.
+        _log_outcome("authorize", "register_not_platform", body.org_slug)
+        raise _erro(*ERRO_REGISTRO_NAO_DISPONIVEL)
 
     try:
         discovery = oidc.get_discovery(config.issuer)
@@ -190,7 +219,12 @@ async def keycloak_authorize(
         raise _erro(*ERRO_SSO_INDISPONIVEL)
 
     authorization_url = oidc.build_authorization_url(
-        discovery, flow["state"], flow["nonce"], flow["code_challenge"], config
+        discovery,
+        flow["state"],
+        flow["nonce"],
+        flow["code_challenge"],
+        config,
+        action=body.action,
     )
     _log_outcome("authorize", "flow_created", body.org_slug)
     return {"authorization_url": authorization_url, "state": flow["state"]}

@@ -12,6 +12,11 @@ docker compose -f docker-compose.local.yml up -d
 curl -sf http://localhost/api/v1/health   # 200
 ```
 
+> Atenção: ao recriar só o `learnhouse-app`, recrie também o sidecar
+> (`docker compose -f docker-compose.local.yml up -d --force-recreate keycloak-fwd`) —
+> ele compartilha o namespace de rede do app e fica órfão no container antigo
+> (sintoma: authorize/discovery com `sso_indisponivel`).
+
 - Realm `dev` com `registrationAllowed: true` e `registrationEmailAsUsername: true`
   (`docker/keycloak/realm-dev.json` — ajustado por esta feature).
 - Org `default` com login corporativo ativo (config OIDC da org ou envs globais, como no
