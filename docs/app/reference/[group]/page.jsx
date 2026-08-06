@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { API_GROUPS, groupBySlug } from '../../../lib/reference/config'
+import { SITE_URL } from '../../../lib/site'
 import { getSpec } from '../../../lib/reference/fetch-spec'
 import { buildGroupModel } from '../../../lib/reference/build-model'
 import OperationArticle from '../../../components/reference/OperationArticle'
@@ -33,13 +34,13 @@ export default async function GroupPage({ params }) {
     '@type': 'APIReference',
     name: `LearnHouse API — ${model.title}`,
     description: model.description,
-    url: `https://docs.learnhouse.app/reference/${model.slug}`,
+    url: `${SITE_URL}/reference/${model.slug}`,
     programmingModel: 'REST',
     targetPlatform: 'LearnHouse',
     isPartOf: {
       '@type': 'WebSite',
       name: 'LearnHouse Docs',
-      url: 'https://docs.learnhouse.app',
+      url: SITE_URL,
     },
   }
 

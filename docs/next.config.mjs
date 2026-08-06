@@ -2,8 +2,11 @@ import nextra from 'nextra'
 
 const withNextra = nextra({ search: true })
 
-export default withNextra({
-  trailingSlash: false,
+// Static export (GitHub Pages): no server, so directory-style URLs, a
+// repo-name basePath and no headers -- the host serves plain files.
+const staticExport = process.env.DOCS_STATIC_EXPORT === '1'
+
+const serverOptions = {
   async headers() {
     return [
       {
@@ -15,4 +18,15 @@ export default withNextra({
       },
     ]
   },
+}
+
+const exportOptions = {
+  output: 'export',
+  basePath: process.env.NEXT_PUBLIC_DOCS_BASE_PATH || '',
+  images: { unoptimized: true },
+}
+
+export default withNextra({
+  trailingSlash: staticExport,
+  ...(staticExport ? exportOptions : serverOptions),
 })

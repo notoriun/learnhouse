@@ -5,6 +5,10 @@ import CodePanel from './CodePanel'
 import ResponseExamples from './ResponseExamples'
 import Playground from './Playground'
 
+// The playground posts to a route handler; a statically exported site has no
+// server to answer it, so the panel is dropped instead of failing on click.
+const PLAYGROUND_ENABLED = process.env.NEXT_PUBLIC_DOCS_STATIC !== '1'
+
 function PathDisplay({ path }) {
   // Tint {placeholders} so they read as variables.
   const parts = path.split(/(\{[^}]+\})/g)
@@ -169,13 +173,15 @@ export default function OperationArticle({ op }) {
         <div className="lh-ref-op-code" data-pagefind-ignore>
           <CodePanel snippets={op.snippets} />
           <ResponseExamples responses={op.responses} />
-          <Playground
-            method={op.method}
-            path={op.path}
-            playground={op.playground}
-            auth={op.auth}
-            opId={op.id}
-          />
+          {PLAYGROUND_ENABLED && (
+            <Playground
+              method={op.method}
+              path={op.path}
+              playground={op.playground}
+              auth={op.auth}
+              opId={op.id}
+            />
+          )}
         </div>
       </div>
     </article>

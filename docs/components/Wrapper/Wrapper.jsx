@@ -6,6 +6,7 @@ import { useConfig } from 'nextra-theme-docs'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { PencilSimple } from '@phosphor-icons/react/dist/ssr'
+import { asset, REPO_URL } from '../../lib/site'
 
 function Breadcrumb() {
   const config = useConfig()
@@ -82,7 +83,7 @@ function EditOnGitHub({ filePath }) {
   // directly avoids guessing folder-index vs leaf-file from the URL.
   if (!filePath) return null
 
-  const href = `https://github.com/learnhouse/learnhouse/edit/dev/docs/${filePath}`
+  const href = `${REPO_URL}/edit/dev/docs/${filePath}`
 
   return (
     <a
@@ -134,7 +135,7 @@ function CloudAd() {
 
       <div className="relative p-4">
         <div className="flex items-center gap-2.5" style={{ marginBottom: 16 }}>
-          <img src="/img/logos/learnhouse-dark.svg" alt="LearnHouse" className="h-3.5" />
+          <img src={asset('/img/logos/learnhouse-dark.svg')} alt="LearnHouse" className="h-3.5" />
           <span
             className="text-[8px] font-bold uppercase tracking-wide text-white! px-1.5 py-px rounded"
             style={{

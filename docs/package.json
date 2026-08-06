@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "node scripts/generate-llms-full.mjs && next build",
+    "build:static": "node scripts/generate-llms-full.mjs && DOCS_STATIC_EXPORT=1 next build && pagefind --site out --output-path out/_pagefind && DOCS_STATIC_EXPORT=1 next-sitemap",
     "postbuild": "pagefind --site .next/server/app --output-path public/_pagefind && next-sitemap",
     "start": "next start",
     "lint": "next lint"
