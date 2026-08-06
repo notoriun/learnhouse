@@ -1,0 +1,74 @@
+import { Callout } from 'nextra/components'
+
+# Migração de Usuários para o Keycloak
+
+Para adotar a [federação de identidade](/platform/users/corporate-login) com o estoque de
+contas existentes, a plataforma inclui um script de migração *one-shot* que leva cada conta
+local de senha para o realm do provedor da plataforma **preservando a senha atual** (o hash
+Argon2 é importado — o usuário continua entrando com a mesma senha, agora via SSO).
+
+## Pré-requisitos
+
+1. **Client dedicado** no realm (ex.: `learnhouse-migration`), confidencial, com *service
+   account* habilitado e apenas o papel `manage-users` (realm-management). Não reutilize o
+   client de login — o caminho web nunca deve ter credencial administrativa. Revogue o
+   client após a migração.
+2. Variáveis de ambiente na execução:
+
+| Variável | Descrição |
+|---|---|
+| `LEARNHOUSE_KEYCLOAK_ISSUER` | Issuer do realm da plataforma (já configurado para o login) |
+| `LEARNHOUSE_KC_MIGRATION_CLIENT_ID` | Client dedicado da migração |
+| `LEARNHOUSE_KC_MIGRATION_CLIENT_SECRET` | Segredo do client dedicado |
+
+## Execução
+
+```bash
+cd apps/api
+
+# Simulação (padrão): relatório do que aconteceria, zero escrita
+uv run python scripts/migrate_users_to_keycloak.py
+
+# Execução real
+uv run python scripts/migrate_users_to_keycloak.py --execute
+
+# Piloto por organização (repetível), antes da virada completa
+uv run python scripts/migrate_users_to_keycloak.py --execute --org minha-org
+
+# Contingência: cria sem credencial + e-mail de redefinição de senha
+uv run python scripts/migrate_users_to_keycloak.py --execute --reset-passwords
+```
+
+## O que acontece com cada conta
+
+| Situação | Resultado |
+|---|---|
+| Conta local de senha, inexistente no realm | **Criada** no realm com e-mail, nome, verificação de e-mail e a senha importada; vínculo de identidade gravado por organização |
+| E-mail já existe no realm (criado por outro sistema) | **Vinculada** — nenhuma conta ou credencial é alterada no realm; apenas o vínculo é gravado |
+| Sem senha local (conta social/SSO) | **Pulada** |
+| Já migrada (vínculos existentes) | **Pulada** — reexecutar é seguro (idempotente) |
+| Erro em uma conta | **Falha registrada** no relatório; as demais continuam |
+
+O relatório final lista `criados`, `vinculados`, `pulados` e `falhas` (com motivo). Códigos
+de saída: `0` sucesso, `1` concluiu com falhas por conta, `2` erro fatal antes de iniciar.
+Hashes e segredos nunca aparecem em logs ou relatório.
+
+<Callout type="info">
+Contas locais sem nome/sobrenome caem uma única vez no *required action* `VERIFY_PROFILE`
+do Keycloak no primeiro login (a pessoa completa o perfil e segue); o nome preenchido
+sincroniza de volta para a plataforma via claims.
+</Callout>
+
+## Depois da migração
+
+1. Valide o login corporativo com uma conta migrada (senha antiga).
+2. Ative o registro federado no realm (`registrationAllowed` + SMTP/verificação de e-mail).
+3. Quando a organização estiver pronta, desligue o método "password" nos métodos de entrada
+   — o estado final é SSO-only.
+4. Revogue o client `learnhouse-migration`.
+
+<Callout>
+Se a importação de senha não for compatível com a configuração do seu realm (login com a
+senha antiga falhando no piloto), rode com `--reset-passwords`: as contas são criadas com
+exigência de redefinição e o usuário recebe o e-mail do próprio Keycloak.
+</Callout>

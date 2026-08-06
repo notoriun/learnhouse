@@ -1,0 +1,88 @@
+import { Callout } from 'nextra/components'
+
+# Login Corporativo (Keycloak)
+
+A plataforma suporta login corporativo via OpenID Connect (Authorization Code + PKCE) com o
+Keycloak da plataforma como provedor de identidade. Quando ativo, a tela de login exibe o
+botão **"Entrar com identidade corporativa"** e, para organizações que usam o provedor da
+plataforma, também **"Criar conta pela identidade corporativa"** — as contas nascem, trocam
+credencial e são encerradas no provedor; a plataforma atua como *relying party*.
+
+## Habilitação global (deployment)
+
+Configure o provedor da plataforma por variáveis de ambiente na API:
+
+| Variável | Descrição |
+|---|---|
+| `LEARNHOUSE_KEYCLOAK_ENABLED` | `true` para ativar o login corporativo global |
+| `LEARNHOUSE_KEYCLOAK_ISSUER` | Issuer do realm (ex.: `https://id.exemplo.com/realms/plataforma`) |
+| `LEARNHOUSE_KEYCLOAK_CLIENT_ID` | Client OIDC confidencial cadastrado no realm |
+| `LEARNHOUSE_KEYCLOAK_CLIENT_SECRET` | Segredo do client |
+| `LEARNHOUSE_KEYCLOAK_CLOCK_SKEW` | Tolerância de relógio em segundos (padrão 30) |
+
+O issuer DEVE usar HTTPS fora de desenvolvimento. O client precisa da *redirect URI* exata
+`https://<seu-dominio>/api/auth/keycloak/callback`. Além disso, o método **SSO** precisa
+estar entre os métodos de entrada permitidos da organização (configuração existente em
+Segurança da organização).
+
+## Configuração por organização
+
+Administradores podem configurar um provedor OIDC próprio para a organização pelo painel
+(Configurações → Autenticação), com teste de conexão, segredo *write-only* (nunca exibido) e
+políticas de admissão:
+
+- **Auto-provisionamento** — cria a conta no primeiro login corporativo (com papel padrão de
+  menor privilégio obrigatório).
+- **Domínios de e-mail permitidos** — restringe quem pode entrar/ser provisionado.
+- **Vínculo por e-mail** — liga a identidade corporativa a uma conta local pré-existente com
+  o mesmo e-mail verificado, quando permitido pela política.
+
+<Callout type="info">
+O caminho de **registro** (criação de conta pela tela do provedor) existe apenas para o
+provedor da plataforma. Organizações com IdP próprio de terceiro (Azure AD, Okta etc.)
+continuam com login e provisionamento normais, mas nunca recebem o botão de registro — a
+API recusa com `REGISTRO_NAO_DISPONIVEL`.
+</Callout>
+
+## Registro pela identidade corporativa
+
+Com o provedor da plataforma ativo e o auto-registro habilitado no realm
+(`registrationAllowed`), o "Criar conta pela identidade corporativa" leva à tela de registro
+do próprio Keycloak — mesmos parâmetros e proteções (PKCE, state, nonce) do login. Ao
+concluir, a pessoa volta autenticada e a conta é provisionada segundo a política da
+organização.
+
+Requisitos e comportamento:
+
+- **E-mail verificado é pré-condição**: o realm deve verificar o e-mail (SMTP +
+  verificação); registro com e-mail não verificado é recusado na admissão com orientação
+  clara.
+- O controle de "registro aberto ou fechado" é do **realm** (Keycloak), não da plataforma.
+- Recomenda-se `registrationEmailAsUsername` no realm: o e-mail é o identificador único de
+  entrada (evita colisão de nomes de usuário entre sistemas que compartilham o realm). O
+  apelido local da plataforma é derivado automaticamente da parte antes do `@`.
+
+## Contas federadas
+
+Uma conta é **federada** quando possui vínculo de identidade com o provedor da plataforma
+(criado no primeiro login, pelo registro ou pela [migração](/platform/users/keycloak-migration)).
+Para contas federadas:
+
+- **Senha e e-mail são gerenciados na central de conta do provedor** (`<issuer>/account`).
+  A troca local é recusada com `403 CONTA_FEDERADA` e a interface exibe o aviso com o link
+  — o endereço também é exposto em `GET /api/v1/instance/info` (`account_console_url`).
+- **E-mail alterado no provedor** é refletido automaticamente no login corporativo seguinte.
+- Demais campos de perfil (nome, bio, avatar) continuam editáveis na plataforma.
+
+<Callout>
+Durante a transição, o login por senha local de contas migradas continua funcionando até a
+organização desligar o método "password" nos métodos de entrada. A senha local fica
+congelada (a troca é bloqueada) e pode divergir da senha do provedor — estado transitório
+esperado; o estado final recomendado é SSO-only.
+</Callout>
+
+## Encerramento de sessão
+
+O logout de sessões federadas usa RP-Initiated Logout (encerra também a sessão no provedor)
+e a API aceita *backchannel logout* do Keycloak — sessões derrubadas no provedor são
+revogadas na plataforma.
