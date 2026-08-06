@@ -21,8 +21,7 @@ In local development, the API is available at:
 http://localhost:1338/api/v1/
 ```
 
-On LearnHouse Cloud, the API is served at `https://api.learnhouse.io/api/v1/`. Self-hosted
-production instances serve it behind a reverse proxy under `/api/v1/` on their own domain.
+In production, the API is served behind a reverse proxy under `/api/v1/` on your own domain.
 
 ## Response Format
 
@@ -43,7 +42,6 @@ All API responses are returned as JSON. Successful responses typically include t
 ## OpenAPI Specification
 
 Since the API is built with FastAPI, a machine-readable OpenAPI specification is served at
-`/openapi.json` — for LearnHouse Cloud that is
-[https://api.learnhouse.io/openapi.json](https://api.learnhouse.io/openapi.json). Use it to
-generate client libraries or import the API into testing tools. (The interactive Swagger UI at
-`/docs` is only enabled on development instances.)
+`/openapi.json` on your instance's domain. Use it to generate client libraries or import the
+API into testing tools. (The interactive Swagger UI at `/docs` is only enabled on development
+instances.)

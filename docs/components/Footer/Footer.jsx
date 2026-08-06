@@ -1,10 +1,11 @@
 'use client'
 
 import Link from 'next/link'
+import { REPO_URL } from '../../lib/site'
 
 const links = [
   { label: 'Documentation', href: '/' },
-  { label: 'GitHub', href: 'https://github.com/learnhouse/learnhouse' },
+  { label: 'GitHub', href: REPO_URL },
   { label: 'Discord', href: 'https://discord.gg/CMyZjjYZ6x' },
   { label: 'Twitter', href: 'https://twitter.com/learnhouseapp' },
 ]

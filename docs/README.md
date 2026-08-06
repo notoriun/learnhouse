@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  Official documentation for <a href="https://learnhouse.app">LearnHouse</a>, the open-source learning management system.
+  Official documentation for Notoriun, a self-hosted learning management system derived from the open-source LearnHouse project.
 </p>
 
 <p align="center">

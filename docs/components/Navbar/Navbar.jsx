@@ -4,8 +4,8 @@ import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Search } from 'nextra/components'
-import { GithubLogo, DiscordLogo, Code, ArrowUpRight, List, X, Plug, Globe, GraduationCap, BracketsCurly } from '@phosphor-icons/react/dist/ssr'
-import { asset } from '../../lib/site'
+import { GithubLogo, DiscordLogo, Code, List, X, BracketsCurly } from '@phosphor-icons/react/dist/ssr'
+import { asset, REPO_URL } from '../../lib/site'
 
 function Navbar() {
   const { resolvedTheme } = useTheme()
@@ -63,36 +63,6 @@ function Navbar() {
                 <BracketsCurly size={15} weight="fill" />
                 API Reference
               </Link>
-              <a
-                href="https://university.learnhouse.io"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="lh-navbar-nav-item"
-              >
-                <GraduationCap size={15} weight="fill" />
-                Learn
-                <ArrowUpRight size={11} weight="bold" />
-              </a>
-              <a
-                href="https://learnhouse.app/integrations"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="lh-navbar-nav-item"
-              >
-                <Plug size={15} weight="fill" />
-                Integrations
-                <ArrowUpRight size={11} weight="bold" />
-              </a>
-              <a
-                href="https://learnhouse.app"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="lh-navbar-nav-item"
-              >
-                <Globe size={15} weight="fill" />
-                Website
-                <ArrowUpRight size={11} weight="bold" />
-              </a>
             </nav>
           </div>
 
@@ -100,7 +70,7 @@ function Navbar() {
           <div className="lh-navbar-right">
             <Search className="lh-navbar-search" placeholder="Search docs..." />
             <a
-              href="https://github.com/learnhouse/learnhouse"
+              href={REPO_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="lh-navbar-nav-item lh-hide-mobile"
@@ -146,22 +116,7 @@ function Navbar() {
             <BracketsCurly size={16} weight="fill" />
             API Reference
           </Link>
-          <a href="https://university.learnhouse.io" target="_blank" rel="noopener noreferrer" className="lh-mobile-drawer-link">
-            <GraduationCap size={16} weight="fill" />
-            Learn
-            <ArrowUpRight size={12} weight="bold" />
-          </a>
-          <a href="https://learnhouse.app/integrations" target="_blank" rel="noopener noreferrer" className="lh-mobile-drawer-link">
-            <Plug size={16} weight="fill" />
-            Integrations
-            <ArrowUpRight size={12} weight="bold" />
-          </a>
-          <a href="https://learnhouse.app" target="_blank" rel="noopener noreferrer" className="lh-mobile-drawer-link">
-            <Globe size={16} weight="fill" />
-            Website
-            <ArrowUpRight size={12} weight="bold" />
-          </a>
-          <a href="https://github.com/learnhouse/learnhouse" target="_blank" rel="noopener noreferrer" className="lh-mobile-drawer-link">
+          <a href={REPO_URL} target="_blank" rel="noopener noreferrer" className="lh-mobile-drawer-link">
             <GithubLogo size={16} weight="fill" />
             GitHub
           </a>
