@@ -42,8 +42,9 @@ The site will be available at `http://localhost:3000`.
 ## Deployment
 
 Pushes to `dev` touching `docs/` publish the site to GitHub Pages
-(`.github/workflows/docs-pages.yaml`, `bun run build:static`). The export has no
-server, so the API playground proxy is dropped from that build.
+(`.github/workflows/docs-pages.yaml`, `bun run build:static`): the static export
+is force-pushed to the `gh-pages` branch, which is the Pages source. The export
+has no server, so the API playground proxy is dropped from that build.
 
 ## Project Structure
 

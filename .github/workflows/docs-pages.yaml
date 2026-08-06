@@ -10,19 +10,16 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
-# Pages has a single live deployment; queue instead of cancelling so the last
-# push always wins.
+# One publish at a time; queue instead of cancelling so the last push wins.
 concurrency:
-  group: pages
+  group: docs-pages
   cancel-in-progress: false
 
 jobs:
-  build:
-    name: Build static site
+  publish:
+    name: Build and publish
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -33,11 +30,6 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: '1.2'
-
-      # Provides base_path (/<repo> on a project site, empty on a custom
-      # domain) and base_url, both fed into the export build below.
-      - id: pages
-        uses: actions/configure-pages@v5
 
       - run: bun install --frozen-lockfile
 
@@ -50,21 +42,23 @@ jobs:
       - name: Build
         run: bun run build:static
         env:
-          NEXT_PUBLIC_DOCS_BASE_PATH: ${{ steps.pages.outputs.base_path }}
-          NEXT_PUBLIC_DOCS_SITE_URL: ${{ steps.pages.outputs.base_url }}
+          # Project site under /<repo>; change both if a custom domain is set up.
+          NEXT_PUBLIC_DOCS_BASE_PATH: /learnhouse
+          NEXT_PUBLIC_DOCS_SITE_URL: https://notoriun.github.io/learnhouse
           NEXT_PUBLIC_DOCS_STATIC: '1'
 
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: docs/out
-
-  deploy:
-    name: Deploy to Pages
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      # Published from the gh-pages branch rather than an Actions artifact: the
+      # artifact deployment path leaves a deployment keyed by commit SHA, and a
+      # single stuck one blocks every later run for that commit.
+      - name: Publish to gh-pages
+        run: |
+          touch out/.nojekyll
+          cd out
+          git init -q
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -qm "docs site @ ${GITHUB_SHA}"
+          git push -q -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
