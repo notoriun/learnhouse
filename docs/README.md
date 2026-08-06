@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://docs.learnhouse.app">
+  <a href="https://notoriun.github.io/learnhouse/">
     <img alt="LearnHouse" src=".github/images/learnhouse-github.png" width="600" />
   </a>
 </p>
@@ -13,21 +13,21 @@
 </p>
 
 <p align="center">
-  <a href="https://docs.learnhouse.app">docs.learnhouse.app</a>
+  <a href="https://notoriun.github.io/learnhouse/">notoriun.github.io/learnhouse</a>
 </p>
 
 ---
 
 ## Local Development
 
-This site lives in the [`learnhouse/learnhouse`](https://github.com/learnhouse/learnhouse)
+This site lives in the [`notoriun/learnhouse`](https://github.com/notoriun/learnhouse)
 monorepo under `docs/`. Run all commands from that directory.
 
 **Prerequisites:** [Bun](https://bun.sh) installed.
 
 ```bash
 # Clone the monorepo and move into the docs app
-git clone https://github.com/learnhouse/learnhouse.git
+git clone https://github.com/notoriun/learnhouse.git
 cd learnhouse/docs
 
 # Install dependencies
