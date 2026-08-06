@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Search } from 'nextra/components'
 import { GithubLogo, DiscordLogo, Code, ArrowUpRight, List, X, Plug, Globe, GraduationCap, BracketsCurly } from '@phosphor-icons/react/dist/ssr'
+import { asset } from '../../lib/site'
 
 function Navbar() {
   const { resolvedTheme } = useTheme()
@@ -29,7 +30,7 @@ function Navbar() {
     return () => { document.body.style.overflow = '' }
   }, [mobileMenuOpen])
 
-  const logoSrc = '/img/logos/learnhouse-dark.svg'
+  const logoSrc = asset('/img/logos/learnhouse-dark.svg')
 
   return (
     <>

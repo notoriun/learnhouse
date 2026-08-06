@@ -50,8 +50,8 @@ jobs:
       - name: Build
         run: bun run build:static
         env:
-          DOCS_BASE_PATH: ${{ steps.pages.outputs.base_path }}
-          DOCS_SITE_URL: ${{ steps.pages.outputs.base_url }}
+          NEXT_PUBLIC_DOCS_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          NEXT_PUBLIC_DOCS_SITE_URL: ${{ steps.pages.outputs.base_url }}
           NEXT_PUBLIC_DOCS_STATIC: '1'
 
       - uses: actions/upload-pages-artifact@v3

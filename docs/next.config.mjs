@@ -22,7 +22,7 @@ const serverOptions = {
 
 const exportOptions = {
   output: 'export',
-  basePath: process.env.DOCS_BASE_PATH || '',
+  basePath: process.env.NEXT_PUBLIC_DOCS_BASE_PATH || '',
   images: { unoptimized: true },
 }
 
