@@ -84,7 +84,6 @@ const iconMap = {
 
   // Getting Started
   '/getting-started/quickstart': Lightning,
-  '/getting-started/cloud-vs-self-hosting': Cloud,
   '/getting-started/key-concepts': BookOpen,
 
   // Platform
