@@ -1,0 +1,26 @@
+# Ignore específico do Dockerfile.docs (BuildKit dá precedência a
+# `<nome-do-dockerfile>.dockerignore` sobre o .dockerignore da raiz).
+#
+# É necessário porque o .dockerignore da raiz exclui `docs/` e `*.md` — regras
+# corretas para o build do app (Dockerfile), mas que aqui deixariam o
+# `COPY docs/ .` sem nada para copiar.
+
+# Descarta tudo e reintroduz apenas a doc: o contexto fica pequeno sem afetar
+# o build do app, que continua usando o .dockerignore da raiz.
+*
+!docs
+
+# Artefatos locais que não devem entrar no contexto nem sobrescrever o que o
+# build gera dentro da imagem.
+docs/node_modules
+docs/.next
+docs/out
+docs/.vercel
+docs/public/_pagefind
+docs/public/llms-full.txt
+docs/public/robots.txt
+docs/public/sitemap.xml
+docs/public/sitemap-0.xml
+docs/.env*.local
+**/.DS_Store
+**/*.tsbuildinfo
