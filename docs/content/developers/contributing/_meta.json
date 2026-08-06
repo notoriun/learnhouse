@@ -1,5 +1,6 @@
 {
   "index": "Overview",
   "dev-environment": "Dev Environment",
+  "keycloak-local": "Keycloak Local",
   "guidelines": "Guidelines"
 }

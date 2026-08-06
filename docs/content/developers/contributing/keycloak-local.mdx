@@ -1,0 +1,71 @@
+import { Callout } from 'nextra/components'
+
+# Keycloak no Ambiente Local
+
+Para desenvolver e testar o [login corporativo](/platform/users/corporate-login), o repositório
+inclui um compose completo com Keycloak já provisionado: realm `dev` importado
+automaticamente, clients e usuários de teste prontos.
+
+```bash
+docker compose -f docker-compose.local.yml up -d
+curl -sf http://localhost/api/v1/health   # deve responder 200
+```
+
+## O que sobe
+
+| Serviço | Descrição |
+|---|---|
+| `learnhouse-app` | Aplicação completa (build local), porta `80` |
+| `db` / `redis` | PostgreSQL (pgvector) e Redis |
+| `keycloak` | Keycloak 26.x em `start-dev --import-realm`, porta `8080`, admin `admin`/`admin` |
+| `keycloak-fwd` | Sidecar socat que encaminha `127.0.0.1:8080` *dentro* do container do app para o Keycloak |
+
+O sidecar existe para o issuer `http://localhost:8080/realms/dev` resolver igualmente no
+**navegador** (host) e na **API** (container) — sem ele, a API não alcançaria `localhost:8080`
+e o navegador não resolveria o hostname interno `keycloak`.
+
+<Callout type="warning">
+Ao recriar só o `learnhouse-app`, recrie também o sidecar:
+`docker compose -f docker-compose.local.yml up -d --force-recreate keycloak-fwd`.
+Ele compartilha o namespace de rede do app e fica órfão no container antigo
+(sintoma: login corporativo falhando com `sso_indisponivel`).
+</Callout>
+
+## Variáveis no `.env`
+
+```env
+LEARNHOUSE_KEYCLOAK_ENABLED=true
+LEARNHOUSE_KEYCLOAK_ISSUER=http://localhost:8080/realms/dev
+LEARNHOUSE_KEYCLOAK_CLIENT_ID=learnhouse
+LEARNHOUSE_KEYCLOAK_CLIENT_SECRET=learnhouse-dev-secret
+```
+
+Lembre-se de habilitar o método **SSO** nos métodos de entrada da organização
+(Segurança da organização) para o botão aparecer na tela de login.
+
+## Realm `dev` (importado de `docker/keycloak/realm-dev.json`)
+
+- `registrationAllowed: true` e `registrationEmailAsUsername: true` — habilita o
+  [registro federado](/platform/users/corporate-login#registro-pela-identidade-corporativa)
+  com e-mail como identificador único.
+- Client `learnhouse` (confidencial, segredo `learnhouse-dev-secret`, redirect
+  `http://localhost/api/auth/keycloak/callback`).
+- Client `learnhouse-migration` (service account, para o
+  [script de migração](/platform/users/keycloak-migration)) — falta apenas atribuir o papel
+  `manage-users` (realm-management) à service account no console admin
+  (`http://localhost:8080`), pois papéis não são atribuíveis pelo import.
+
+Usuários de teste:
+
+| Usuário | Senha | Situação |
+|---|---|---|
+| `teste@example.com` | `teste123` | E-mail verificado — login e registro funcionam |
+| `nao-verificado@example.com` | `teste123` | E-mail **não** verificado — útil para testar a recusa na admissão |
+
+## Solução de problemas
+
+- **`sso_indisponivel` após recriar o app** — recrie o sidecar (Callout acima).
+- **Realm não importado** — o import só ocorre na primeira subida do volume; para reimportar,
+  `docker compose -f docker-compose.local.yml down -v` e suba de novo (apaga os dados locais).
+- **Botão de registro ausente** — confira `registrationAllowed` no realm e se o issuer
+  configurado é o da plataforma (registro só existe para o provedor da plataforma).
