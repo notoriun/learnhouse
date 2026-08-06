@@ -1,5 +1,7 @@
 {
   "index": "Overview",
   "roles-and-permissions": "Roles & Permissions",
-  "authentication": "Authentication"
+  "authentication": "Authentication",
+  "corporate-login": "Login Corporativo (Keycloak)",
+  "keycloak-migration": "Migração para o Keycloak"
 }
