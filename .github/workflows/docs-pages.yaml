@@ -1,0 +1,70 @@
+name: Deploy Docs
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs-pages.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Pages has a single live deployment; queue instead of cancelling so the last
+# push always wins.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build static site
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.2'
+
+      # Provides base_path (/<repo> on a project site, empty on a custom
+      # domain) and base_url, both fed into the export build below.
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      - run: bun install --frozen-lockfile
+
+      # The playground proxy is a route handler: it cannot exist without a
+      # server and `output: export` refuses to build it. The reference pages
+      # themselves are static (bundled OpenAPI snapshot) and stay.
+      - name: Drop the server-only proxy
+        run: rm -rf app/api
+
+      - name: Build
+        run: bun run build:static
+        env:
+          DOCS_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          DOCS_SITE_URL: ${{ steps.pages.outputs.base_url }}
+          NEXT_PUBLIC_DOCS_STATIC: '1'
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/out
+
+  deploy:
+    name: Deploy to Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
