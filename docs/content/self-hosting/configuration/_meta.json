@@ -3,6 +3,7 @@
   "environment-variables": "Environment Variables",
   "ai-setup": "AI Setup",
   "email": "Email",
+  "keycloak": "Keycloak (Login Corporativo)",
   "storage": "Content Storage",
   "ssl": "SSL & Domain"
 }

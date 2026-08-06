@@ -1,0 +1,80 @@
+import { Callout } from 'nextra/components'
+
+# Keycloak (Login Corporativo)
+
+Provisionamento do Keycloak do zero para habilitar o
+[login corporativo](/platform/users/corporate-login) em uma instância self-hosted. Assume um
+Keycloak já em execução e acessível por HTTPS (o container oficial é
+`quay.io/keycloak/keycloak`; produção usa `start`, não `start-dev`).
+
+<Callout type="warning">
+Fora de desenvolvimento, o issuer DEVE usar HTTPS. A plataforma recusa issuer `http://` em
+produção.
+</Callout>
+
+## 1. Criar o realm
+
+No console admin, crie um realm dedicado (ex.: `plataforma`) e ajuste em **Realm settings**:
+
+- **Login** → *Email as username*: **ON** (`registrationEmailAsUsername`) — o e-mail vira o
+  identificador único, evitando colisão de nomes de usuário entre sistemas que compartilham
+  o realm. *Duplicate emails*: **OFF**.
+- **Login** → *User registration*: **ON** apenas se quiser o
+  [registro federado](/platform/users/corporate-login#registro-pela-identidade-corporativa)
+  (criação de conta pela tela do próprio Keycloak).
+- **Login** → *Verify email*: **ON** — e-mail verificado é pré-condição de admissão na
+  plataforma.
+- **Email**: configure o SMTP do realm (obrigatório para a verificação de e-mail e para os
+  fluxos de redefinição de senha do próprio Keycloak).
+
+## 2. Criar o client de login
+
+Em **Clients → Create client**:
+
+| Campo | Valor |
+|---|---|
+| Client ID | `learnhouse` (ou outro de sua escolha) |
+| Client authentication | **ON** (client confidencial) |
+| Standard flow | **ON** (Authorization Code) |
+| Direct access grants | **OFF** |
+| Valid redirect URIs | `https://<seu-dominio>/api/auth/keycloak/callback` (exata) |
+| Web origins | `https://<seu-dominio>` |
+| Valid post logout redirect URIs | `https://<seu-dominio>/*` |
+
+Copie o segredo em **Credentials**.
+
+## 3. Configurar a plataforma
+
+No `.env` da instância:
+
+```env
+LEARNHOUSE_KEYCLOAK_ENABLED=true
+LEARNHOUSE_KEYCLOAK_ISSUER=https://id.exemplo.com/realms/plataforma
+LEARNHOUSE_KEYCLOAK_CLIENT_ID=learnhouse
+LEARNHOUSE_KEYCLOAK_CLIENT_SECRET=<segredo do client>
+```
+
+Reinicie a instância e habilite o método **SSO** nos métodos de entrada da organização
+(Segurança da organização). O botão "Entrar com identidade corporativa" aparece na tela de
+login; se o registro estiver habilitado no realm, o botão de criação de conta também.
+
+## 4. (Opcional) Client de migração
+
+Para migrar contas locais existentes preservando a senha, crie um segundo client dedicado
+(ex.: `learnhouse-migration`): confidencial, **Service accounts roles: ON**, standard flow
+**OFF**. Em **Service accounts roles**, atribua apenas `manage-users` (client
+`realm-management`). Depois siga o
+[guia de migração](/platform/users/keycloak-migration) e **revogue o client ao final**.
+
+<Callout type="info">
+Nunca reutilize o client de login para a migração — o caminho web não deve ter credencial
+administrativa.
+</Callout>
+
+## Verificação
+
+1. Acesse a tela de login e entre com um usuário do realm (e-mail verificado).
+2. Confira `GET /api/v1/instance/info` — deve expor `account_console_url` apontando para
+   `<issuer>/account`.
+3. Se o registro estiver ativo, crie uma conta pela tela do provedor e confirme que ela
+   volta autenticada na plataforma.
