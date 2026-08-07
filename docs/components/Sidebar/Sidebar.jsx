@@ -285,7 +285,7 @@ function SidebarItem({ item, depth = 0, parentRoute = null, onNavigate }) {
   // Resolve the display label: explicit override → "Overview" for a folder's
   // own index child → page map title → name.
   const isIndexChild = parentRoute && item.route === parentRoute && !hasChildren
-  const title = (isIndexChild && item.route?.startsWith('/guides') ? 'Visão geral' : null)
+  const title = (isIndexChild && item.route?.startsWith('/guides') ? 'Visão Geral' : null)
     ?? labelMap[item.route]
     ?? (typeof item.title === 'string' ? item.title : item.name)
 
