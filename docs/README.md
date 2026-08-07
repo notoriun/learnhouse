@@ -6,6 +6,10 @@
   Documentação oficial do Notoriun, o sistema de gestão de aprendizado open-source.
 </p>
 
+<p align="center">
+  <a href="https://notoriun.github.io/learnhouse/">notoriun.github.io/learnhouse</a>
+</p>
+
 ---
 
 ## Desenvolvimento Local
@@ -28,6 +32,13 @@ bun dev
 ```
 
 O site estará disponível em `http://localhost:3000`.
+
+## Deploy
+
+Pushes para `dev` que tocam em `docs/` publicam o site no GitHub Pages
+(`.github/workflows/docs-pages.yaml`, `bun run build:static`): o export estático é
+enviado por force-push para a branch `gh-pages`, que é a fonte do Pages. Esse export
+não tem servidor, então o proxy do playground da API é removido desse build.
 
 ## Estrutura do Projeto
 

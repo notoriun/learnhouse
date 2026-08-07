@@ -6,8 +6,10 @@
  * so everything presentation-related about groups lives here.
  */
 
+// No public instance to default to: an unconfigured build must never point
+// example requests or the live-spec fetch at a third party's server.
 export const API_BASE_URL = (
-  process.env.LEARNHOUSE_API_URL || 'https://api.learnhouse.io'
+  process.env.LEARNHOUSE_API_URL || 'http://localhost:1338'
 ).replace(/\/$/, '')
 
 export const SPEC_REVALIDATE_SECONDS = 3600 // 1h ISR window for all reference pages

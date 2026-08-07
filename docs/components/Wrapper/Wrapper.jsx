@@ -6,6 +6,7 @@ import { useConfig } from 'nextra-theme-docs'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { PencilSimple } from '@phosphor-icons/react/dist/ssr'
+import { REPO_URL } from '../../lib/site'
 
 function Breadcrumb() {
   const config = useConfig()
@@ -82,7 +83,7 @@ function EditOnGitHub({ filePath }) {
   // direto evita ter que adivinhar índice de pasta vs. arquivo-folha pela URL.
   if (!filePath) return null
 
-  const href = `https://github.com/notoriun/learnhouse/edit/dev/docs/${filePath}`
+  const href = `${REPO_URL}/edit/dev/docs/${filePath}`
 
   return (
     <a

@@ -4,7 +4,8 @@ import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Search } from 'nextra/components'
-import { GithubLogo, Code, ArrowUpRight, List, X, BracketsCurly } from '@phosphor-icons/react/dist/ssr'
+import { GithubLogo, Code, List, X, BracketsCurly } from '@phosphor-icons/react/dist/ssr'
+import { asset, REPO_URL } from '../../lib/site'
 
 function Navbar() {
   const { resolvedTheme } = useTheme()
@@ -29,7 +30,7 @@ function Navbar() {
     return () => { document.body.style.overflow = '' }
   }, [mobileMenuOpen])
 
-  const logoSrc = '/img/logos/notoriun-dark.svg'
+  const logoSrc = asset('/img/logos/notoriun-dark.svg')
 
   return (
     <>
@@ -53,23 +54,23 @@ function Navbar() {
                 className="lh-navbar-nav-item"
               >
                 <Code size={15} weight="fill" />
-                Developers
+                Desenvolvedores
               </Link>
               <Link
                 href="/reference"
                 className="lh-navbar-nav-item"
               >
                 <BracketsCurly size={15} weight="fill" />
-                API Reference
+                Referência da API
               </Link>
             </nav>
           </div>
 
           {/* Right: search + links + hamburger */}
           <div className="lh-navbar-right">
-            <Search className="lh-navbar-search" placeholder="Search docs..." />
+            <Search className="lh-navbar-search" placeholder="Buscar na documentação..." />
             <a
-              href="https://github.com/notoriun/learnhouse"
+              href={REPO_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="lh-navbar-nav-item lh-hide-mobile"
@@ -82,7 +83,7 @@ function Navbar() {
             <button
               className="lh-mobile-menu-btn"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-label={mobileMenuOpen ? 'Fechar menu' : 'Abrir menu'}
             >
               {mobileMenuOpen ? <X size={20} weight="bold" /> : <List size={20} weight="bold" />}
             </button>
@@ -100,13 +101,13 @@ function Navbar() {
         <div className="lh-mobile-drawer-links">
           <Link href="/developers" className="lh-mobile-drawer-link" onClick={() => setMobileMenuOpen(false)}>
             <Code size={16} weight="fill" />
-            Developers
+            Desenvolvedores
           </Link>
           <Link href="/reference" className="lh-mobile-drawer-link" onClick={() => setMobileMenuOpen(false)}>
             <BracketsCurly size={16} weight="fill" />
-            API Reference
+            Referência da API
           </Link>
-          <a href="https://github.com/notoriun/learnhouse" target="_blank" rel="noopener noreferrer" className="lh-mobile-drawer-link">
+          <a href={REPO_URL} target="_blank" rel="noopener noreferrer" className="lh-mobile-drawer-link">
             <GithubLogo size={16} weight="fill" />
             GitHub
           </a>

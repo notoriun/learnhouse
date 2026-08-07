@@ -1,10 +1,11 @@
 'use client'
 
 import Link from 'next/link'
+import { REPO_URL } from '../../lib/site'
 
 const links = [
   { label: 'Documentação', href: '/' },
-  { label: 'GitHub', href: 'https://github.com/notoriun/learnhouse' },
+  { label: 'GitHub', href: REPO_URL },
 ]
 
 export default function Footer() {

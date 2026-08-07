@@ -1,13 +1,12 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { API_GROUPS, METHOD_TO_ACTION } from '../lib/reference/config.js'
+import { API_GROUPS, API_BASE_URL, METHOD_TO_ACTION } from '../lib/reference/config.js'
+import { SITE_URL } from '../lib/site.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CONTENT_DIR = path.join(__dirname, '..', 'content')
 const OUTPUT_FILE = path.join(__dirname, '..', 'public', 'llms-full.txt')
-const SITE_URL = 'https://docs.notoriun.com.br'
-const API_BASE_URL = (process.env.LEARNHOUSE_API_URL || 'https://api.learnhouse.io').replace(/\/$/, '')
 const SNAPSHOT_PATH = path.join(__dirname, '..', 'lib', 'reference', 'openapi.snapshot.json')
 
 function collectMdxFiles(dir, basePath = '') {

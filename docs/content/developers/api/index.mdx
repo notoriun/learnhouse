@@ -23,9 +23,7 @@ No desenvolvimento local, a API está disponível em:
 http://localhost:1338/api/v1/
 ```
 
-Em instâncias hospedadas na nuvem gerenciada, a API é servida em
-`https://api.learnhouse.io/api/v1/`. Instâncias self-hosted de produção a servem detrás de um
-proxy reverso sob `/api/v1/` no seu próprio domínio.
+Em produção, a API é servida detrás de um proxy reverso sob `/api/v1/` no seu próprio domínio.
 
 ## Formato de Resposta
 
@@ -49,7 +47,6 @@ dados solicitados diretamente, enquanto respostas de erro seguem esta estrutura:
 ## Especificação OpenAPI
 
 Como a API é construída com FastAPI, uma especificação OpenAPI legível por máquina é servida em
-`/openapi.json` — para instâncias hospedadas na nuvem gerenciada, isso é
-[https://api.learnhouse.io/openapi.json](https://api.learnhouse.io/openapi.json). Use-a para
-gerar bibliotecas cliente ou importar a API em ferramentas de teste. (A interface interativa do
-Swagger em `/docs` só é ativada em instâncias de desenvolvimento.)
+`/openapi.json` no domínio da sua instância. Use-a para gerar bibliotecas cliente ou importar a
+API em ferramentas de teste. (A interface interativa do Swagger em `/docs` só é ativada em
+instâncias de desenvolvimento.)

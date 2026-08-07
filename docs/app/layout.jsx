@@ -7,6 +7,7 @@ import { Analytics } from '@vercel/analytics/react'
 import CustomNavbar from '../components/Navbar/Navbar'
 import CustomFooter from '../components/Footer/Footer'
 import PostHogProvider from '../components/Analytics/PostHogProvider'
+import { SITE_URL, REPO_URL, asset } from '../lib/site'
 
 export const metadata = {
   title: {
@@ -24,7 +25,7 @@ export const metadata = {
     'documentação Notoriun',
     'docs Notoriun',
   ],
-  metadataBase: new URL('https://docs.notoriun.com.br'),
+  metadataBase: new URL(SITE_URL),
   robots: {
     index: true,
     follow: true,
@@ -39,19 +40,19 @@ export const metadata = {
   openGraph: {
     type: 'website',
     locale: 'pt_BR',
-    url: 'https://docs.notoriun.com.br',
+    url: SITE_URL,
     siteName: 'Documentação Notoriun',
     description:
       'Documentação oficial do Notoriun, a plataforma de aprendizagem de código aberto. Guias para self-hosting, criação de cursos, recursos de IA, referência de API e muito mais.',
   },
   icons: {
     icon: [
-      { url: '/favicons/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/favicons/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: asset('/favicons/favicon-32x32.png'), sizes: '32x32', type: 'image/png' },
+      { url: asset('/favicons/favicon-16x16.png'), sizes: '16x16', type: 'image/png' },
     ],
-    apple: '/favicons/apple-touch-icon.png',
+    apple: asset('/favicons/apple-touch-icon.png'),
   },
-  manifest: '/favicons/site.webmanifest',
+  manifest: asset('/favicons/site.webmanifest'),
 }
 
 export default async function RootLayout({ children }) {
@@ -70,7 +71,7 @@ export default async function RootLayout({ children }) {
           <CustomNavbar />
           <Layout
             pageMap={await getPageMap()}
-            docsRepositoryBase="https://github.com/notoriun/learnhouse/tree/dev/docs"
+            docsRepositoryBase={`${REPO_URL}/tree/dev/docs`}
             sidebar={{ defaultMenuCollapseLevel: 2 }}
             editLink="Editar esta página no GitHub"
             footer={<></>}

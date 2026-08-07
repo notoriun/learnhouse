@@ -1,9 +1,8 @@
 import { generateStaticParamsFor, importPage } from 'nextra/pages'
 import { useMDXComponents as getMDXComponents } from '../../mdx-components'
+import { SITE_URL } from '../../lib/site'
 
 export const generateStaticParams = generateStaticParamsFor('mdxPath')
-
-const SITE_URL = 'https://docs.notoriun.com.br'
 
 export async function generateMetadata(props) {
   const params = await props.params

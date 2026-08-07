@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { API_GROUPS, groupBySlug } from '../../../lib/reference/config'
+import { SITE_URL } from '../../../lib/site'
 import { getSpec } from '../../../lib/reference/fetch-spec'
 import { buildGroupModel } from '../../../lib/reference/build-model'
 import OperationArticle from '../../../components/reference/OperationArticle'
@@ -33,13 +34,13 @@ export default async function GroupPage({ params }) {
     '@type': 'APIReference',
     name: `API do Notoriun — ${model.title}`,
     description: model.description,
-    url: `https://docs.notoriun.com.br/reference/${model.slug}`,
+    url: `${SITE_URL}/reference/${model.slug}`,
     programmingModel: 'REST',
     targetPlatform: 'Notoriun',
     isPartOf: {
       '@type': 'WebSite',
       name: 'Documentação Notoriun',
-      url: 'https://docs.notoriun.com.br',
+      url: SITE_URL,
     },
   }
 

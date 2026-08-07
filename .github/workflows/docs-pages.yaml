@@ -1,0 +1,64 @@
+name: Deploy Docs
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs-pages.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# One publish at a time; queue instead of cancelling so the last push wins.
+concurrency:
+  group: docs-pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.2'
+
+      - run: bun install --frozen-lockfile
+
+      # The playground proxy is a route handler: it cannot exist without a
+      # server and `output: export` refuses to build it. The reference pages
+      # themselves are static (bundled OpenAPI snapshot) and stay.
+      - name: Drop the server-only proxy
+        run: rm -rf app/api
+
+      - name: Build
+        run: bun run build:static
+        env:
+          # Project site under /<repo>; change both if a custom domain is set up.
+          NEXT_PUBLIC_DOCS_BASE_PATH: /learnhouse
+          NEXT_PUBLIC_DOCS_SITE_URL: https://notoriun.github.io/learnhouse
+          NEXT_PUBLIC_DOCS_STATIC: '1'
+
+      # Published from the gh-pages branch rather than an Actions artifact: the
+      # artifact deployment path leaves a deployment keyed by commit SHA, and a
+      # single stuck one blocks every later run for that commit.
+      - name: Publish to gh-pages
+        run: |
+          touch out/.nojekyll
+          cd out
+          git init -q
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -qm "docs site @ ${GITHUB_SHA}"
+          git push -q -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
