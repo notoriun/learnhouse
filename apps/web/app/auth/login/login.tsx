@@ -327,8 +327,11 @@ const LoginClient = (props: LoginClientProps) => {
     setSsoLoading(true)
     // Navegação de topo: o BFF redireciona ao Keycloak e o callback grava os
     // cookies httpOnly — nenhum token transita pelo JavaScript (US2).
+    // Sem `redirect`: o destino é derivado da organização pelo callback (a área
+    // com menu). Antes mandávamos `/home`, que é o seletor de organizações —
+    // quem entrava por SSO nunca chegava ao menu da org (feature 009).
     window.location.assign(
-      `/api/auth/keycloak/authorize?org=${encodeURIComponent(props.org.slug)}&redirect=${encodeURIComponent('/home')}`
+      `/api/auth/keycloak/authorize?org=${encodeURIComponent(props.org.slug)}`
     )
   }
 
@@ -337,7 +340,7 @@ const LoginClient = (props: LoginClientProps) => {
     // Mesmo BFF do login; action=register leva à tela de registro do provedor
     // da plataforma e o retorno cai no callback/JIT existentes (feature 007).
     window.location.assign(
-      `/api/auth/keycloak/authorize?org=${encodeURIComponent(props.org.slug)}&action=register&redirect=${encodeURIComponent('/home')}`
+      `/api/auth/keycloak/authorize?org=${encodeURIComponent(props.org.slug)}&action=register`
     )
   }
 

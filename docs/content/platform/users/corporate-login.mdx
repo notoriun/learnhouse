@@ -29,6 +29,32 @@ Para provisionar o realm e os clients do zero, veja
 [Keycloak (Self-Hosting)](/self-hosting/configuration/keycloak); para desenvolvimento local
 com Keycloak pronto no compose, [Keycloak no Ambiente Local](/developers/contributing/keycloak-local).
 
+## Primeiro acesso e destino
+
+Com o **provedor da plataforma**, o primeiro acesso de alguém que ainda não tem conta cria a
+conta automaticamente: ela nasce vinculada à identidade corporativa e, nos acessos seguintes,
+a mesma identidade cai sempre na mesma conta. Não é preciso cadastrar a pessoa antes.
+
+O vínculo é feito pela identidade estável do provedor, **nunca pelo e-mail** — trocar o e-mail
+no provedor não cria conta nova nem transfere dados.
+
+As guardas de admissão continuam valendo em todos os casos:
+
+| Guarda | Efeito quando não atendida |
+|---|---|
+| E-mail verificado no provedor | Acesso recusado, nenhuma conta criada |
+| Domínio de e-mail permitido pela organização | Acesso recusado, nenhuma conta criada |
+| Método SSO habilitado na organização | Login corporativo indisponível |
+| Conta bloqueada | Acesso recusado |
+
+A conta criada recebe o papel de **menor privilégio** da organização do fluxo; a criação
+automática nunca concede administração. E-mail que coincide com uma conta já existente na
+mesma organização resulta em **vínculo**, não em conta duplicada; se a conta pertencer a outra
+organização, o caso é registrado como conflito para revisão administrativa.
+
+Concluído o acesso — conta recém-criada, recém-vinculada ou já conhecida — a pessoa é levada à
+**área principal da organização**, a tela com o menu de navegação.
+
 ## Configuração por organização
 
 Administradores podem configurar um provedor OIDC próprio para a organização pelo painel
@@ -36,7 +62,9 @@ Administradores podem configurar um provedor OIDC próprio para a organização 
 políticas de admissão:
 
 - **Auto-provisionamento** — cria a conta no primeiro login corporativo (com papel padrão de
-  menor privilégio obrigatório).
+  menor privilégio obrigatório). Para IdP de terceiro esta opção nasce **desligada**: a
+  organização precisa habilitá-la explicitamente. O padrão de criação automática descrito em
+  [Primeiro acesso e destino](#primeiro-acesso-e-destino) vale só para o provedor da plataforma.
 - **Domínios de e-mail permitidos** — restringe quem pode entrar/ser provisionado.
 - **Vínculo por e-mail** — liga a identidade corporativa a uma conta local pré-existente com
   o mesmo e-mail verificado, quando permitido pela política.

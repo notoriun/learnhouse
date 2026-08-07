@@ -115,6 +115,15 @@ curl -s -X POST http://localhost/api/v1/auth/keycloak/authorize \
 
 ## 5. Criar a conta local de vínculo (a pré-condição não documentada)
 
+> **Superado pela feature 009** (2026-08-07). Esta pré-condição **deixou de existir** para o
+> provedor da plataforma — que é o caso do ambiente local. O primeiro acesso pela identidade
+> corporativa passou a criar a conta automaticamente, então não é mais preciso criar a conta
+> local antes. Ver [009-auto-provisionamento-keycloak](../009-auto-provisionamento-keycloak/spec.md).
+>
+> O passo permanece registrado abaixo porque descreve o comportamento vigente quando a feature
+> 008 foi escrita, e porque continua valendo para organizações com IdP de terceiro que não
+> habilitaram a criação automática.
+
 Sem isto, o login corporativo recusa com `conta_nao_encontrada` — e é comportamento **correto**:
 sem configuração OIDC por organização, só o vínculo por e-mail está ativo, e ele exige conta local
 preexistente (D-14).

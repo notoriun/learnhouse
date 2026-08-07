@@ -36,13 +36,65 @@ function loginRedirect(request: NextRequest, error: string) {
   return NextResponse.redirect(url)
 }
 
-// Defesa em profundidade sobre o redirect_to já sanitizado pela API: somente
-// caminho relativo interno.
-function safeInternalPath(path: unknown): string {
-  if (typeof path !== 'string' || !path.startsWith('/') || path.startsWith('//')) {
-    return '/'
+// Slug de organização aceito num hostname. A API é a fonte do valor, mas ele
+// entra num nome de host — validar aqui é defesa em profundidade.
+const ORG_SLUG_RE = /^[a-z0-9][a-z0-9-_]{0,62}$/i
+
+/**
+ * Modo de hospedagem, pela fonte autoritativa: `instance/info` do backend.
+ *
+ * NÃO usa `getTenancy()` de @services/config: aquele getter lê o cookie
+ * `LH_tenancy`, que só existe no navegador — num route handler ele sempre
+ * devolveria `single`, e em multi-org o destino cairia no ápice (o seletor de
+ * organizações), justamente o defeito que esta rota corrige. Também não usa
+ * `NEXT_PUBLIC_LEARNHOUSE_MULTI_ORG`: env stale de deploy antigo já produziu
+ * hosts inválidos no passado (ver comentário em services/config/config.ts).
+ *
+ * Falha na consulta → `single`, que mantém o destino no host atual. É o
+ * comportamento seguro: nunca atravessa para um host que talvez não resolva.
+ */
+async function getTenancyMode(): Promise<'multi' | 'single'> {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/v1/instance/info`, {
+      signal: AbortSignal.timeout(3000),
+    })
+    if (!res.ok) return 'single'
+    const info = await res.json()
+    return info?.tenancy === 'multi' || info?.multi_org_enabled ? 'multi' : 'single'
+  } catch {
+    return 'single'
   }
-  return path
+}
+
+/**
+ * Destino pós-acesso: a raiz do host da organização — que é a área com menu.
+ *
+ * O caminho é sempre `/`: o catch-all do proxy reescreve `/` para
+ * `/orgs/{slug}/`, o grupo de rotas `(withmenu)`. Só o host varia:
+ *
+ * - `single`: o host que atendeu o callback já é o da organização.
+ * - `multi`: a redirect_uri cadastrada aterra no ápice, então é preciso
+ *   atravessar para `{slug}.{ápice}` — preservando protocolo e porta. Cookies
+ *   de sessão em multi usam domínio `.{topDomain}`, então a sessão gravada aqui
+ *   é legível lá (ver getCookieOptions).
+ *
+ * Nenhum valor vindo do usuário participa deste cálculo (feature 009): não há
+ * open redirect a sanitizar porque não há entrada a sanitizar.
+ */
+async function orgDestination(request: NextRequest, orgSlug: unknown): Promise<URL> {
+  const origin = new URL(publicOrigin(request))
+  if (typeof orgSlug !== 'string' || !ORG_SLUG_RE.test(orgSlug)) {
+    return new URL('/', origin)
+  }
+  if ((await getTenancyMode()) !== 'multi') {
+    return new URL('/', origin)
+  }
+  // Já estamos no host da organização? Prefixar de novo daria `slug.slug.dom`.
+  const slugPrefix = `${orgSlug.toLowerCase()}.`
+  if (!origin.hostname.toLowerCase().startsWith(slugPrefix)) {
+    origin.hostname = `${orgSlug}.${origin.hostname}`
+  }
+  return new URL('/', origin)
 }
 
 /**
@@ -93,7 +145,7 @@ export async function GET(request: NextRequest) {
     return loginRedirect(request, 'login_invalido')
   }
 
-  const destination = new URL(safeInternalPath(body?.redirect_to), publicOrigin(request))
+  const destination = await orgDestination(request, body?.org_slug)
   const response = NextResponse.redirect(destination)
   const cookieOptions = getCookieOptions(request)
 

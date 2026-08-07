@@ -6,6 +6,7 @@ token do provedor entra aqui. A identidade é chaveada por ``(issuer, subject)``
 nunca por e-mail.
 """
 
+import hashlib
 import logging
 from dataclasses import dataclass, field
 from typing import List, Literal, Optional, Union
@@ -269,6 +270,41 @@ def _backfill_profile(user: User, claims: FederatedClaims) -> None:
         user.last_name = claims.family_name
 
 
+def _subject_suffix(subject: str) -> str:
+    """Sufixo curto e ESTÁVEL para a mesma identidade.
+
+    Determinístico de propósito: um sufixo aleatório tornaria o resultado
+    irreprodutível em teste e mudaria o nome a cada tentativa de uma corrida.
+    """
+    return hashlib.sha256(subject.encode("utf-8")).hexdigest()[:8]
+
+
+async def _username_disponivel(db_session, base: str, subject: str) -> str:
+    """Primeiro nome de usuário livre a partir de ``base`` (feature 009).
+
+    A consulta prévia é necessária porque ``create_user`` funde conflito de
+    e-mail e de username num único 400 genérico — decisão deliberada de
+    anti-enumeração num endpoint público — e o provisionamento não consegue
+    distinguir os dois pela exceção. O caso de e-mail coincidente já foi
+    resolvido antes, no passo de vínculo, então uma colisão aqui é de username.
+
+    Sem isto, uma conta local homônima com OUTRO e-mail derrubava o acesso
+    inteiro com ``dados_inconsistentes`` — erro interno, para o usuário final.
+    """
+    candidatos = [base]
+    candidatos += [f"{base}-{i}" for i in range(1, 6)]
+    candidatos.append(f"{base}-{_subject_suffix(subject)}")
+    for candidato in candidatos:
+        existe = (
+            await db_session.execute(select(User).where(User.username == candidato))
+        ).scalars().first()
+        if existe is None:
+            return candidato
+    # Todos ocupados (inclusive o derivado do subject): devolve o último e deixa
+    # o create_user decidir — o desfecho será conflito, como antes.
+    return candidatos[-1]
+
+
 async def _create_and_link(db_session, request, claims, org, policy, org_meta):
     from src.db.users import UserCreate
     from src.services.users.users import create_user
@@ -277,32 +313,62 @@ async def _create_and_link(db_session, request, claims, org, policy, org_meta):
     # Realm com e-mail-como-username (feature 007) manda o e-mail em
     # preferred_username; o username local é sempre a parte antes do "@" —
     # um e-mail cru seria rejeitado pelo guard anti-URL do create_user.
-    username = (claims.preferred_username or claims.email or claims.subject).split("@")[0]
-    user_create = UserCreate(
-        username=username,
-        first_name=claims.given_name or "",
-        last_name=claims.family_name or "",
-        email=claims.email,
-        password="",
-    )
+    base = (claims.preferred_username or claims.email or claims.subject).split("@")[0]
+    if not base:
+        base = f"sso-{_subject_suffix(claims.subject)}"
+    username = await _username_disponivel(db_session, base, claims.subject)
+
+    # org.id capturado ANTES de qualquer tentativa: o rollback do caminho de
+    # nova tentativa expira os objetos da sessão, e ler ``org.id`` depois dispara
+    # um lazy load fora do contexto async (MissingGreenlet).
+    org_id = org.id
+
+    async def _criar(nome: str):
+        return await create_user(
+            request,
+            db_session,
+            _AnonymousActor(),
+            UserCreate(
+                username=nome,
+                first_name=claims.given_name or "",
+                last_name=claims.family_name or "",
+                email=claims.email,
+                password="",
+            ),
+            org_id,
+            is_oauth=True,
+            signup_provider="sso",
+            role_id=role_id,
+        )
+
     try:
-        user_read = await create_user(
-            request, db_session, _AnonymousActor(), user_create, org.id,
-            is_oauth=True, signup_provider="sso", role_id=role_id,
-        )
+        user_read = await _criar(username)
     except Exception:
-        logger.exception("Provisionamento: falha ao criar conta federada")
-        return ProvisioningConflict(
-            reason="dados_inconsistentes",
-            message_pt="Não foi possível concluir o acesso. Contate a administração.",
-        )
+        # Uma corrida pode ter ocupado o nome entre a consulta e a inserção.
+        # Uma única nova tentativa, com o sufixo estável do subject.
+        alternativo = f"{base}-{_subject_suffix(claims.subject)}"
+        if alternativo == username:
+            logger.exception("Provisionamento: falha ao criar conta federada")
+            return ProvisioningConflict(
+                reason="dados_inconsistentes",
+                message_pt="Não foi possível concluir o acesso. Contate a administração.",
+            )
+        try:
+            await db_session.rollback()
+            user_read = await _criar(alternativo)
+        except Exception:
+            logger.exception("Provisionamento: falha ao criar conta federada")
+            return ProvisioningConflict(
+                reason="dados_inconsistentes",
+                message_pt="Não foi possível concluir o acesso. Contate a administração.",
+            )
     user = (
         await db_session.execute(select(User).where(User.id == user_read.id))
     ).scalars().first()
 
     identity = ExternalIdentity(
         user_id=user.id,
-        organization_id=org.id,
+        organization_id=org_id,
         issuer=claims.issuer,
         subject=claims.subject,
         provider=claims.provider,
@@ -324,7 +390,7 @@ async def _create_and_link(db_session, request, claims, org, policy, org_meta):
     await db_session.refresh(identity)
 
     await _audit(
-        request, UserAuditEventType.SSO_PROVISIONED, user_id=user.id, org_id=org.id,
+        request, UserAuditEventType.SSO_PROVISIONED, user_id=user.id, org_id=org_id,
         metadata={**org_meta, "provider": claims.provider, "email": claims.email, "role_id": role_id},
     )
     return ProvisioningSuccess(user=user, external_identity=identity, outcome="provisioned")

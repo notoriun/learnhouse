@@ -70,23 +70,34 @@ ao criar o administrador. Use um domínio `.com`.
 Lembre-se de habilitar o método **SSO** nos métodos de entrada da organização
 (Segurança da organização) para o botão aparecer na tela de login.
 
-## Conta local para o vínculo por e-mail
+## Primeiro acesso não precisa de conta local
 
-<Callout type="warning">
-Entrar com `teste@example.com` recusa com `conta_nao_encontrada` até existir uma **conta local
-com esse mesmo e-mail**. Isso é comportamento correto, não defeito: sem configuração OIDC por
-organização, só o **vínculo por e-mail** está ativo, e ele precisa de uma conta preexistente para
-vincular. O auto-provisionamento depende de configuração por organização, que a proteção
-anti-SSRF recusa para issuer em `localhost`.
+<Callout type="info">
+Não é preciso criar conta nenhuma antes de entrar. No primeiro acesso pela identidade
+corporativa, a conta do LearnHouse é **criada automaticamente** e fica vinculada àquela
+identidade; nos acessos seguintes a mesma identidade cai sempre na mesma conta.
+
+Isso vale porque o ambiente local aponta o Keycloak por variáveis de ambiente
+(`LEARNHOUSE_KEYCLOAK_*`), ou seja, o **provedor da própria plataforma** — e ali a criação
+automática é ligada por padrão. Um provedor de identidade **de terceiro**, configurado por
+organização, continua exigindo que a administração habilite a criação automática: uma
+organização não passa a admitir gente nova sem ter pedido.
 </Callout>
 
-```bash
-curl -s -X POST http://localhost/api/v1/users/1 -H "Content-Type: application/json" \
-  -d '{"username":"teste","email":"teste@example.com","password":"Senha!123",
-       "first_name":"Teste","last_name":"Local"}'
-```
+O que continua sendo exigido para a conta ser criada:
 
-A conta nasce com `email_verified: true`, que é o que o vínculo por e-mail exige.
+- **E-mail verificado no provedor.** `nao-verificado@example.com` é recusado de propósito.
+- **Domínio de e-mail permitido**, quando a organização configurou uma lista.
+- **Método SSO habilitado** nos métodos de entrada da organização.
+
+A conta criada recebe o papel de **menor privilégio** na organização do fluxo — a criação
+automática nunca concede administração.
+
+<Callout type="warning">
+Se o acesso for recusado com `conta_nao_encontrada` mesmo com e-mail verificado, o método SSO
+provavelmente está desligado nos métodos de entrada da organização, ou existe uma configuração
+OIDC por organização (que passa a reger a política em vez do padrão da plataforma).
+</Callout>
 
 ## Realm `dev` (importado de `docker/keycloak/realm-dev.json`)
 

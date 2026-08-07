@@ -81,8 +81,23 @@ export const COVERAGE: JourneyCoverage[] = [
   {
     id: 'us1-redirect-allowlist',
     userStory: 'US1',
-    requisitos: ['FR-008 (001)'],
+    // Feature 009: o destino saiu do contrato, então a jornada deixou de
+    // comprovar sanitização e passou a comprovar indiferença — afirmação mais
+    // forte, porque não há entrada do usuário no cálculo do destino.
+    requisitos: ['FR-008 (001)', 'FR-007 (009)'],
     arquivo: 'tests/us1-redirect-allowlist.spec.ts',
+  },
+  {
+    id: 'us1-auto-provision',
+    userStory: 'US1',
+    requisitos: ['FR-001 (009)', 'FR-002 (009)', 'FR-009 (009)'],
+    arquivo: 'tests/us1-auto-provision.spec.ts',
+  },
+  {
+    id: 'us1-destino-menu',
+    userStory: 'US1',
+    requisitos: ['FR-005 (009)', 'FR-006 (009)', 'FR-007 (009)'],
+    arquivo: 'tests/us1-destino-menu.spec.ts',
   },
   {
     id: 'us1-provider-down',
@@ -113,13 +128,25 @@ export const COVERAGE: JourneyCoverage[] = [
   {
     id: 'us2-identity-link',
     userStory: 'US2',
-    requisitos: ['FR-001 (002)', 'FR-002 (002)', 'FR-003 (002)'],
+    // Feature 009: a jornada passou a comprovar também que o vínculo tem
+    // precedência sobre a criação (nada de conta duplicada) e que o acesso que
+    // vincula termina na área com menu.
+    requisitos: ['FR-001 (002)', 'FR-002 (002)', 'FR-003 (002)', 'FR-010 (009)', 'FR-006 (009)'],
     arquivo: 'tests/us2-identity-link.spec.ts',
   },
   {
+    id: 'us2-reentrada-mesma-conta',
+    userStory: 'US2',
+    requisitos: ['FR-003 (009)', 'FR-004 (009)', 'FR-006 (009)'],
+    arquivo: 'tests/us2-reentrada-mesma-conta.spec.ts',
+  },
+  {
+    // Feature 009: passou a comprovar a tentativa de tomada de conta por
+    // coincidência de e-mail (FR-010), em vez de "identidade sem conta local
+    // não entra" — política que a 009 mudou de propósito.
     id: 'us2-identity-conflict',
     userStory: 'US2',
-    requisitos: ['FR-004 (002)', 'FR-005 (002)'],
+    requisitos: ['FR-004 (002)', 'FR-005 (002)', 'FR-010 (009)'],
     arquivo: 'tests/us2-identity-conflict.spec.ts',
   },
 

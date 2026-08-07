@@ -171,33 +171,47 @@ class TestValidacaoNegativaPorClaim:
         self._rejeita("nao-e-um-jwt", keycloak_oidc.FAILURE_MALFORMED)
 
 
-class TestSanitizacaoRedirect:
-    """FR-008 — apenas caminho relativo interno; inválido vira ``/`` sem erro."""
+class TestFluxoNaoCarregaDestino:
+    """Feature 009 — o fluxo não transporta destino de retorno.
 
-    @pytest.mark.parametrize(
-        "entrada",
-        [
-            "//evil.com",
-            "//evil.com/phish",
-            "https://evil.com",
-            "http://evil.com",
-            "javascript:alert(1)",
-            "data:text/html,x",
-            "\\\\evil.com",
-            "/caminho\\com\\backslash",
-            "sem-barra-inicial",
-            "",
-            None,
-        ],
-    )
-    def test_destinos_invalidos_viram_raiz(self, entrada):
-        assert keycloak_oidc.sanitize_redirect(entrada) == "/"
+    Substitui os testes de ``sanitize_redirect``: aquela função sanitizava um
+    destino vindo do usuário e o guardava no fluxo. Agora o destino é derivado da
+    organização pelo BFF, então não existe destino a sanitizar. Estas asserções
+    são mais fortes do que as anteriores — elas falham se alguém reintroduzir
+    entrada do usuário no cálculo do destino, o que reabriria o vetor de open
+    redirect que a sanitização apenas neutralizava.
+    """
 
-    @pytest.mark.parametrize(
-        "entrada", ["/", "/dash/cursos", "/home?tab=1", "/c/curso#topo"]
-    )
-    def test_caminhos_internos_sao_aceitos(self, entrada):
-        assert keycloak_oidc.sanitize_redirect(entrada) == entrada
+    def test_sanitize_redirect_nao_existe_mais(self):
+        assert not hasattr(keycloak_oidc, "sanitize_redirect")
+
+    def test_create_flow_nao_aceita_destino(self):
+        import inspect
+
+        parametros = inspect.signature(keycloak_oidc.create_flow).parameters
+        assert list(parametros) == ["org_slug"]
+
+    def test_registro_do_fluxo_nao_guarda_destino(self, monkeypatch):
+        gravado = {}
+
+        class FakeRedis:
+            def set(self, key, value, ex=None, nx=False):
+                gravado[key] = value
+                return True
+
+            def getdel(self, key):
+                return gravado.pop(key, None)
+
+        fake = FakeRedis()
+        monkeypatch.setattr(keycloak_oidc, "_redis", lambda: fake)
+
+        flow = keycloak_oidc.create_flow("test-org")
+        consumido = keycloak_oidc.consume_flow(flow["state"])
+
+        assert consumido["org_slug"] == "test-org"
+        assert "redirect_to" not in consumido
+        # Nenhuma chave de destino sob outro nome, tampouco.
+        assert set(consumido) == {"nonce", "code_verifier", "org_slug", "created_at"}
 
 
 class TestValidacaoCaminhoFeliz:

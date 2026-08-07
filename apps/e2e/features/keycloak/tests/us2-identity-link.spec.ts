@@ -58,4 +58,15 @@ test(title('us2-identity-link'), async ({ page, context }) => {
     ).toBeNull()
     expect(await canReachAuthenticatedArea(page, BASE_URL)).toBe(true)
   })
+
+  await test.step('o acesso que vincula também termina na área com menu', async () => {
+    // Feature 009: o destino é o mesmo nos três desfechos — conta criada, conta
+    // vinculada e conta já conhecida. Sem esta asserção, a jornada de vínculo
+    // passaria mesmo se só o caminho de criação tivesse ganhado o destino certo.
+    expect(new URL(page.url()).pathname, 'o vínculo não levou à raiz da organização').toBe('/')
+    await expect(
+      page.getByRole('navigation', { name: /Top navigation/i }),
+      'a página final do acesso que vincula não tem o menu da organização',
+    ).toBeVisible({ timeout: 15_000 })
+  })
 })

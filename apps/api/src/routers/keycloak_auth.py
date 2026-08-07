@@ -59,10 +59,13 @@ router = APIRouter()
 
 class AuthorizeRequest(BaseModel):
     org_slug: str
-    redirect_to: Optional[str] = None
     # Feature 007: "register" leva à tela de registro do provedor da
     # plataforma (guarda FR-010 aplicada no handler).
     action: Literal["login", "register"] = "login"
+    # Feature 009: NÃO existe campo de destino. O destino pós-acesso é derivado
+    # da organização (o callback devolve ``org_slug`` e o BFF compõe a raiz do
+    # host da org, que é a área com menu). Um cliente desatualizado que ainda
+    # mande ``redirect_to`` não recebe erro — o campo é ignorado pelo modelo.
 
 
 class CallbackRequest(BaseModel):
@@ -213,7 +216,7 @@ async def keycloak_authorize(
 
     try:
         discovery = oidc.get_discovery(config.issuer)
-        flow = oidc.create_flow(body.org_slug, body.redirect_to)
+        flow = oidc.create_flow(body.org_slug)
     except oidc.ProviderUnavailableError as exc:
         _log_outcome("authorize", f"unavailable:{exc.category}", body.org_slug)
         raise _erro(*ERRO_SSO_INDISPONIVEL)
@@ -312,10 +315,21 @@ async def keycloak_callback(
         family_name=claims.get("family_name"),
         preferred_username=claims.get("preferred_username"),
     )
-    # Sem config da org (fallback global), mantém a paridade com o comporta-
-    # mento interino (research 001 §6): conta existente com e-mail verificado
-    # entra — agora registrando o vínculo. Com config, vale a política da org.
-    policy = ProvisioningPolicy(allow_link_by_email=True) if config_row is None else None
+    # Sem config da org, o fluxo usa a config global — que é, por definição, o
+    # provedor da PRÓPRIA PLATAFORMA. Ali a criação automática é ligada por
+    # padrão (feature 009): quem consegue se autenticar nesse provedor já é
+    # usuário legítimo da plataforma — a feature 007 inclusive expõe
+    # autorregistro no mesmo realm, então a conta vai existir de todo modo.
+    #
+    # Com config da org (feature 004), vale a política que a administração
+    # gravou: IdP de terceiro permanece fail-closed até a organização habilitar.
+    # As demais guardas de admissão seguem valendo nos dois casos (e-mail
+    # verificado, domínios permitidos, papel de menor privilégio, bloqueio).
+    policy = (
+        ProvisioningPolicy(auto_provision=True, allow_link_by_email=True)
+        if config_row is None
+        else None
+    )
     result = await provision_federated_login(
         db_session, request, federated, organization, policy=policy
     )
@@ -378,7 +392,11 @@ async def keycloak_callback(
             "refresh_token": issue.refresh_token,
             "expiry": get_token_expiry_ms(),
         },
-        "redirect_to": oidc.sanitize_redirect(flow.get("redirect_to")),
+        # Feature 009: a API não devolve destino, devolve a organização do fluxo.
+        # O BFF compõe a raiz do host dessa org — que é a área com menu. A org
+        # vem do fluxo criado no authorize e resolvida no servidor; nada que o
+        # cliente mande no callback a influencia (Princípio IV).
+        "org_slug": organization.slug,
     }
 
 
