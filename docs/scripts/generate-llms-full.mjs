@@ -67,7 +67,7 @@ const sections = []
 sections.push('# Documentação Notoriun — Conteúdo Completo')
 sections.push('')
 sections.push('> Este arquivo contém o texto completo de todas as páginas de documentação do Notoriun.')
-sections.push(`> Source: ${SITE_URL}`)
+sections.push(`> Fonte: ${SITE_URL}`)
 sections.push('')
 
 for (const { filePath, slug } of mdxFiles) {
