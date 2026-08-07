@@ -9,7 +9,19 @@ description: "Task list template for feature implementation"
 
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
+**Idioma**: as tarefas geradas DEVEM ser escritas em português (pt-BR), conforme a
+seção "Idioma Oficial" da constituição.
+
 **Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
+
+**Exceções obrigatórias (Princípio III da constituição)** — independentemente de testes
+terem sido pedidos na especificação:
+
+- Toda tarefa que altera modelos SQLModel DEVE ter uma tarefa irmã de migração Alembic.
+- Toda tarefa que altera o comportamento de endpoints da API DEVE ter uma tarefa de
+  teste na suíte de `apps/api`.
+- Toda tarefa que cria ou altera endpoint DEVE incluir a verificação de RBAC com escopo
+  de organização (Princípio IV).
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -21,9 +33,10 @@ description: "Task list template for feature implementation"
 
 ## Path Conventions
 
+- **LearnHouse (padrão)**: monorepo com `apps/web`, `apps/api`, `apps/collab`,
+  `apps/cli` — migrações da API em `apps/api/.../migrations`
 - **Single project**: `src/`, `tests/` at repository root
 - **Web app**: `backend/src/`, `frontend/src/`
-- **Mobile**: `api/src/`, `ios/src/` or `android/src/`
 - Paths shown below assume single project - adjust based on plan.md structure
 
 <!--

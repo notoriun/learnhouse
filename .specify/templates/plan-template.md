@@ -6,6 +6,10 @@
 
 **Note**: This template is filled in by the `/speckit-plan` command; its definition describes the execution workflow.
 
+**Idioma**: o conteúdo preenchido DEVE ser escrito em português (pt-BR), conforme a
+seção "Idioma Oficial" da constituição. Nomes de arquivos, identificadores de código e
+termos técnicos consagrados permanecem em inglês.
+
 ## Summary
 
 [Extract from feature spec: primary requirement + technical approach from research]
@@ -38,9 +42,27 @@
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+*PORTÃO: DEVE passar antes da pesquisa da Fase 0. Reverificar após o design da Fase 1.*
 
-[Gates determined based on constitution file]
+Marque cada portão como PASSA / N/A / VIOLAÇÃO (violações vão para Complexity Tracking):
+
+- [ ] **I. Fronteiras entre Apps São Contratos** — se a feature atravessa
+  `apps/web`, `apps/api`, `apps/collab` ou `apps/cli`, o contrato (endpoint, payload,
+  evento) está definido antes da implementação. Nenhum app além da API acessa
+  PostgreSQL ou Redis diretamente.
+- [ ] **II. Backend API-First** — a lógica de negócio fica em endpoints FastAPI em
+  `apps/api` com persistência em SQLModel; Web e CLI não duplicam regras do servidor.
+- [ ] **III. Mudanças de Schema Exigem Migrações e Testes** — toda alteração de modelo
+  tem migração Alembic planejada e toda mudança de comportamento da API tem teste
+  planejado no mesmo PR.
+- [ ] **IV. Segurança Multi-Tenant É Inegociável** — todo endpoint novo ou alterado
+  aplica RBAC com escopo de organização; consultas são limitadas à organização do
+  requisitante; validação nas fronteiras de confiança preservada.
+- [ ] **V. Simplicidade e Reúso Primeiro** — dependências novas, abstrações com uma
+  única implementação e configuração especulativa estão justificadas; separação
+  open-source (AGPL-3.0) / Enterprise mantida.
+- [ ] **Stack Tecnológica** — não introduz nova linguagem, framework, banco ou serviço
+  externo fora da stack estabelecida (caso contrário, é decisão constitucional).
 
 ## Project Structure
 
@@ -65,7 +87,14 @@ specs/[###-feature]/
 -->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
+# [REMOVE IF UNUSED] Option 0: LearnHouse monorepo (DEFAULT for this repository)
+apps/
+├── web/       # Next.js + React + TypeScript
+├── api/       # FastAPI + SQLModel + migrações Alembic
+├── collab/    # Hocuspocus / Yjs sobre WebSocket
+└── cli/       # Node.js + Commander
+
+# [REMOVE IF UNUSED] Option 1: Single project
 src/
 ├── models/
 ├── services/
