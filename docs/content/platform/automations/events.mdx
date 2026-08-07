@@ -1,31 +1,31 @@
 import { Callout } from 'nextra/components'
 
-# Event Catalogue
+# Catálogo de Eventos
 
-Every event that can fire from LearnHouse, grouped by category. Each event delivers the same envelope (`event`, `delivery_id`, `timestamp`, `org_id`, `data`) — only the shape of `data` varies.
+Todo evento que pode disparar a partir do Notoriun, agrupado por categoria. Cada evento entrega o mesmo envelope (`event`, `delivery_id`, `timestamp`, `org_id`, `data`) — só o formato de `data` varia.
 
 <Callout type="info">
-The event registry is the single source of truth. At runtime, dispatched payloads are validated against these schemas and any drift is logged as a warning. You can also fetch the live registry from your LearnHouse instance:
+O registro de eventos é a fonte única da verdade. Em produção, os payloads despachados são validados contra esses esquemas, e qualquer divergência é registrada como aviso. Você também pode buscar o registro em tempo real na sua instância do Notoriun:
 ```http
 GET /api/v1/{org_id}/webhooks/events
 ```
 </Callout>
 
-## System
+## Sistema
 
 ### `ping`
 
-Test event sent to verify endpoint connectivity. Fired by the **Send test event** button and the `POST /webhooks/{uuid}/test` endpoint.
+Evento de teste enviado para verificar a conectividade do endpoint. Disparado pelo botão **Enviar evento de teste** e pelo endpoint `POST /webhooks/{uuid}/test`.
 
 ```json
 { "message": "string" }
 ```
 
-## Learning progress
+## Progresso de Aprendizagem
 
 ### `course_completed`
 
-Triggered when a user completes every activity in a course.
+Disparado quando um usuário conclui todas as atividades de um curso.
 
 ```json
 {
@@ -36,7 +36,7 @@ Triggered when a user completes every activity in a course.
 
 ### `course_enrolled`
 
-Triggered when a user enrols in a course.
+Disparado quando um usuário se matricula em um curso.
 
 ```json
 {
@@ -47,7 +47,7 @@ Triggered when a user enrols in a course.
 
 ### `activity_completed`
 
-Triggered when a user completes an activity.
+Disparado quando um usuário conclui uma atividade.
 
 ```json
 {
@@ -59,7 +59,7 @@ Triggered when a user completes an activity.
 
 ### `assignment_submitted`
 
-Triggered when a user submits an assignment.
+Disparado quando um usuário envia uma tarefa.
 
 ```json
 {
@@ -71,7 +71,7 @@ Triggered when a user submits an assignment.
 
 ### `assignment_graded`
 
-Triggered when an instructor grades an assignment submission.
+Disparado quando um instrutor corrige o envio de uma tarefa.
 
 ```json
 {
@@ -84,7 +84,7 @@ Triggered when an instructor grades an assignment submission.
 
 ### `certificate_claimed`
 
-Triggered when a user receives a certificate.
+Disparado quando um usuário recebe um certificado.
 
 ```json
 {
@@ -94,11 +94,11 @@ Triggered when a user receives a certificate.
 }
 ```
 
-## User & access
+## Usuário e Acesso
 
 ### `user_signed_up`
 
-Triggered when a new user signs up for the organization.
+Disparado quando um novo usuário se cadastra na organização.
 
 ```json
 {
@@ -115,7 +115,7 @@ Triggered when a new user signs up for the organization.
 
 ### `user_email_verified`
 
-Triggered when a user verifies their email address.
+Disparado quando um usuário verifica seu endereço de e-mail.
 
 ```json
 { "user_uuid": "string", "email": "string" }
@@ -123,7 +123,7 @@ Triggered when a user verifies their email address.
 
 ### `user_role_changed`
 
-Triggered when a user's role is changed in the organization.
+Disparado quando o papel de um usuário é alterado na organização.
 
 ```json
 { "user_id": "integer", "org_id": "integer", "new_role_uuid": "string" }
@@ -131,7 +131,7 @@ Triggered when a user's role is changed in the organization.
 
 ### `user_invited_to_org`
 
-Triggered when users are invited to the organization. A single event is fired per invite batch.
+Disparado quando usuários são convidados para a organização. Um único evento é disparado por lote de convite.
 
 ```json
 {
@@ -144,17 +144,17 @@ Triggered when users are invited to the organization. A single event is fired pe
 
 ### `user_removed_from_org`
 
-Triggered when a user is removed from the organization.
+Disparado quando um usuário é removido da organização.
 
 ```json
 { "user_id": "integer", "org_id": "integer" }
 ```
 
-## Course lifecycle
+## Ciclo de Vida do Curso
 
 ### `course_created`
 
-Triggered when a new course is created.
+Disparado quando um novo curso é criado.
 
 ```json
 { "course_uuid": "string", "name": "string", "org_id": "integer" }
@@ -162,7 +162,7 @@ Triggered when a new course is created.
 
 ### `course_published`
 
-Triggered when a course is published or unpublished.
+Disparado quando um curso é publicado ou despublicado.
 
 ```json
 { "course_uuid": "string", "name": "string", "published": "boolean" }
@@ -170,7 +170,7 @@ Triggered when a course is published or unpublished.
 
 ### `course_deleted`
 
-Triggered when a course is deleted.
+Disparado quando um curso é excluído.
 
 ```json
 { "course_uuid": "string", "name": "string" }
@@ -178,17 +178,17 @@ Triggered when a course is deleted.
 
 ### `course_update_published`
 
-Triggered when an announcement is posted to a course.
+Disparado quando um comunicado é publicado em um curso.
 
 ```json
 { "courseupdate_uuid": "string", "course_uuid": "string" }
 ```
 
-## Content management
+## Gestão de Conteúdo
 
 ### `activity_version_created`
 
-Triggered when an activity version snapshot is created.
+Disparado quando um snapshot de versão de atividade é criado.
 
 ```json
 { "activity_id": "integer", "version_number": "integer", "created_by_id": "integer" }
@@ -196,7 +196,7 @@ Triggered when an activity version snapshot is created.
 
 ### `activity_version_restored`
 
-Triggered when an activity is restored to a previous version.
+Disparado quando uma atividade é restaurada para uma versão anterior.
 
 ```json
 {
@@ -208,7 +208,7 @@ Triggered when an activity is restored to a previous version.
 
 ### `course_contributor_added`
 
-Triggered when contributors are added to a course.
+Disparado quando colaboradores são adicionados a um curso.
 
 ```json
 { "course_uuid": "string", "contributors": "list[object]" }
@@ -216,7 +216,7 @@ Triggered when contributors are added to a course.
 
 ### `course_contributor_removed`
 
-Triggered when contributors are removed from a course.
+Disparado quando colaboradores são removidos de um curso.
 
 ```json
 { "course_uuid": "string", "contributors": "list[object]" }
@@ -224,7 +224,7 @@ Triggered when contributors are removed from a course.
 
 ### `collection_created`
 
-Triggered when a new course collection is created.
+Disparado quando uma nova coleção de cursos é criada.
 
 ```json
 { "collection_uuid": "string", "name": "string" }
@@ -232,7 +232,7 @@ Triggered when a new course collection is created.
 
 ### `podcast_episode_created`
 
-Triggered when a new podcast episode is added.
+Disparado quando um novo episódio de podcast é adicionado.
 
 ```json
 {
@@ -243,11 +243,11 @@ Triggered when a new podcast episode is added.
 }
 ```
 
-## Collaboration
+## Colaboração
 
 ### `board_created`
 
-Triggered when a new whiteboard is created.
+Disparado quando um novo quadro branco é criado.
 
 ```json
 { "board_uuid": "string", "name": "string", "created_by": "integer" }
@@ -255,7 +255,7 @@ Triggered when a new whiteboard is created.
 
 ### `board_member_added`
 
-Triggered when a member is added to a whiteboard.
+Disparado quando um membro é adicionado a um quadro branco.
 
 ```json
 { "board_uuid": "string", "user_id": "integer", "role": "string" }
@@ -263,17 +263,17 @@ Triggered when a member is added to a whiteboard.
 
 ### `playground_created`
 
-Triggered when a new playground is created.
+Disparado quando um novo playground é criado.
 
 ```json
 { "playground_uuid": "string", "name": "string", "created_by": "integer" }
 ```
 
-## Community
+## Comunidade
 
 ### `discussion_posted`
 
-Triggered when a user creates a discussion.
+Disparado quando um usuário cria uma discussão.
 
 ```json
 {
@@ -285,7 +285,7 @@ Triggered when a user creates a discussion.
 
 ### `comment_created`
 
-Triggered when a user posts a comment on a discussion.
+Disparado quando um usuário publica um comentário em uma discussão.
 
 ```json
 {
@@ -298,7 +298,7 @@ Triggered when a user posts a comment on a discussion.
 
 ### `discussion_pinned`
 
-Triggered when a discussion is pinned or unpinned.
+Disparado quando uma discussão é fixada ou desfixada.
 
 ```json
 {
@@ -311,7 +311,7 @@ Triggered when a discussion is pinned or unpinned.
 
 ### `discussion_locked`
 
-Triggered when a discussion is locked or unlocked.
+Disparado quando uma discussão é bloqueada ou desbloqueada.
 
 ```json
 {
@@ -324,17 +324,17 @@ Triggered when a discussion is locked or unlocked.
 
 ### `discussion_vote_cast`
 
-Triggered when a user upvotes a discussion.
+Disparado quando um usuário vota positivamente em uma discussão.
 
 ```json
 { "discussion_uuid": "string", "user_id": "integer", "upvote_count": "integer" }
 ```
 
-## Groups
+## Grupos
 
 ### `usergroup_created`
 
-Triggered when a new user group is created.
+Disparado quando um novo grupo de usuários é criado.
 
 ```json
 { "usergroup_uuid": "string", "name": "string" }
@@ -342,7 +342,7 @@ Triggered when a new user group is created.
 
 ### `usergroup_deleted`
 
-Triggered when a user group is deleted.
+Disparado quando um grupo de usuários é excluído.
 
 ```json
 { "usergroup_uuid": "string", "name": "string" }
@@ -350,7 +350,7 @@ Triggered when a user group is deleted.
 
 ### `usergroup_users_added`
 
-Triggered when users are added to a user group.
+Disparado quando usuários são adicionados a um grupo de usuários.
 
 ```json
 {
@@ -362,7 +362,7 @@ Triggered when users are added to a user group.
 
 ### `usergroup_resources_added`
 
-Triggered when resources are assigned to a user group.
+Disparado quando recursos são atribuídos a um grupo de usuários.
 
 ```json
 {
@@ -372,11 +372,11 @@ Triggered when resources are assigned to a user group.
 }
 ```
 
-## Subscriptions
+## Assinaturas
 
 ### `pack_activated`
 
-Triggered when a subscription pack is activated.
+Disparado quando um pacote de assinatura é ativado.
 
 ```json
 {
@@ -389,7 +389,7 @@ Triggered when a subscription pack is activated.
 
 ### `pack_deactivated`
 
-Triggered when a subscription pack is cancelled.
+Disparado quando um pacote de assinatura é cancelado.
 
 ```json
 {
@@ -399,11 +399,11 @@ Triggered when a subscription pack is cancelled.
 }
 ```
 
-## Organization
+## Organização
 
 ### `org_signup_method_changed`
 
-Triggered when the organization signup method is changed.
+Disparado quando o mecanismo de cadastro da organização é alterado.
 
 ```json
 { "signup_mechanism": "string" }
@@ -411,7 +411,7 @@ Triggered when the organization signup method is changed.
 
 ### `org_ai_config_changed`
 
-Triggered when the organization AI configuration is updated.
+Disparado quando a configuração de IA da organização é atualizada.
 
 ```json
 { "ai_enabled": "boolean", "copilot_enabled": "boolean" }
@@ -419,7 +419,7 @@ Triggered when the organization AI configuration is updated.
 
 ### `org_payments_config_changed`
 
-Triggered when the organization payments configuration is updated.
+Disparado quando a configuração de pagamentos da organização é atualizada.
 
 ```json
 { "payments_enabled": "boolean" }

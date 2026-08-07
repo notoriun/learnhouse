@@ -10,7 +10,10 @@ const BACKEND_URL = (
 const ORG_SLUG_RE = /^[a-z0-9][a-z0-9-_]{0,62}$/i
 
 function loginRedirect(request: NextRequest, org: string | null, error: string) {
-  const url = new URL('/auth/login', publicOrigin(request))
+  // `/login`, não `/auth/login`: `/auth/*` é destino interno da reescrita em
+  // proxy.ts e responde 404 quando pedido de fora. Ver o comentário equivalente
+  // em ../callback/route.ts.
+  const url = new URL('/login', publicOrigin(request))
   if (org && ORG_SLUG_RE.test(org)) url.searchParams.set('org', org)
   url.searchParams.set('error', error)
   return NextResponse.redirect(url)

@@ -25,7 +25,13 @@ function mapApiError(status: number, code: string | undefined): string {
 }
 
 function loginRedirect(request: NextRequest, error: string) {
-  const url = new URL('/auth/login', publicOrigin(request))
+  // `/login` — NÃO `/auth/login`. O segmento `/auth` é destino interno da
+  // reescrita feita em proxy.ts (`authPaths` → `/auth${pathname}`), que também
+  // anexa os cabeçalhos de tenant. Pedir `/auth/login` de fora não casa com
+  // essa lista, cai no catch-all tenant-scoped e vira `/orgs/{slug}/auth/login`
+  // — rota inexistente. O resultado era um 404 que engolia toda mensagem de
+  // recusa, apesar de a tela de entrada já mapear todos estes códigos de erro.
+  const url = new URL('/login', publicOrigin(request))
   url.searchParams.set('error', error)
   return NextResponse.redirect(url)
 }

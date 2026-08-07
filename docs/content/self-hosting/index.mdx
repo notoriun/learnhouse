@@ -1,56 +1,56 @@
 import { Callout } from 'nextra/components'
 
-# Self-Hosting LearnHouse
+# Self-Hosting do Notoriun
 
-LearnHouse can be self-hosted on your own infrastructure using the **LearnHouse CLI**. The CLI handles everything from initial setup to ongoing maintenance, including Docker Compose generation, environment file management, service orchestration, backups, and health checks.
+O Notoriun pode ser self-hosted na sua própria infraestrutura usando a **CLI do Notoriun**. A CLI cuida de tudo, desde a configuração inicial até a manutenção contínua, incluindo geração de Docker Compose, gestão de arquivo de ambiente, orquestração de serviços, backups e verificações de saúde.
 
-## Quick Start
+## Primeiros Passos Rápidos
 
-Make sure you have **Docker Engine 20.10+**, **Docker Compose 2.0+**, and **Node.js 18+** installed, then run:
+Certifique-se de ter **Docker Engine 20.10+**, **Docker Compose 2.0+** e **Node.js 18+** instalados, depois execute:
 
 ```bash
 npx learnhouse@latest setup
 ```
 
-The interactive setup wizard will walk you through domain configuration, database settings, admin credentials, and optional features. Once complete, start all services:
+O assistente interativo de instalação vai conduzi-lo pela configuração de domínio, definições do banco de dados, credenciais de administrador e recursos opcionais. Ao concluir, inicie todos os serviços:
 
 ```bash
 npx learnhouse start
 ```
 
-LearnHouse will be available at **http://localhost** (or your configured domain). Log in with the admin credentials you provided during setup.
+O Notoriun estará disponível em **http://localhost** (ou no seu domínio configurado). Entre com as credenciais de administrador fornecidas durante a instalação.
 
 <Callout type="info">
-The CLI generates `docker-compose.yml`, `.env`, and reverse proxy configuration for you. You do not need to write or maintain these files manually.
+A CLI gera `docker-compose.yml`, `.env` e a configuração de proxy reverso para você. Você não precisa escrever ou manter esses arquivos manualmente.
 </Callout>
 
-### Verify the installation
+### Verifique a instalação
 
 ```bash
 npx learnhouse doctor
 ```
 
-### Common management commands
+### Comandos de gestão comuns
 
 ```bash
-npx learnhouse stop       # Stop all services
-npx learnhouse start      # Start all services
-npx learnhouse logs       # Stream container logs
-npx learnhouse config     # View current configuration
-npx learnhouse backup     # Backup or restore the database
-npx learnhouse doctor     # Diagnose issues
+npx learnhouse stop       # Para todos os serviços
+npx learnhouse start      # Inicia todos os serviços
+npx learnhouse logs       # Acompanha os logs dos contêineres
+npx learnhouse config     # Vê a configuração atual
+npx learnhouse backup     # Faz backup ou restaura o banco de dados
+npx learnhouse doctor     # Diagnostica problemas
 ```
 
-## Documentation
+## Documentação
 
-### [Installation](/self-hosting/installation)
+### [Instalação](/self-hosting/installation)
 
-System requirements, quick install steps, and the full CLI command reference.
+Requisitos de sistema, passos de instalação rápida e a referência completa de comandos da CLI.
 
-### [Configuration](/self-hosting/configuration)
+### [Configuração](/self-hosting/configuration)
 
-Environment variables, AI features, email delivery, content storage, and SSL/domain setup.
+Variáveis de ambiente, recursos de IA, entrega de e-mail, armazenamento de conteúdo e configuração de SSL/domínio.
 
-### [Maintenance](/self-hosting/maintenance)
+### [Manutenção](/self-hosting/maintenance)
 
-Updates, backups, monitoring, and troubleshooting guides.
+Guias de atualização, backup, monitoramento e solução de problemas.

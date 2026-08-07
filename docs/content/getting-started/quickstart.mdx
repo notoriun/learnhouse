@@ -1,42 +1,42 @@
 import { Callout } from 'nextra/components'
 
-# Quickstart
+# Primeiros Passos Rápidos
 
-Run LearnHouse on your own infrastructure using the LearnHouse CLI. You'll need [Docker](https://docs.docker.com/get-docker/) and [Node.js](https://nodejs.org/) (v18+) installed.
+Rode o Notoriun na sua própria infraestrutura usando a CLI. Você vai precisar do [Docker](https://docs.docker.com/get-docker/) e do [Node.js](https://nodejs.org/) (v18+) instalados.
 
-### 1. Run the setup wizard
+## 1. Rode o assistente de instalação
 
 ```bash
 npx learnhouse@latest setup
 ```
 
-The interactive wizard walks you through domain configuration, database setup, admin account creation, and optional features (AI, email, storage, OAuth).
+O assistente interativo conduz você pela configuração de domínio, configuração do banco de dados, criação da conta de administrador e recursos opcionais (IA, e-mail, armazenamento, OAuth).
 
-### 2. Start LearnHouse
+## 2. Inicie a plataforma
 
 ```bash
 npx learnhouse start
 ```
 
-Your instance will be available at `http://localhost` (or the domain you configured during setup).
+Sua instância estará disponível em `http://localhost` (ou no domínio que você configurou durante a instalação).
 
-### 3. Manage your instance
+## 3. Gerencie sua instância
 
 ```bash
-npx learnhouse stop     # Stop all services
-npx learnhouse logs     # Stream logs
-npx learnhouse backup   # Backup database
-npx learnhouse doctor   # Run diagnostics
+npx learnhouse stop     # Para todos os serviços
+npx learnhouse logs     # Acompanha os logs
+npx learnhouse backup   # Faz backup do banco de dados
+npx learnhouse doctor   # Executa diagnósticos
 ```
 
 <Callout type="info">
-For detailed installation options, see the [Quick Install](/self-hosting/installation/quick-install) guide. For environment variables and configuration, see [Configuration](/self-hosting/configuration).
+Para opções detalhadas de instalação, veja o guia de [Instalação Rápida](/self-hosting/installation/quick-install). Para variáveis de ambiente e configuração, veja [Configuração](/self-hosting/configuration).
 </Callout>
 
 ---
 
-## What to do next
+## O que fazer a seguir
 
-- Familiarize yourself with the [Key Concepts](/getting-started/key-concepts) — organizations, courses, activities, and more.
-- Explore the [Editor](/platform/editor) to see how content authoring works.
-- Set up [AI features](/self-hosting/configuration/ai-setup) if you want built-in AI assistance for students and teachers.
+- Familiarize-se com os [Conceitos-chave](/getting-started/key-concepts) — organizações, cursos, atividades e mais.
+- Explore o [Editor](/platform/editor) para ver como funciona a criação de conteúdo.
+- Configure os [recursos de IA](/self-hosting/configuration/ai-setup) se quiser assistência de IA integrada para alunos e professores.

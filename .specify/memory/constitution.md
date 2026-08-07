@@ -18,6 +18,26 @@ Seções adicionadas:
   - Idioma Oficial (nova subseção em Restrições e Padrões)
 Seções removidas: nenhuma
 
+Templates dependentes (propagação verificada em 2026-08-06):
+  - ✅ .specify/templates/plan-template.md — "Constitution Check" agora lista os
+    portões concretos dos Princípios I–V e da Stack Tecnológica; nota de idioma
+    (pt-BR); layout do monorepo `apps/*` como estrutura padrão.
+  - ✅ .specify/templates/tasks-template.md — nota de idioma (pt-BR); exceções
+    obrigatórias do Princípio III (migração Alembic e teste de API mesmo quando
+    testes não são pedidos) e do Princípio IV (RBAC por organização); convenção
+    de caminhos do monorepo.
+  - ✅ .specify/templates/spec-template.md — nota de idioma (pt-BR).
+  - ✅ .specify/templates/checklist-template.md — nota de idioma (pt-BR).
+  - ✅ .specify/templates/constitution-template.md — template genérico do Spec Kit,
+    intencionalmente mantido com placeholders em inglês.
+  - ⚠ .claude/skills/speckit-*/ — definições de comando fornecidas pelo Spec Kit,
+    em inglês; não editadas para evitar conflito em atualizações da ferramenta. A
+    regra de idioma é aplicada pelos templates acima.
+
+Nota de versão: esta atualização apenas propaga a v1.1.0 para os templates e
+registra o resultado; nenhum texto normativo da constituição mudou, portanto a
+versão permanece 1.1.0 e a data da última emenda permanece 2026-08-03.
+
 Itens adiados / TODOs: nenhum
 -->
 

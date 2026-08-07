@@ -4,10 +4,8 @@ import Link from 'next/link'
 import { REPO_URL } from '../../lib/site'
 
 const links = [
-  { label: 'Documentation', href: '/' },
+  { label: 'Documentação', href: '/' },
   { label: 'GitHub', href: REPO_URL },
-  { label: 'Discord', href: 'https://discord.gg/CMyZjjYZ6x' },
-  { label: 'Twitter', href: 'https://twitter.com/learnhouseapp' },
 ]
 
 export default function Footer() {
@@ -15,7 +13,7 @@ export default function Footer() {
     <footer className="lh-footer">
       <div className="lh-footer-container">
         <p className="lh-footer-copyright">
-          &copy; {new Date().getFullYear()} LearnHouse
+          &copy; {new Date().getFullYear()} Notoriun
         </p>
         <nav className="lh-footer-nav">
           {links.map((link) => {

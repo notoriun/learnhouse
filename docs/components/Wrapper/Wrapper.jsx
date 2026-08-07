@@ -58,7 +58,7 @@ function Pagination() {
     <div className="lh-pagination">
       {prev ? (
         <Link href={prev.route} className="lh-pagination-link lh-pagination-prev">
-          <span className="lh-pagination-label">Previous</span>
+          <span className="lh-pagination-label">Anterior</span>
           <span className="lh-pagination-title">
             {typeof prev.title === 'string' ? prev.title : prev.name}
           </span>
@@ -66,7 +66,7 @@ function Pagination() {
       ) : <div />}
       {next ? (
         <Link href={next.route} className="lh-pagination-link lh-pagination-next">
-          <span className="lh-pagination-label">Next</span>
+          <span className="lh-pagination-label">Próximo</span>
           <span className="lh-pagination-title">
             {typeof next.title === 'string' ? next.title : next.name}
           </span>
@@ -77,10 +77,10 @@ function Pagination() {
 }
 
 function EditOnGitHub({ filePath }) {
-  // `filePath` comes from Nextra page metadata and is the actual source path
-  // relative to the docs app root (e.g. "content/cli/index.mdx"). The docs app
-  // lives under docs/ in the learnhouse monorepo, so prefix with that. Using it
-  // directly avoids guessing folder-index vs leaf-file from the URL.
+  // `filePath` vem dos metadados de página do Nextra e é o caminho real do
+  // arquivo-fonte relativo à raiz do app de docs (ex.: "content/cli/index.mdx").
+  // O app de docs vive em docs/ dentro do monorepo, daí o prefixo. Usar isso
+  // direto evita ter que adivinhar índice de pasta vs. arquivo-folha pela URL.
   if (!filePath) return null
 
   const href = `${REPO_URL}/edit/dev/docs/${filePath}`
@@ -93,7 +93,7 @@ function EditOnGitHub({ filePath }) {
       className="lh-edit-github"
     >
       <PencilSimple size={13} weight="bold" />
-      Edit on GitHub
+      Editar no GitHub
     </a>
   )
 }
@@ -101,7 +101,7 @@ function EditOnGitHub({ filePath }) {
 function LastEdited({ timestamp }) {
   if (!timestamp) return null
 
-  const date = new Date(timestamp).toLocaleDateString('en-US', {
+  const date = new Date(timestamp).toLocaleDateString('pt-BR', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -109,7 +109,7 @@ function LastEdited({ timestamp }) {
 
   return (
     <div className="lh-last-edited">
-      Last edited on {date}
+      Última edição em {date}
     </div>
   )
 }

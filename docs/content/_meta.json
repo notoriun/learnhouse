@@ -1,18 +1,18 @@
 {
-  "index": "Home",
+  "index": "Início",
   "-- Getting Started": {
     "type": "separator",
-    "title": "Getting Started"
+    "title": "Primeiros Passos"
   },
-  "getting-started": "Getting Started",
+  "getting-started": "Primeiros Passos",
   "-- Platform": {
     "type": "separator",
-    "title": "Platform"
+    "title": "Plataforma"
   },
-  "platform": "Platform",
+  "platform": "Plataforma",
   "self-hosting": "Self Hosting",
-  "developers": "Developers",
-  "guides": "Guides",
+  "developers": "Desenvolvedores",
+  "guides": "Guias",
   "cli": "CLI",
-  "enterprise": "Enterprise Edition"
+  "enterprise": "Edição Enterprise"
 }

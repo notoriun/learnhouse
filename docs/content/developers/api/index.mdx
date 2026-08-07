@@ -1,47 +1,52 @@
 import { Callout } from 'nextra/components'
 
-# API Reference
+# Referência da API
 
-The LearnHouse API is a RESTful service built with **FastAPI**. It powers all platform operations, from user authentication to course management and AI features. All endpoints are prefixed with `/api/v1/`.
+A API do Notoriun é um serviço RESTful construído com **FastAPI**. Ela alimenta todas as
+operações da plataforma, da autenticação de usuário à gestão de curso e recursos de IA. Todos os
+endpoints têm o prefixo `/api/v1/`.
 
-## Full API Reference
+## Referência Completa da API
 
 <Callout type="info">
-The **[full API Reference](/reference)** documents every public endpoint — request and response
-schemas, cURL/JavaScript/Python examples with your own token substituted in, and a live
-in-browser playground. It is generated directly from the live OpenAPI specification, so it never
-goes stale.
+A **[Referência Completa da API](/reference)** documenta todo endpoint público — esquemas de
+requisição e resposta, exemplos em cURL/JavaScript/Python com seu próprio token substituído, e um
+playground interativo direto no navegador. Ela é gerada diretamente a partir da especificação
+OpenAPI em produção, então nunca fica desatualizada.
 </Callout>
 
-## Base URL
+## URL Base
 
-In local development, the API is available at:
+No desenvolvimento local, a API está disponível em:
 
 ```
 http://localhost:1338/api/v1/
 ```
 
-In production, the API is served behind a reverse proxy under `/api/v1/` on your own domain.
+Em produção, a API é servida detrás de um proxy reverso sob `/api/v1/` no seu próprio domínio.
 
-## Response Format
+## Formato de Resposta
 
-All API responses are returned as JSON. Successful responses typically include the requested data directly, while error responses follow this structure:
+Todas as respostas da API são retornadas como JSON. Respostas de sucesso normalmente incluem os
+dados solicitados diretamente, enquanto respostas de erro seguem esta estrutura:
 
 ```json
 {
-  "detail": "Description of the error"
+  "detail": "Descrição do erro"
 }
 ```
 
-## Sections
+## Seções
 
-- **[Full API Reference](/reference)** -- Every endpoint, schema, code example and playground.
-- **[Authentication](/developers/api/authentication)** -- How to obtain and use authentication tokens.
-- **[Endpoints](/developers/api/endpoints)** -- Overview of the key API endpoint groups.
+- **[Referência Completa da API](/reference)** -- Todo endpoint, esquema, exemplo de código e
+  playground.
+- **[Autenticação](/developers/api/authentication)** -- Como obter e usar tokens de autenticação.
+- **[Endpoints](/developers/api/endpoints)** -- Visão geral dos principais grupos de endpoints da
+  API.
 
-## OpenAPI Specification
+## Especificação OpenAPI
 
-Since the API is built with FastAPI, a machine-readable OpenAPI specification is served at
-`/openapi.json` on your instance's domain. Use it to generate client libraries or import the
-API into testing tools. (The interactive Swagger UI at `/docs` is only enabled on development
-instances.)
+Como a API é construída com FastAPI, uma especificação OpenAPI legível por máquina é servida em
+`/openapi.json` no domínio da sua instância. Use-a para gerar bibliotecas cliente ou importar a
+API em ferramentas de teste. (A interface interativa do Swagger em `/docs` só é ativada em
+instâncias de desenvolvimento.)

@@ -1,7 +1,7 @@
 import { API_BASE_URL } from '../../../lib/reference/config'
 
 /**
- * Same-origin playground proxy. The LearnHouse API's CORS policy is pinned to
+ * Same-origin playground proxy. The API's CORS policy is pinned to
  * tenant domains, so the docs site cannot call it directly from the browser.
  *
  * Security posture:

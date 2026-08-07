@@ -16,7 +16,7 @@ export default function ResponseExamples({ responses }) {
   return (
     <div className="lh-ref-codepanel lh-ref-responsepanel">
       <div className="lh-ref-codepanel-head">
-        <span className="lh-ref-codepanel-title">Response</span>
+        <span className="lh-ref-codepanel-title">Resposta</span>
         <div className="lh-ref-codepanel-tabs" role="tablist">
           {withExamples.map((r) => (
             <button

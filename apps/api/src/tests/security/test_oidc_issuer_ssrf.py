@@ -40,6 +40,54 @@ class TestValidadorAntiSSRF:
     def test_faixas_internas_sao_rejeitadas(self, url):
         _rejeita(url)
 
+    def test_loopback_e_privado_liberados_em_development_mode(self, monkeypatch):
+        """Válvula de desenvolvimento: o provedor de identidade local vive no
+        próprio compose (localhost:8080, ou o nome do serviço numa rede 172.x).
+        Sem esta liberação, auto-provisionamento, o caminho feliz do registro
+        federado e a administração da config OIDC por org eram intestáveis
+        localmente."""
+        monkeypatch.setattr(
+            "src.services.security.url_validation.get_learnhouse_config",
+            lambda: SimpleNamespace(
+                general_config=SimpleNamespace(development_mode=True)
+            ),
+        )
+        for url in (
+            "http://localhost:8080/realms/dev",
+            "http://127.0.0.1:8080/realms/dev",
+            "http://172.20.0.5:8080/realms/dev",
+            "http://192.168.1.10/realms/dev",
+            # `localhost` resolve para 127.0.0.1 E ::1. O loopback IPv6 é
+            # `is_reserved=True` em Python (cai em ::/8), então uma checagem de
+            # "reservado" antes do loopback derrubava a URL inteira.
+            "http://[::1]:8080/realms/dev",
+        ):
+            validate_external_https_url(url)  # não deve levantar
+
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "http://169.254.169.254/latest/meta-data",  # metadata de nuvem
+            "http://0.0.0.0/realms/x",                   # não especificada
+            "http://240.0.0.1/realms/x",                 # reservada
+            "http://224.0.0.1/realms/x",                 # multicast
+        ],
+    )
+    def test_development_mode_nao_libera_link_local_nem_reservadas(
+        self, monkeypatch, url
+    ):
+        """A válvula de desenvolvimento cobre APENAS loopback e faixa privada.
+        Metadados de nuvem (169.254.169.254) seguem bloqueados — liberá-los
+        transformaria qualquer instância em dev num oráculo de credencial de
+        nuvem."""
+        monkeypatch.setattr(
+            "src.services.security.url_validation.get_learnhouse_config",
+            lambda: SimpleNamespace(
+                general_config=SimpleNamespace(development_mode=True)
+            ),
+        )
+        _rejeita(url)
+
     def test_http_rejeitado_fora_de_development_mode(self, monkeypatch):
         monkeypatch.setattr(
             "src.services.security.url_validation.get_learnhouse_config",

@@ -1,39 +1,52 @@
 import { Callout } from 'nextra/components'
 import ArchitectureDiagram from '../../../components/ArchitectureDiagram/ArchitectureDiagram'
 
-# Architecture Overview
+# Visão Geral da Arquitetura
 
-LearnHouse is a multi-directory project with multiple applications that work together to deliver the full platform experience. The system follows a clear separation of concerns between the frontend, backend, and supporting services.
+O Notoriun é um projeto multi-diretório com várias aplicações que trabalham juntas para entregar
+a experiência completa da plataforma. O sistema segue uma separação clara de responsabilidades
+entre o frontend, o backend e os serviços de apoio.
 
-## Project Structure
+## Estrutura do Projeto
 
 ```
 learnhouse/
 ├── apps/
-│   ├── web/      # Next.js frontend
-│   ├── api/      # FastAPI backend
-│   ├── collab/   # Hocuspocus collaboration server
-│   └── cli/      # LearnHouse CLI
-├── docker/       # Production Dockerfile helpers (nginx config, start.sh)
-└── Dockerfile    # Monolithic image used by the CLI setup wizard
+│   ├── web/      # Frontend Next.js
+│   ├── api/      # Backend FastAPI
+│   ├── collab/   # Servidor de colaboração Hocuspocus
+│   └── cli/      # CLI do Notoriun
+├── docker/       # Helpers de Dockerfile de produção (config nginx, start.sh)
+└── Dockerfile    # Imagem monolítica usada pelo assistente de instalação da CLI
 ```
 
-Self-hosted deployments do not have a checked-in `docker-compose.yml`. The LearnHouse CLI (`apps/cli`) generates `docker-compose.yml`, `.env`, and reverse proxy config at setup time from the templates in `apps/cli/src/templates/`.
+Implantações self-hosted não têm um `docker-compose.yml` versionado. A CLI do Notoriun
+(`apps/cli`) gera o `docker-compose.yml`, o `.env`, e a configuração do proxy reverso no momento
+da instalação, a partir dos templates em `apps/cli/src/templates/`.
 
-## How It All Fits Together
+## Como Tudo Se Encaixa
 
-The platform consists of four applications backed by two core services:
+A plataforma consiste em quatro aplicações apoiadas por dois serviços centrais:
 
-- **Web (Next.js)** -- The user-facing frontend that communicates with the backend API and the collaboration server.
-- **API (FastAPI)** -- The backend that handles authentication, course management, storage, uploads, AI features, and all business logic.
-- **Collab (Hocuspocus)** -- A WebSocket server that powers real-time collaborative editing with JWT authentication, Redis persistence, and per-board user limits.
-- **CLI (Commander)** -- A command-line tool used for local development and management tasks.
+- **Web (Next.js)** -- O frontend voltado ao usuário, que se comunica com a API de backend e o
+  servidor de colaboração.
+- **API (FastAPI)** -- O backend que lida com autenticação, gestão de curso, armazenamento,
+  envios, recursos de IA, e toda a lógica de negócio.
+- **Collab (Hocuspocus)** -- Um servidor WebSocket que alimenta a edição colaborativa em tempo
+  real com autenticação JWT, persistência em Redis, e limites de usuário por quadro.
+- **CLI (Commander)** -- Uma ferramenta de linha de comando usada para desenvolvimento local e
+  tarefas de gestão.
 
 <ArchitectureDiagram />
 
-## Backing Services
+## Serviços de Apoio
 
-LearnHouse relies on two primary backing services:
+O Notoriun depende de dois serviços de apoio principais:
 
-- **PostgreSQL 16 (pgvector)** -- The primary relational database for storing all application data including users, courses, organizations, and activity records. Uses the pgvector extension for AI embedding storage. Both dev and self-host production use the `pgvector/pgvector:pg16` image.
-- **Redis** -- Used for caching, session management, collaboration state persistence, and message brokering between services. Dev mode uses `redis:8.6.1-alpine`; the CLI-generated self-host production stack uses `redis:7.2.3-alpine`.
+- **PostgreSQL 16 (pgvector)** -- O banco de dados relacional principal para armazenar todos os
+  dados da aplicação, incluindo usuários, cursos, organizações e registros de atividade. Usa a
+  extensão pgvector para armazenamento de embeddings de IA. Tanto o dev quanto a produção
+  self-host usam a imagem `pgvector/pgvector:pg16`.
+- **Redis** -- Usado para cache, gestão de sessão, persistência de estado de colaboração, e
+  intermediação de mensagens entre serviços. O modo dev usa `redis:8.6.1-alpine`; a stack de
+  produção self-host gerada pela CLI usa `redis:7.2.3-alpine`.

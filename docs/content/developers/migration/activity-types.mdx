@@ -1,30 +1,38 @@
 import { Callout } from 'nextra/components'
 
-# Activity Types Reference
+# Referência de Tipos de Atividade
 
-Every activity in LearnHouse is described by two enums and one JSON `content` blob:
+Toda atividade no Notoriun é descrita por dois enums e um blob JSON `content`:
 
-- `activity_type` -- one of `TYPE_DYNAMIC`, `TYPE_VIDEO`, `TYPE_DOCUMENT`, `TYPE_ASSIGNMENT`, `TYPE_CUSTOM`, `TYPE_SCORM`.
-- `activity_sub_type` -- a more specific variant within the type (e.g. `SUBTYPE_VIDEO_YOUTUBE` vs `SUBTYPE_VIDEO_HOSTED`).
-- `content` -- a JSON object whose shape depends on the sub-type.
+- `activity_type` -- um de `TYPE_DYNAMIC`, `TYPE_VIDEO`, `TYPE_DOCUMENT`, `TYPE_ASSIGNMENT`,
+  `TYPE_CUSTOM`, `TYPE_SCORM`.
+- `activity_sub_type` -- uma variante mais específica dentro do tipo (ex.:
+  `SUBTYPE_VIDEO_YOUTUBE` vs `SUBTYPE_VIDEO_HOSTED`).
+- `content` -- um objeto JSON cujo formato depende do subtipo.
 
-This page is the canonical reference for what `content` (and `details`) must contain for each combination, alongside the create endpoint to use.
+Esta página é a referência canônica do que `content` (e `details`) deve conter para cada
+combinação, junto com o endpoint de criação a usar.
 
 <Callout type="info">
-The list of valid types and sub-types is enforced by the API as Python enums. Sending an unknown value returns a 422 Unprocessable Entity. The full enum is reproduced at the bottom of this page.
+A lista de tipos e subtipos válidos é imposta pela API como enums Python. Enviar um valor
+desconhecido retorna um 422 Unprocessable Entity. O enum completo é reproduzido no final desta
+página.
 </Callout>
 
-## Dynamic activities
+## Atividades dinâmicas
 
-`activity_type: "TYPE_DYNAMIC"` -- pages rendered inside the activity viewer.
+`activity_type: "TYPE_DYNAMIC"` -- páginas renderizadas dentro do visualizador de atividade.
 
-### Dynamic Page (`SUBTYPE_DYNAMIC_PAGE`)
+### Página Dinâmica (`SUBTYPE_DYNAMIC_PAGE`)
 
-The flagship activity type. `content` is a [TipTap](https://tiptap.dev/) / ProseMirror document.
+O tipo de atividade principal. `content` é um documento [TipTap](https://tiptap.dev/) /
+ProseMirror.
 
-**Create endpoint:** `POST /api/v1/activities/` (JSON body, see [Programmatic Migration](/developers/migration/programmatic#3a-generic-json-create----post-apiv1activities)).
+**Endpoint de criação:** `POST /api/v1/activities/` (corpo JSON, veja
+[Migração Programática](/developers/migration/programmatic#3a-generic-json-create----post-apiv1activities)).
 
-**Initial content:** start empty (`"content": {}`) and update later, or send a complete document on creation:
+**Conteúdo inicial:** comece vazio (`"content": {}`) e atualize depois, ou envie um documento
+completo na criação:
 
 ```json
 {
@@ -72,11 +80,12 @@ The flagship activity type. `content` is a [TipTap](https://tiptap.dev/) / Prose
 }
 ```
 
-The root must be `{ "type": "doc", "content": [...] }`. Each child is a block node.
+A raiz deve ser `{ "type": "doc", "content": [...] }`. Cada filho é um nó de bloco.
 
-#### Valid TipTap block types
+#### Tipos de bloco TipTap válidos
 
-The API validates dynamic-page content against this whitelist (unknown types are accepted but logged):
+A API valida o conteúdo de página dinâmica contra esta lista de permissão (tipos desconhecidos
+são aceitos mas registrados em log):
 
 ```
 paragraph, heading, bulletList, orderedList, listItem,
@@ -89,11 +98,12 @@ blockEmbed, blockQuiz, blockUser, blockWebPreview,
 flipcard, scenarios, button, badge
 ```
 
-The `block*` types correspond to LearnHouse's custom node extensions. Standard TipTap block types (`paragraph`, `heading`, etc.) behave as in any TipTap editor.
+Os tipos `block*` correspondem às extensões de nó customizadas do Notoriun. Tipos de bloco TipTap
+padrão (`paragraph`, `heading`, etc.) se comportam como em qualquer editor TipTap.
 
-#### Inline marks
+#### Marcações inline
 
-Text nodes (`"type": "text"`) can carry inline marks:
+Nós de texto (`"type": "text"`) podem carregar marcações inline:
 
 ```json
 { "type": "text", "text": "see link", "marks": [
@@ -101,15 +111,18 @@ Text nodes (`"type": "text"`) can carry inline marks:
 ] }
 ```
 
-Supported marks: `bold`, `italic`, `code`, `link`, plus the standard StarterKit marks.
+Marcações suportadas: `bold`, `italic`, `code`, `link`, além das marcações padrão do StarterKit.
 
 <Callout type="info">
-The web client tolerates `strong` and `em` (HTML aliases) and rewrites them to `bold` / `italic` on render. Prefer `bold` / `italic` directly in API payloads.
+O cliente web tolera `strong` e `em` (aliases HTML) e os reescreve para `bold` / `italic` na
+renderização. Prefira `bold` / `italic` diretamente nos payloads da API.
 </Callout>
 
-#### Alternative: simplified blocks-only content
+#### Alternativa: conteúdo simplificado só de blocos
 
-When the [AI-assisted migration](/developers/migration/assisted) creates a dynamic-page activity from a single image or audio file, it writes a simpler legacy shape instead of TipTap JSON:
+Quando a [migração assistida por IA](/developers/migration/assisted) cria uma atividade de
+página dinâmica a partir de uma única imagem ou arquivo de áudio, ela escreve um formato legado
+mais simples em vez de JSON TipTap:
 
 ```json
 {
@@ -123,11 +136,14 @@ When the [AI-assisted migration](/developers/migration/assisted) creates a dynam
 }
 ```
 
-The dynamic-page renderer accepts both shapes. Use the TipTap shape when authoring rich content; the simpler `blocks` shape exists primarily for migration-style media-only pages.
+O renderizador de página dinâmica aceita os dois formatos. Use o formato TipTap ao criar
+conteúdo rico; o formato `blocks` mais simples existe principalmente para páginas de estilo
+migração, só de mídia.
 
-#### Embedding media blocks
+#### Incorporando blocos de mídia
 
-Media blocks (`blockImage`, `blockVideo`, `blockPDF`, `blockAudio`) are atom nodes that point to a previously-uploaded Block via the `blockObject` attribute:
+Blocos de mídia (`blockImage`, `blockVideo`, `blockPDF`, `blockAudio`) são nós atômicos que
+apontam para um Block previamente enviado via o atributo `blockObject`:
 
 ```json
 {
@@ -151,18 +167,19 @@ Media blocks (`blockImage`, `blockVideo`, `blockPDF`, `blockAudio`) are atom nod
 }
 ```
 
-The full `BlockRead` object returned by `POST /api/v1/blocks/image` (or `/video` / `/pdf` / `/audio`) goes into `attrs.blockObject`. Attribute defaults per block:
+O objeto `BlockRead` completo retornado por `POST /api/v1/blocks/image` (ou `/video` / `/pdf` /
+`/audio`) vai em `attrs.blockObject`. Atributos padrão por bloco:
 
-| Block node | Required attrs | Optional attrs |
+| Nó de bloco | Atributos obrigatórios | Atributos opcionais |
 | --- | --- | --- |
 | `blockImage` | `blockObject` | `size: { width }`, `alignment` (`center`, `left`, `right`), `unsplash_*` |
 | `blockVideo` | `blockObject` | -- |
 | `blockPDF` | `blockObject` | -- |
 | `blockAudio` | `blockObject` | -- |
 
-#### Code blocks
+#### Blocos de código
 
-Code blocks include a `language` attribute consumed by lowlight syntax highlighting:
+Blocos de código incluem um atributo `language` consumido pelo highlight de sintaxe do lowlight:
 
 ```json
 {
@@ -174,9 +191,11 @@ Code blocks include a `language` attribute consumed by lowlight syntax highlight
 }
 ```
 
-Common languages: `python`, `javascript`, `typescript`, `java`, `cpp`, `c`, `rust`, `go`, `php`, `ruby`, `kotlin`, `csharp`, `swift`, `scala`, `perl`, `r`, plus anything supported by `lowlight`'s `common` set.
+Linguagens comuns: `python`, `javascript`, `typescript`, `java`, `cpp`, `c`, `rust`, `go`,
+`php`, `ruby`, `kotlin`, `csharp`, `swift`, `scala`, `perl`, `r`, além de qualquer uma suportada
+pelo conjunto `common` do `lowlight`.
 
-#### Quiz blocks
+#### Blocos de quiz
 
 ```json
 {
@@ -197,11 +216,13 @@ Common languages: `python`, `javascript`, `typescript`, `java`, `cpp`, `c`, `rus
 }
 ```
 
-The exact `questions` schema is the same one rendered by the editor's `QuizBlockComponent`. Inspect a real quiz in the editor and export the JSON if you need an authoritative shape -- it has evolved over time and is best treated as opaque to migration scripts.
+O esquema exato de `questions` é o mesmo renderizado pelo `QuizBlockComponent` do editor. Inspecione
+um quiz real no editor e exporte o JSON se precisar de um formato autoritativo -- ele evoluiu ao
+longo do tempo e é melhor tratado como opaco por scripts de migração.
 
-### Dynamic Markdown (`SUBTYPE_DYNAMIC_MARKDOWN`)
+### Markdown Dinâmico (`SUBTYPE_DYNAMIC_MARKDOWN`)
 
-Renders a Markdown file fetched from a remote URL.
+Renderiza um arquivo Markdown buscado de uma URL remota.
 
 ```json
 {
@@ -213,11 +234,11 @@ Renders a Markdown file fetched from a remote URL.
 }
 ```
 
-The viewer fetches and renders the URL on each page load.
+O visualizador busca e renderiza a URL a cada carregamento de página.
 
-### Dynamic Embed (`SUBTYPE_DYNAMIC_EMBED`)
+### Embed Dinâmico (`SUBTYPE_DYNAMIC_EMBED`)
 
-Renders an arbitrary URL inside an iframe (Google Docs, Notion, Figma, etc.):
+Renderiza uma URL arbitrária dentro de um iframe (Google Docs, Notion, Figma, etc.):
 
 ```json
 {
@@ -229,21 +250,27 @@ Renders an arbitrary URL inside an iframe (Google Docs, Notion, Figma, etc.):
 }
 ```
 
-The embedded site must allow iframe embedding (`X-Frame-Options` / `Content-Security-Policy`). LearnHouse cannot work around a destination's frame-blocking headers.
+O site incorporado precisa permitir incorporação em iframe (`X-Frame-Options` /
+`Content-Security-Policy`). O Notoriun não consegue contornar cabeçalhos de bloqueio de frame de
+um destino.
 
-## Video activities
+## Atividades de vídeo
 
 `activity_type: "TYPE_VIDEO"`.
 
-### Hosted video (`SUBTYPE_VIDEO_HOSTED`)
+### Vídeo hospedado (`SUBTYPE_VIDEO_HOSTED`)
 
-Created via the dedicated multipart endpoint -- you cannot create a hosted video by sending JSON to `/activities/`.
+Criado via o endpoint multipart dedicado -- você não pode criar um vídeo hospedado enviando JSON
+para `/activities/`.
 
 <Callout type="info">
-The endpoint creates the activity with `published: false` regardless of any payload field. To publish, follow up with `PUT /api/v1/activities/{activity_uuid}` setting `{"published": true}`. The same is true for `/activities/external_video` and `/activities/documentpdf`.
+O endpoint cria a atividade com `published: false` independentemente de qualquer campo do
+payload. Para publicar, siga com `PUT /api/v1/activities/{activity_uuid}` definindo
+`{"published": true}`. O mesmo vale para `/activities/external_video` e
+`/activities/documentpdf`.
 </Callout>
 
-**Create endpoint:** `POST /api/v1/activities/video`
+**Endpoint de criação:** `POST /api/v1/activities/video`
 
 ```bash
 curl -X POST "http://localhost:1338/api/v1/activities/video" \
@@ -254,7 +281,9 @@ curl -X POST "http://localhost:1338/api/v1/activities/video" \
   -F 'details={"startTime":0,"endTime":null,"autoplay":false,"muted":false}'
 ```
 
-`Content-Type` is checked strictly -- only `video/mp4` and `video/webm` are accepted. The server stores the file, builds the `content` object internally, and returns the resulting `ActivityRead`. The persisted `content` looks like:
+`Content-Type` é verificado estritamente -- só `video/mp4` e `video/webm` são aceitos. O
+servidor armazena o arquivo, constrói o objeto `content` internamente, e retorna o
+`ActivityRead` resultante. O `content` persistido se parece com:
 
 ```json
 {
@@ -263,20 +292,23 @@ curl -X POST "http://localhost:1338/api/v1/activities/video" \
 }
 ```
 
-`filename` is the safe-on-disk name LearnHouse generated; the player resolves it through `/api/v1/content/...`. The `details` form field is a JSON-encoded string with player options:
+`filename` é o nome seguro para disco que o Notoriun gerou; o player o resolve através de
+`/api/v1/content/...`. O campo de formulário `details` é uma string codificada em JSON com
+opções de player:
 
-| `details` key | Type | Notes |
+| Chave de `details` | Tipo | Notas |
 | --- | --- | --- |
-| `startTime` | number (seconds) | Seek-to point on play |
-| `endTime` | number or `null` | Stop point (omit to play to end) |
-| `autoplay` | boolean | -- |
-| `muted` | boolean | -- |
+| `startTime` | número (segundos) | Ponto de busca ao reproduzir |
+| `endTime` | número ou `null` | Ponto de parada (omita para reproduzir até o final) |
+| `autoplay` | booleano | -- |
+| `muted` | booleano | -- |
 
-### External video (`SUBTYPE_VIDEO_YOUTUBE`)
+### Vídeo externo (`SUBTYPE_VIDEO_YOUTUBE`)
 
-For YouTube and Vimeo embeds. Note the sub-type name is historical -- the same sub-type covers Vimeo too, distinguished by the `type` field in the request.
+Para incorporações do YouTube e Vimeo. Note que o nome do subtipo é histórico -- o mesmo subtipo
+também cobre o Vimeo, distinguido pelo campo `type` na requisição.
 
-**Create endpoint:** `POST /api/v1/activities/external_video`
+**Endpoint de criação:** `POST /api/v1/activities/external_video`
 
 ```bash
 curl -X POST "http://localhost:1338/api/v1/activities/external_video" \
@@ -291,23 +323,23 @@ curl -X POST "http://localhost:1338/api/v1/activities/external_video" \
   }'
 ```
 
-| Field | Type | Required | Notes |
+| Campo | Tipo | Obrigatório | Notas |
 | --- | --- | --- | --- |
-| `name` | string | Yes | Activity title |
-| `uri` | string | Yes | YouTube or Vimeo URL |
-| `type` | enum | Yes | `"youtube"` or `"vimeo"` |
-| `chapter_id` | string | Yes | Numeric chapter ID, sent as a string |
-| `details` | string | No | JSON-encoded player options (same keys as above), defaults to `"{}"` |
+| `name` | string | Sim | Título da atividade |
+| `uri` | string | Sim | URL do YouTube ou Vimeo |
+| `type` | enum | Sim | `"youtube"` ou `"vimeo"` |
+| `chapter_id` | string | Sim | ID numérico do capítulo, enviado como string |
+| `details` | string | Não | Opções de player codificadas em JSON (mesmas chaves acima), padrão `"{}"` |
 
-The persisted `content` is `{ uri, type, activity_uuid }`.
+O `content` persistido é `{ uri, type, activity_uuid }`.
 
-## Document activities
+## Atividades de documento
 
 `activity_type: "TYPE_DOCUMENT"`.
 
 ### PDF (`SUBTYPE_DOCUMENT_PDF`)
 
-**Create endpoint:** `POST /api/v1/activities/documentpdf`
+**Endpoint de criação:** `POST /api/v1/activities/documentpdf`
 
 ```bash
 curl -X POST "http://localhost:1338/api/v1/activities/documentpdf" \
@@ -317,7 +349,7 @@ curl -X POST "http://localhost:1338/api/v1/activities/documentpdf" \
   -F 'pdf_file=@./syllabus.pdf;type=application/pdf'
 ```
 
-`Content-Type` must be `application/pdf`. The persisted `content` is:
+`Content-Type` deve ser `application/pdf`. O `content` persistido é:
 
 ```json
 {
@@ -326,25 +358,31 @@ curl -X POST "http://localhost:1338/api/v1/activities/documentpdf" \
 }
 ```
 
-The viewer renders the PDF with PDF.js.
+O visualizador renderiza o PDF com PDF.js.
 
-### Generic document (`SUBTYPE_DOCUMENT_DOC`)
+### Documento genérico (`SUBTYPE_DOCUMENT_DOC`)
 
-Reserved sub-type. There is no dedicated upload endpoint -- if you need to host arbitrary downloadable files, use a hosted-video-style upload via the editor UI, or wrap the file in a Block and reference it from a dynamic page.
+Subtipo reservado. Não há endpoint de upload dedicado -- se você precisa hospedar arquivos
+arbitrários para download, use um upload no estilo vídeo hospedado via a interface do editor, ou
+envolva o arquivo em um Block e referencie-o de uma página dinâmica.
 
-## Assignments
+## Tarefas
 
 `activity_type: "TYPE_ASSIGNMENT"`, `activity_sub_type: "SUBTYPE_ASSIGNMENT_ANY"`.
 
 <Callout type="warning">
-**An assignment activity on its own is an empty box.** The activity record is just a placeholder -- the title, description, due date, grading type, and any submission tasks live in a separate `Assignment` record. If you create the activity but skip the second step, learners see a blank panel. Treat both calls as a single transaction in your migration script.
+**Uma atividade de tarefa por si só é uma caixa vazia.** O registro de atividade é só um
+placeholder -- o título, descrição, data de entrega, tipo de correção, e quaisquer atividades de
+envio vivem em um registro `Assignment` separado. Se você criar a atividade mas pular o segundo
+passo, os alunos veem um painel vazio. Trate as duas chamadas como uma única transação no seu
+script de migração.
 </Callout>
 
-An assignment is a **three-step** create when you want learners to actually submit something:
+Uma tarefa é uma criação em **três passos** quando você quer que os alunos realmente enviem algo:
 
-### Step 1 -- Create the activity shell
+### Passo 1 -- Crie o shell da atividade
 
-Generic `POST /api/v1/activities/`:
+`POST /api/v1/activities/` genérico:
 
 ```json
 {
@@ -357,11 +395,12 @@ Generic `POST /api/v1/activities/`:
 }
 ```
 
-Capture `id` and `activity_uuid` from the response.
+Capture `id` e `activity_uuid` da resposta.
 
-### Step 2 -- Create the linked Assignment record
+### Passo 2 -- Crie o registro Assignment vinculado
 
-`POST /api/v1/assignments/` with the assignment metadata. **All numeric IDs are required**:
+`POST /api/v1/assignments/` com os metadados da tarefa. **Todos os IDs numéricos são
+obrigatórios**:
 
 ```json
 {
@@ -380,21 +419,22 @@ Capture `id` and `activity_uuid` from the response.
 }
 ```
 
-| Field | Type | Required | Notes |
+| Campo | Tipo | Obrigatório | Notas |
 | --- | --- | --- | --- |
-| `title` | string | Yes | Shown in the assignment header |
-| `description` | string | Yes | Body text |
-| `due_date` | string (`YYYY-MM-DD`) | Yes | -- |
-| `grading_type` | enum | Yes | `ALPHABET`, `NUMERIC`, `PERCENTAGE`, `PASS_FAIL`, `GPA_SCALE` |
-| `org_id` / `course_id` / `chapter_id` / `activity_id` | int | Yes | All four foreign keys are required |
-| `published` | boolean | No | Defaults `false` |
-| `auto_grading` / `anti_copy_paste` / `show_correct_answers` | boolean | No | All default `false` |
+| `title` | string | Sim | Mostrado no cabeçalho da tarefa |
+| `description` | string | Sim | Texto do corpo |
+| `due_date` | string (`YYYY-MM-DD`) | Sim | -- |
+| `grading_type` | enum | Sim | `ALPHABET`, `NUMERIC`, `PERCENTAGE`, `PASS_FAIL`, `GPA_SCALE` |
+| `org_id` / `course_id` / `chapter_id` / `activity_id` | int | Sim | Todas as quatro chaves estrangeiras são obrigatórias |
+| `published` | booleano | Não | Padrão `false` |
+| `auto_grading` / `anti_copy_paste` / `show_correct_answers` | booleano | Não | Todos com padrão `false` |
 
-The response includes `assignment_uuid`, which is the handle for step 3.
+A resposta inclui `assignment_uuid`, que é o identificador para o passo 3.
 
-### Step 3 -- Add at least one Task
+### Passo 3 -- Adicione ao menos uma Atividade (Task)
 
-Without tasks, the assignment renders the description but has no submission UI. `POST /api/v1/assignments/{assignment_uuid}/tasks`:
+Sem atividades, a tarefa renderiza a descrição mas não tem interface de envio.
+`POST /api/v1/assignments/{assignment_uuid}/tasks`:
 
 ```json
 {
@@ -407,27 +447,38 @@ Without tasks, the assignment renders the description but has no submission UI. 
 }
 ```
 
-| Field | Type | Required | Notes |
+| Campo | Tipo | Obrigatório | Notas |
 | --- | --- | --- | --- |
-| `title` | string | Yes | -- |
-| `description` | string | Yes | -- |
-| `hint` | string | Yes | Pass `""` if you don't want a hint -- the field is required by the model |
-| `assignment_type` | enum | Yes | See list below |
-| `contents` | object | No (default `{}`) | Type-dependent payload |
-| `max_grade_value` | int | No (default `100`) | Tasks are graded out of this value; new code uses `100` everywhere |
-| `reference_file` | string | No | Reference document URL or filename |
+| `title` | string | Sim | -- |
+| `description` | string | Sim | -- |
+| `hint` | string | Sim | Passe `""` se não quiser uma dica -- o campo é obrigatório no modelo |
+| `assignment_type` | enum | Sim | Veja a lista abaixo |
+| `contents` | objeto | Não (padrão `{}`) | Payload dependente do tipo |
+| `max_grade_value` | int | Não (padrão `100`) | Atividades são corrigidas sobre este valor; código novo usa `100` em todo lugar |
+| `reference_file` | string | Não | URL ou nome de arquivo de referência |
 
-Task types (`assignment_type`): `FILE_SUBMISSION`, `QUIZ`, `FORM`, `CODE`, `SHORT_ANSWER`, `NUMBER_ANSWER`, `OTHER`. Each task type interprets `contents` differently -- the safest path for unknown types is `{}`. See the `/api/v1/assignments/` endpoint group in Swagger UI for the per-type contents schema.
+Tipos de atividade (`assignment_type`): `FILE_SUBMISSION`, `QUIZ`, `FORM`, `CODE`,
+`SHORT_ANSWER`, `NUMBER_ANSWER`, `OTHER`. Cada tipo de atividade interpreta `contents` de forma
+diferente -- o caminho mais seguro para tipos desconhecidos é `{}`. Veja o grupo de endpoints
+`/api/v1/assignments/` no Swagger UI para o esquema de contents por tipo.
 
 <Callout type="warning">
-**Assignments require authentication to view**, even on a public course. The `/api/v1/assignments/*` router has a router-level `Depends(require_authenticated_user)` that returns `401` for anonymous requests, so an unauthenticated viewer of a public course sees an **empty panel** where the assignment widget would be. The course outline still lists the assignment activity, but the assignment's title, description, due date, tasks and submission UI only appear after login. There is no public read mode for assignments today -- if learners need to read the assignment description without signing in, surface it in a sibling dynamic page instead.
+**Tarefas exigem autenticação para visualização**, mesmo em um curso público. O roteador
+`/api/v1/assignments/*` tem um `Depends(require_authenticated_user)` no nível do roteador que
+retorna `401` para requisições anônimas, então um visualizador não autenticado de um curso
+público vê um **painel vazio** onde estaria o widget de tarefa. O esboço do curso ainda lista a
+atividade de tarefa, mas o título, descrição, data de entrega, atividades e interface de envio
+só aparecem depois do login. Não há modo de leitura pública para tarefas hoje -- se os alunos
+precisam ler a descrição da tarefa sem entrar na conta, exponha-a em uma página dinâmica ao lado.
 </Callout>
 
 ## Custom
 
 `activity_type: "TYPE_CUSTOM"`, `activity_sub_type: "SUBTYPE_CUSTOM"`.
 
-A free-form activity. `content` is any JSON object you want -- the platform stores it verbatim and exposes it to a custom renderer that you supply on the frontend. Use this when no built-in type fits and you have your own UI for the activity.
+Uma atividade de formato livre. `content` é qualquer objeto JSON que você quiser -- a plataforma
+o armazena literalmente e o expõe a um renderizador customizado que você fornece no frontend.
+Use isso quando nenhum tipo integrado se encaixa e você tem sua própria UI para a atividade.
 
 ```json
 {
@@ -440,18 +491,26 @@ A free-form activity. `content` is any JSON object you want -- the platform stor
 ```
 
 <Callout type="warning">
-**Stock LearnHouse has no built-in renderer for `TYPE_CUSTOM`.** The activity will appear as an empty container in the learner viewer until you ship a custom frontend component for it. Treat `TYPE_CUSTOM` as a hook for your own integration code -- if you don't already have that integration, prefer `SUBTYPE_DYNAMIC_PAGE` (TipTap) or `SUBTYPE_DYNAMIC_EMBED` (iframe) instead.
+**O Notoriun padrão não tem renderizador integrado para `TYPE_CUSTOM`.** A atividade vai
+aparecer como um container vazio no visualizador do aluno até que você entregue um componente de
+frontend customizado para ela. Trate `TYPE_CUSTOM` como um gancho para seu próprio código de
+integração -- se você ainda não tem essa integração, prefira `SUBTYPE_DYNAMIC_PAGE` (TipTap) ou
+`SUBTYPE_DYNAMIC_EMBED` (iframe) em vez disso.
 </Callout>
 
 ## SCORM
 
-`activity_type: "TYPE_SCORM"`, sub-types `SUBTYPE_SCORM_12` and `SUBTYPE_SCORM_2004`.
+`activity_type: "TYPE_SCORM"`, subtipos `SUBTYPE_SCORM_12` e `SUBTYPE_SCORM_2004`.
 
-SCORM packages are uploaded through the editor UI -- the manifest (`imsmanifest.xml`) is parsed, files are extracted to storage, and the `content` is populated with launch metadata. Programmatic creation of SCORM activities is not currently exposed as a documented public endpoint; check the Swagger UI on a development instance for the latest interface.
+Pacotes SCORM são enviados através da interface do editor -- o manifesto (`imsmanifest.xml`) é
+analisado, os arquivos são extraídos para o armazenamento, e o `content` é preenchido com
+metadados de lançamento. A criação programática de atividades SCORM não está atualmente exposta
+como um endpoint público documentado; verifique o Swagger UI em uma instância de desenvolvimento
+para a interface mais recente.
 
-## The full enum (verbatim)
+## O enum completo (literal)
 
-Reproduced from `apps/api/src/db/courses/activities.py`:
+Reproduzido de `apps/api/src/db/courses/activities.py`:
 
 ```python
 class ActivityTypeEnum(str, Enum):

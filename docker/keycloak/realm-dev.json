@@ -26,10 +26,17 @@
       "secret": "learnhouse-dev-secret",
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": false,
-      "redirectUris": ["http://localhost/api/auth/keycloak/callback"],
-      "webOrigins": ["http://localhost"],
+      "redirectUris": [
+        "http://localhost/api/auth/keycloak/callback"
+      ],
+      "webOrigins": [
+        "http://localhost"
+      ],
       "attributes": {
-        "post.logout.redirect.uris": "http://localhost/*"
+        "post.logout.redirect.uris": "http://localhost/*",
+        "backchannel.logout.url": "http://learnhouse-app/api/v1/auth/keycloak/backchannel-logout",
+        "backchannel.logout.session.required": "true",
+        "backchannel.logout.revoke.offline.tokens": "false"
       }
     }
   ],
@@ -42,7 +49,11 @@
       "firstName": "Usuario",
       "lastName": "Teste",
       "credentials": [
-        { "type": "password", "value": "teste123", "temporary": false }
+        {
+          "type": "password",
+          "value": "teste123",
+          "temporary": false
+        }
       ]
     },
     {
@@ -53,8 +64,21 @@
       "firstName": "Email",
       "lastName": "NaoVerificado",
       "credentials": [
-        { "type": "password", "value": "teste123", "temporary": false }
+        {
+          "type": "password",
+          "value": "teste123",
+          "temporary": false
+        }
       ]
     }
-  ]
+  ],
+  "smtpServer": {
+    "host": "mailpit",
+    "port": "1025",
+    "from": "nao-responda@e2e-tests.com",
+    "fromDisplayName": "LearnHouse Local",
+    "ssl": "false",
+    "starttls": "false",
+    "auth": "false"
+  }
 }

@@ -1,138 +1,158 @@
 import { Callout } from 'nextra/components'
 
-# Troubleshooting
+# Solução de Problemas
 
-This guide covers common issues with self-hosted LearnHouse instances and how to resolve them.
+Este guia cobre problemas comuns com instâncias self-hosted do Notoriun e como resolvê-los.
 
-## First Step: Run Diagnostics
+## Primeiro Passo: Execute Diagnósticos
 
-Before diving into specific issues, run the built-in diagnostics:
+Antes de investigar problemas específicos, execute os diagnósticos integrados:
 
 ```bash
 learnhouse doctor
 ```
 
-This checks Docker availability, container health, port conflicts, DNS resolution, and disk space. It will often identify the root cause of problems automatically.
+Isso verifica a disponibilidade do Docker, a saúde dos contêineres, conflitos de porta,
+resolução de DNS e espaço em disco. Frequentemente ele identifica a causa raiz dos problemas
+automaticamente.
 
-## Services Not Starting
+## Serviços Não Iniciam
 
-**Symptoms:** `learnhouse start` fails, or containers are stopped or restarting.
+**Sintomas:** `learnhouse start` falha, ou os contêineres estão parados ou reiniciando.
 
-**Common causes:**
+**Causas comuns:**
 
-- **Docker is not running.** Verify Docker is running with `docker info`. Start the Docker daemon if needed.
-- **Insufficient memory.** LearnHouse requires at least 2 GB of RAM. Check available memory with `free -m` (Linux) or Activity Monitor (macOS).
-- **Port conflicts.** Another service may be using port 80 or 443. Check with `lsof -i :80` and stop the conflicting service. `learnhouse doctor` will also detect port conflicts.
-- **Corrupted configuration.** Re-run `learnhouse setup` to regenerate configuration files.
+- **O Docker não está em execução.** Verifique se o Docker está em execução com `docker info`.
+  Inicie o daemon do Docker se necessário.
+- **Memória insuficiente.** O Notoriun requer pelo menos 2 GB de RAM. Verifique a memória
+  disponível com `free -m` (Linux) ou o Monitor de Atividade (macOS).
+- **Conflitos de porta.** Outro serviço pode estar usando a porta 80 ou 443. Verifique com
+  `lsof -i :80` e pare o serviço conflitante. O `learnhouse doctor` também detecta conflitos de
+  porta.
+- **Configuração corrompida.** Execute `learnhouse setup` novamente para regenerar os arquivos de
+  configuração.
 
-## Database Connection Errors
+## Erros de Conexão com o Banco de Dados
 
-**Symptoms:** Application logs show database connection errors, or the app fails to start with PostgreSQL-related messages.
+**Sintomas:** Os logs da aplicação mostram erros de conexão com o banco de dados, ou a aplicação
+falha ao iniciar com mensagens relacionadas ao PostgreSQL.
 
-**Steps to resolve:**
+**Passos para resolver:**
 
-1. Run diagnostics to check container health:
+1. Execute diagnósticos para verificar a saúde dos contêineres:
    ```bash
    learnhouse doctor
    ```
 
-2. Check database logs:
+2. Verifique os logs do banco de dados:
    ```bash
    learnhouse logs
    ```
-   Look for log lines from the `db` container.
+   Procure por linhas de log do contêiner `db`.
 
-3. Verify the connection string in your `.env` file matches the database container's configuration.
+3. Verifique se a string de conexão no seu arquivo `.env` corresponde à configuração do contêiner
+   de banco de dados.
 
-4. If the database container keeps restarting, it may be running out of disk space. Check available disk space on the host.
+4. Se o contêiner de banco de dados continuar reiniciando, ele pode estar ficando sem espaço em
+   disco. Verifique o espaço em disco disponível no host.
 
-## Port Conflicts
+## Conflitos de Porta
 
-**Symptoms:** Error messages about ports already being in use.
+**Sintomas:** Mensagens de erro sobre portas já em uso.
 
-Check which process is using the port:
+Verifique qual processo está usando a porta:
 
 ```bash
-# Check port 80
+# Verifique a porta 80
 lsof -i :80
 
-# Check port 443
+# Verifique a porta 443
 lsof -i :443
 ```
 
-Stop the conflicting service, or reconfigure LearnHouse to use a different port by re-running `learnhouse setup`.
+Pare o serviço conflitante, ou reconfigure o Notoriun para usar uma porta diferente executando
+`learnhouse setup` novamente.
 
-## Storage Permission Errors
+## Erros de Permissão de Armazenamento
 
-**Symptoms:** File upload fails, or logs show permission denied errors when writing to storage.
+**Sintomas:** O upload de arquivo falha, ou os logs mostram erros de permissão negada ao gravar
+no armazenamento.
 
-**For filesystem storage:**
+**Para armazenamento em filesystem:**
 
-- Docker volumes should handle permissions automatically. If issues persist, check that the Docker daemon has appropriate permissions on the host filesystem.
+- Volumes Docker devem lidar com permissões automaticamente. Se os problemas persistirem,
+  verifique se o daemon do Docker tem as permissões apropriadas no filesystem do host.
 
-**For S3 storage:**
+**Para armazenamento S3:**
 
-- Verify your S3 credentials have read and write permissions on the configured bucket.
-- Check that the bucket name (`LEARNHOUSE_S3_API_BUCKET_NAME`) and endpoint URL (`LEARNHOUSE_S3_API_ENDPOINT_URL`) are correct in your `.env` file.
-- Test connectivity to the S3 endpoint from the server.
+- Verifique se suas credenciais S3 têm permissões de leitura e escrita no bucket configurado.
+- Verifique se o nome do bucket (`LEARNHOUSE_S3_API_BUCKET_NAME`) e a URL do endpoint
+  (`LEARNHOUSE_S3_API_ENDPOINT_URL`) estão corretos no seu arquivo `.env`.
+- Teste a conectividade com o endpoint S3 a partir do servidor.
 
-## Authentication Issues
+## Problemas de Autenticação
 
-**Symptoms:** Users cannot log in, or sessions expire immediately.
+**Sintomas:** Usuários não conseguem fazer login, ou as sessões expiram imediatamente.
 
-- Verify `NEXTAUTH_SECRET` is set and has not changed since the last restart. Changing the secret invalidates all existing sessions.
-- Verify `LEARNHOUSE_COOKIE_DOMAIN` matches your actual domain. Incorrect cookie domain prevents authentication from working.
-- If using SSL, ensure `NEXTAUTH_URL` uses `https://`.
+- Verifique se `NEXTAUTH_SECRET` está definido e não mudou desde o último reinício. Alterar o
+  segredo invalida todas as sessões existentes.
+- Verifique se `LEARNHOUSE_COOKIE_DOMAIN` corresponde ao seu domínio real. Um domínio de cookie
+  incorreto impede que a autenticação funcione.
+- Se estiver usando SSL, garanta que `NEXTAUTH_URL` use `https://`.
 
-## Performance Issues
+## Problemas de Desempenho
 
-**Symptoms:** Slow page loads, timeouts, or high resource usage.
+**Sintomas:** Carregamento lento de páginas, timeouts, ou alto uso de recursos.
 
-1. Run diagnostics:
+1. Execute diagnósticos:
    ```bash
    learnhouse doctor
    ```
 
-2. Review application logs for errors or slow operations:
+2. Revise os logs da aplicação em busca de erros ou operações lentas:
    ```bash
    learnhouse logs
    ```
 
-3. Check resource limits on your containers:
+3. Verifique os limites de recursos dos seus contêineres:
    ```bash
    learnhouse deployments
    ```
 
-4. Consider increasing server resources (RAM, CPU) if usage is consistently high.
+4. Considere aumentar os recursos do servidor (RAM, CPU) se o uso estiver consistentemente alto.
 
-5. If using filesystem storage with a large amount of content, consider migrating to S3-compatible storage.
+5. Se estiver usando armazenamento em filesystem com uma grande quantidade de conteúdo, considere
+   migrar para armazenamento compatível com S3.
 
-## Resetting Your Instance
+## Reiniciando sua Instância do Zero
 
 <Callout type="warning">
-Resetting your instance deletes all data. Create a backup first if you want to preserve any data.
+Reiniciar sua instância do zero exclui todos os dados. Crie um backup primeiro se quiser
+preservar algum dado.
 </Callout>
 
-If you need to start fresh:
+Se você precisa começar do zero:
 
 ```bash
-# Back up current data (optional)
+# Faça backup dos dados atuais (opcional)
 learnhouse backup
 
-# Stop all services
+# Pare todos os serviços
 learnhouse stop
 
-# Re-run setup
+# Execute a instalação novamente
 learnhouse setup
 
-# Start fresh
+# Inicie do zero
 learnhouse start
 ```
 
-## Getting Help
+## Obtendo Ajuda
 
-If you cannot resolve an issue using this guide:
+Se você não conseguir resolver um problema usando este guia:
 
-1. Run `learnhouse doctor` and include the output in your report.
-2. Check the [LearnHouse GitHub issues](https://github.com/notoriun/learnhouse/issues) for known problems and solutions.
-3. Open a new issue with details about your problem, including relevant log output and your environment (OS, Docker version, RAM).
+1. Execute `learnhouse doctor` e inclua a saída no seu relatório.
+2. Verifique as [issues do GitHub do Notoriun](https://github.com/notoriun/learnhouse/issues)
+   para problemas conhecidos e soluções.
+3. Abra uma nova issue com detalhes sobre seu problema, incluindo a saída de log relevante e seu
+   ambiente (SO, versão do Docker, RAM).

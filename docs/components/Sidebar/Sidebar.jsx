@@ -235,8 +235,8 @@ function getIcon(route) {
 // Explicit sidebar label overrides (the page map auto-titleizes folder names,
 // which drops articles like "a" and can't express "&"). Keyed by route.
 const labelMap = {
-  '/guides/build-learning-platform': 'Build a Learning Platform',
-  '/guides/custom-features': 'Custom Features & Webhooks',
+  '/guides/build-learning-platform': 'Construir uma Plataforma de Aprendizagem',
+  '/guides/custom-features': 'Recursos Personalizados e Webhooks',
 }
 
 // Explicit child ordering for folders whose pages shouldn't be alphabetical.
@@ -285,7 +285,7 @@ function SidebarItem({ item, depth = 0, parentRoute = null, onNavigate }) {
   // Resolve the display label: explicit override → "Overview" for a folder's
   // own index child → page map title → name.
   const isIndexChild = parentRoute && item.route === parentRoute && !hasChildren
-  const title = (isIndexChild && item.route?.startsWith('/guides') ? 'Overview' : null)
+  const title = (isIndexChild && item.route?.startsWith('/guides') ? 'Visão Geral' : null)
     ?? labelMap[item.route]
     ?? (typeof item.title === 'string' ? item.title : item.name)
 

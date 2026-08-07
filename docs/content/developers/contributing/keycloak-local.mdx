@@ -7,9 +7,17 @@ inclui um compose completo com Keycloak já provisionado: realm `dev` importado
 automaticamente, clients e usuários de teste prontos.
 
 ```bash
+cp .env.local.example .env    # e troque os segredos marcados
 docker compose -f docker-compose.local.yml up -d
 curl -sf http://localhost/api/v1/health   # deve responder 200
 ```
+
+<Callout type="error">
+**O primeiro passo não é opcional.** O compose declara `env_file: .env` e falha sem esse
+arquivo. Não existe `.env` versionado (é gitignored) — use o
+[`.env.local.example`](https://github.com/notoriun/learnhouse/blob/dev/.env.local.example)
+como base. Ele já traz as duas variáveis obrigatórias que costumam faltar (abaixo).
+</Callout>
 
 ## O que sobe
 
@@ -19,6 +27,7 @@ curl -sf http://localhost/api/v1/health   # deve responder 200
 | `db` / `redis` | PostgreSQL (pgvector) e Redis |
 | `keycloak` | Keycloak 26.x em `start-dev --import-realm`, porta `8080`, admin `admin`/`admin` |
 | `keycloak-fwd` | Sidecar socat que encaminha `127.0.0.1:8080` *dentro* do container do app para o Keycloak |
+| `mailpit` | Coletor SMTP descartável, porta `8025`. O realm entrega em `mailpit:1025`; use a interface em `http://localhost:8025` para ler o e-mail de verificação |
 
 O sidecar existe para o issuer `http://localhost:8080/realms/dev` resolver igualmente no
 **navegador** (host) e na **API** (container) — sem ele, a API não alcançaria `localhost:8080`
@@ -38,10 +47,46 @@ LEARNHOUSE_KEYCLOAK_ENABLED=true
 LEARNHOUSE_KEYCLOAK_ISSUER=http://localhost:8080/realms/dev
 LEARNHOUSE_KEYCLOAK_CLIENT_ID=learnhouse
 LEARNHOUSE_KEYCLOAK_CLIENT_SECRET=learnhouse-dev-secret
+
+# Obrigatórias e frequentemente esquecidas:
+LEARNHOUSE_DEVELOPMENT_MODE=True
+LEARNHOUSE_FRONTEND_DOMAIN=localhost
 ```
+
+<Callout type="warning">
+**`LEARNHOUSE_DEVELOPMENT_MODE=True`** — o issuer local é `http://`, sem TLS, e a validação de
+URL da API só aceita `http` em modo desenvolvimento.
+
+**`LEARNHOUSE_FRONTEND_DOMAIN=localhost`** — a *redirect URI* do login corporativo é montada a
+partir de `hosting_config.frontend_domain`, que **não** cai para `LEARNHOUSE_DOMAIN`. Sem essa
+linha o valor vem do `config.yaml` como `localhost:3000`, divergente da URI registrada no client
+do realm, e o Keycloak recusa a autorização.
+
+**`LEARNHOUSE_INITIAL_ADMIN_EMAIL` não pode usar TLD reservado** (`.test`, `.example`,
+`.localhost`): o validador de e-mail recusa, e a aplicação morre no arranque com `ValidationError`
+ao criar o administrador. Use um domínio `.com`.
+</Callout>
 
 Lembre-se de habilitar o método **SSO** nos métodos de entrada da organização
 (Segurança da organização) para o botão aparecer na tela de login.
+
+## Conta local para o vínculo por e-mail
+
+<Callout type="warning">
+Entrar com `teste@example.com` recusa com `conta_nao_encontrada` até existir uma **conta local
+com esse mesmo e-mail**. Isso é comportamento correto, não defeito: sem configuração OIDC por
+organização, só o **vínculo por e-mail** está ativo, e ele precisa de uma conta preexistente para
+vincular. O auto-provisionamento depende de configuração por organização, que a proteção
+anti-SSRF recusa para issuer em `localhost`.
+</Callout>
+
+```bash
+curl -s -X POST http://localhost/api/v1/users/1 -H "Content-Type: application/json" \
+  -d '{"username":"teste","email":"teste@example.com","password":"Senha!123",
+       "first_name":"Teste","last_name":"Local"}'
+```
+
+A conta nasce com `email_verified: true`, que é o que o vínculo por e-mail exige.
 
 ## Realm `dev` (importado de `docker/keycloak/realm-dev.json`)
 
@@ -62,10 +107,35 @@ Usuários de teste:
 | `teste@example.com` | `teste123` | E-mail verificado — login e registro funcionam |
 | `nao-verificado@example.com` | `teste123` | E-mail **não** verificado — útil para testar a recusa na admissão |
 
+## Validação automatizada
+
+As jornadas de identidade corporativa têm uma suíte de aceitação que roda contra este ambiente:
+
+```bash
+cd apps/e2e
+bun install && bunx playwright install chromium
+E2E_BASE_URL=http://localhost \
+E2E_ADMIN_EMAIL=<seu admin> E2E_ADMIN_PASSWORD=<sua senha> \
+  bun run test:keycloak
+```
+
+Ela verifica 7 pré-condições de ambiente antes de qualquer jornada e classifica cada reprovação
+como defeito de produto, preparação de ambiente ou indisponibilidade de serviço — de modo que uma
+suíte vermelha diz *o que* está errado.
+
 ## Solução de problemas
 
 - **`sso_indisponivel` após recriar o app** — recrie o sidecar (Callout acima).
 - **Realm não importado** — o import só ocorre na primeira subida do volume; para reimportar,
   `docker compose -f docker-compose.local.yml down -v` e suba de novo (apaga os dados locais).
+- **403 em toda entrada corporativa depois de recriar só o Keycloak** — o Keycloak em `start-dev`
+  guarda dados em memória, então recriar o contêiner **gera novos `subject`** e invalida os
+  vínculos federados já gravados na plataforma. A recusa é correta (nunca revincular identidade
+  por coincidência de e-mail). Recrie os dois lados juntos:
+  `docker compose -f docker-compose.local.yml down -v && docker compose -f docker-compose.local.yml up -d`.
+- **Login corporativo recusado leva a uma página 404** — defeito conhecido: o callback
+  redireciona toda recusa para `/auth/login`, que não existe (o caminho servido é `/login`), então
+  a mensagem de erro nunca aparece. Para ver o motivo, leia o parâmetro `?error=` na barra de
+  endereços.
 - **Botão de registro ausente** — confira `registrationAllowed` no realm e se o issuer
   configurado é o da plataforma (registro só existe para o provedor da plataforma).

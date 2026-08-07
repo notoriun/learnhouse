@@ -1,16 +1,16 @@
 import { Callout, Tabs } from 'nextra/components'
 
-# AI Setup
+# Configuração de IA
 
-LearnHouse includes AI-powered features for learning assistance and content editing. The AI
-layer is **provider-agnostic** — point it at any major LLM provider by setting a provider name
-and an API key. These features are optional and disabled by default.
+O Notoriun inclui recursos com IA para assistência de aprendizado e edição de conteúdo. A camada
+de IA é **agnóstica de provedor** — aponte para qualquer grande provedor de LLM definindo um nome
+de provedor e uma chave de API. Esses recursos são opcionais e desativados por padrão.
 
-Under the hood LearnHouse uses [Pydantic AI](https://ai.pydantic.dev/) for generation, and
-**llama-index** with **pgvector** for RAG (Retrieval-Augmented Generation), enabling AI
-assistants to answer questions using your course content as context.
+Por baixo dos panos, o Notoriun usa [Pydantic AI](https://ai.pydantic.dev/) para geração, e
+**llama-index** com **pgvector** para RAG (Geração Aumentada por Recuperação), permitindo que
+assistentes de IA respondam perguntas usando o conteúdo dos seus cursos como contexto.
 
-## Supported providers
+## Provedores suportados
 
 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '12px', marginTop: '1.25rem' }}>
   {[
@@ -32,20 +32,20 @@ assistants to answer questions using your course content as context.
   ))}
 </div>
 
-Any OpenAI-compatible endpoint (Azure OpenAI, Together, local servers, …) also works via
-`provider: openai` plus a custom `base_url`.
+Qualquer endpoint compatível com OpenAI (Azure OpenAI, Together, servidores locais, ...) também
+funciona via `provider: openai` mais uma `base_url` personalizada.
 
-## Enabling AI
+## Ativando a IA
 
-Set the provider, an API key, and the feature flag in your `.env` file:
+Defina o provedor, uma chave de API e a flag de recurso no seu arquivo `.env`:
 
 ```env
 LEARNHOUSE_IS_AI_ENABLED=true
 LEARNHOUSE_AI_PROVIDER=google           # google | openai | anthropic | deepseek | moonshot | mistral | openrouter | bedrock | ollama
-LEARNHOUSE_AI_API_KEY=your-api-key      # the single key, whatever the provider
+LEARNHOUSE_AI_API_KEY=your-api-key      # a chave única, qualquer que seja o provedor
 ```
 
-After updating your `.env` file, restart your instance:
+Depois de atualizar seu arquivo `.env`, reinicie sua instância:
 
 ```bash
 learnhouse stop
@@ -53,12 +53,13 @@ learnhouse start
 ```
 
 <Callout type="info">
-**Upgrading from a Gemini-only setup.** No config changes are required: if you only set
-`LEARNHOUSE_GEMINI_API_KEY`, `provider` defaults to `google` and that key is used automatically
-(for generation **and** embeddings). The one difference is that the default models are now the
-**Gemini 3 family** (`gemini-3.5-flash`, `gemini-3.1-flash-lite`, `gemini-3.1-pro-preview`)
-rather than Gemini 2.5 — so your key/project must have Gemini 3 access (the Pro tier uses a
-*preview* model). To stay on the previous models, pin them explicitly:
+**Atualizando de uma configuração só-Gemini.** Nenhuma mudança de configuração é necessária: se
+você só definiu `LEARNHOUSE_GEMINI_API_KEY`, `provider` cai para `google` por padrão e essa chave
+é usada automaticamente (para geração **e** embeddings). A única diferença é que os modelos padrão
+agora são a **família Gemini 3** (`gemini-3.5-flash`, `gemini-3.1-flash-lite`,
+`gemini-3.1-pro-preview`) em vez do Gemini 2.5 — então sua chave/projeto precisa ter acesso ao
+Gemini 3 (a camada Pro usa um modelo *preview*). Para permanecer nos modelos anteriores, fixe-os
+explicitamente:
 
 ```env
 LEARNHOUSE_AI_MODEL_FAST=gemini-2.0-flash-lite
@@ -68,10 +69,11 @@ LEARNHOUSE_AI_MODEL_PRO=gemini-2.5-pro
 </Callout>
 
 <Callout type="warning">
-AI usage is billed directly by your chosen provider based on the models and volume used.
+O uso de IA é cobrado diretamente pelo provedor escolhido, com base nos modelos e no volume
+usados.
 </Callout>
 
-## Per-provider examples
+## Exemplos por provedor
 
 export const ProviderTab = ({ logo, children }) => (
   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
@@ -92,7 +94,8 @@ export const ProviderTab = ({ logo, children }) => (
   <ProviderTab logo="ollama">Ollama</ProviderTab>,
 ]}>
 <Tabs.Tab>
-Get a key from [Google AI Studio](https://aistudio.google.com/apikey). Models default to Gemini, so you don't need to set them.
+Obtenha uma chave no [Google AI Studio](https://aistudio.google.com/apikey). Os modelos usam
+Gemini por padrão, então você não precisa defini-los.
 
 ```env
 LEARNHOUSE_AI_PROVIDER=google
@@ -119,7 +122,8 @@ LEARNHOUSE_AI_MODEL_FAST=claude-haiku-4-5
 </Tabs.Tab>
 
 <Tabs.Tab>
-DeepSeek's OpenAI-compatible endpoint is auto-configured — just set the key.
+O endpoint compatível com OpenAI da DeepSeek já vem configurado automaticamente — basta definir a
+chave.
 
 ```env
 LEARNHOUSE_AI_PROVIDER=deepseek
@@ -129,7 +133,7 @@ LEARNHOUSE_AI_MODEL_STANDARD=deepseek-chat
 </Tabs.Tab>
 
 <Tabs.Tab>
-Moonshot AI (Kimi) — endpoint auto-configured.
+Moonshot AI (Kimi) — endpoint configurado automaticamente.
 
 ```env
 LEARNHOUSE_AI_PROVIDER=moonshot
@@ -137,7 +141,9 @@ LEARNHOUSE_AI_API_KEY=sk-...
 LEARNHOUSE_AI_MODEL_STANDARD=kimi-k2-0905-preview
 ```
 
-Other Chinese models (Alibaba **Qwen**, Zhipu **GLM**) expose OpenAI-compatible APIs — use `provider: openai` with their `base_url`, e.g. `https://dashscope-intl.aliyuncs.com/compatible-mode/v1`.
+Outros modelos chineses (Alibaba **Qwen**, Zhipu **GLM**) expõem APIs compatíveis com OpenAI — use
+`provider: openai` com a `base_url` deles, por exemplo
+`https://dashscope-intl.aliyuncs.com/compatible-mode/v1`.
 </Tabs.Tab>
 
 <Tabs.Tab>
@@ -149,7 +155,8 @@ LEARNHOUSE_AI_MODEL_STANDARD=mistral-large-latest
 </Tabs.Tab>
 
 <Tabs.Tab>
-OpenRouter's base URL is configured automatically; just use OpenRouter **model slugs** (`vendor/model`) — one key gives access to hundreds of models.
+A URL base do OpenRouter é configurada automaticamente; use apenas **slugs de modelo** do
+OpenRouter (`fornecedor/modelo`) — uma chave dá acesso a centenas de modelos.
 
 ```env
 LEARNHOUSE_AI_PROVIDER=openrouter
@@ -160,12 +167,14 @@ LEARNHOUSE_AI_MODEL_FAST=openai/gpt-4o-mini
 </Tabs.Tab>
 
 <Tabs.Tab>
-Bedrock uses the **standard AWS credential chain** (env vars, IAM role, or `~/.aws` profile) plus a region — no `LEARNHOUSE_AI_API_KEY` is required. Use Bedrock model IDs.
+O Bedrock usa a **cadeia padrão de credenciais da AWS** (variáveis de ambiente, papel IAM, ou
+perfil `~/.aws`) mais uma região — nenhuma `LEARNHOUSE_AI_API_KEY` é necessária. Use IDs de modelo
+do Bedrock.
 
 ```env
 LEARNHOUSE_AI_PROVIDER=bedrock
 LEARNHOUSE_AI_MODEL_STANDARD=anthropic.claude-sonnet-4-5-20250929-v1:0
-# AWS credentials & region via the standard AWS environment:
+# Credenciais e região da AWS via o ambiente padrão da AWS:
 AWS_REGION=us-east-1
 AWS_ACCESS_KEY_ID=...
 AWS_SECRET_ACCESS_KEY=...
@@ -173,7 +182,8 @@ AWS_SECRET_ACCESS_KEY=...
 </Tabs.Tab>
 
 <Tabs.Tab>
-Run any model locally with [Ollama](https://ollama.com) (`ollama serve`) — no API key needed.
+Execute qualquer modelo localmente com [Ollama](https://ollama.com) (`ollama serve`) — nenhuma
+chave de API é necessária.
 
 ```env
 LEARNHOUSE_AI_PROVIDER=ollama
@@ -183,115 +193,119 @@ LEARNHOUSE_AI_MODEL_STANDARD=qwen2.5:3b
 </Tabs.Tab>
 </Tabs>
 
-## Models & tiers
+## Modelos e camadas
 
-LearnHouse maps features to three model tiers. Leave them unset to use the built-in Gemini 3
-defaults, or override any of them with a model name valid for your provider.
+O Notoriun mapeia recursos para três camadas de modelo. Deixe-as sem definir para usar os padrões
+integrados do Gemini 3, ou sobrescreva qualquer uma delas com um nome de modelo válido para o seu
+provedor.
 
-| Env variable | Used for | Default (Gemini 3) |
+| Variável de ambiente | Usado para | Padrão (Gemini 3) |
 | --- | --- | --- |
-| `LEARNHOUSE_AI_MODEL_FAST` | Chat titles, follow-up suggestions, course migration | `gemini-3.1-flash-lite` |
-| `LEARNHOUSE_AI_MODEL_STANDARD` | Activity chat, RAG answers, and course planning / MagicBlocks / boards / playgrounds on free & standard plans | `gemini-3.5-flash` |
-| `LEARNHOUSE_AI_MODEL_PRO` | Course planning / MagicBlocks / boards / playgrounds on Pro+ plans | `gemini-3.1-pro-preview` |
+| `LEARNHOUSE_AI_MODEL_FAST` | Títulos de chat, sugestões de follow-up, migração de curso | `gemini-3.1-flash-lite` |
+| `LEARNHOUSE_AI_MODEL_STANDARD` | Chat de atividade, respostas de RAG e planejamento de curso / MagicBlocks / quadros / playgrounds nos planos gratuito e padrão | `gemini-3.5-flash` |
+| `LEARNHOUSE_AI_MODEL_PRO` | Planejamento de curso / MagicBlocks / quadros / playgrounds nos planos Pro+ | `gemini-3.1-pro-preview` |
 
-## RAG embeddings
+## Embeddings de RAG
 
-Retrieval-Augmented Generation (course Q&A grounded in your content) needs an **embedding
-model**. By default embeddings **follow your chosen provider**, using a sensible default
-embedding model:
+A Geração Aumentada por Recuperação (perguntas e respostas de curso fundamentadas no seu
+conteúdo) precisa de um **modelo de embedding**. Por padrão, os embeddings **seguem o provedor
+escolhido**, usando um modelo de embedding padrão sensato:
 
-| Provider | Default embedding model |
+| Provedor | Modelo de embedding padrão |
 | --- | --- |
 | Google | `gemini-embedding-001` |
-| OpenAI (and Azure / Together / OpenAI-compatible) | `text-embedding-3-small` |
+| OpenAI (e Azure / Together / compatíveis com OpenAI) | `text-embedding-3-small` |
 | Ollama (local) | `nomic-embed-text` |
 
-Override the embedding provider/model independently of generation if you like:
+Sobrescreva o provedor/modelo de embedding independentemente da geração, se quiser:
 
 ```env
-LEARNHOUSE_AI_EMBEDDING_PROVIDER=openai          # default: same as LEARNHOUSE_AI_PROVIDER
+LEARNHOUSE_AI_EMBEDDING_PROVIDER=openai          # padrão: igual a LEARNHOUSE_AI_PROVIDER
 LEARNHOUSE_AI_EMBEDDING_MODEL=text-embedding-3-large
-LEARNHOUSE_AI_EMBEDDING_DIMENSIONS=768           # default: 768
+LEARNHOUSE_AI_EMBEDDING_DIMENSIONS=768           # padrão: 768
 ```
 
 <Callout type="warning">
-**Two constraints to know:**
+**Duas restrições a conhecer:**
 
-1. **Dimensions are pinned to 768** to match the pgvector column. The defaults above all
-   produce 768-dim vectors. If you set `LEARNHOUSE_AI_EMBEDDING_DIMENSIONS` to another value
-   (or use a model with a fixed, different size), you must migrate the `course_embedding`
-   column and re-index existing courses.
-2. **Some providers have no embeddings API** — Anthropic, DeepSeek, Moonshot, Mistral, OpenRouter, and    Bedrock. With one of those selected for generation, embeddings automatically fall back to
-   **Google** when `LEARNHOUSE_GEMINI_API_KEY` is set; otherwise set
-   `LEARNHOUSE_AI_EMBEDDING_PROVIDER` to `google`, `openai`, or `ollama`.
+1. **As dimensões são fixadas em 768** para corresponder à coluna pgvector. Os padrões acima
+   todos produzem vetores de 768 dimensões. Se você definir `LEARNHOUSE_AI_EMBEDDING_DIMENSIONS`
+   para outro valor (ou usar um modelo com um tamanho fixo diferente), você precisará migrar a
+   coluna `course_embedding` e reindexar os cursos existentes.
+2. **Alguns provedores não têm API de embeddings** — Anthropic, DeepSeek, Moonshot, Mistral,
+   OpenRouter e Bedrock. Com um desses selecionado para geração, os embeddings caem
+   automaticamente para o **Google** quando `LEARNHOUSE_GEMINI_API_KEY` está definida; caso
+   contrário, defina `LEARNHOUSE_AI_EMBEDDING_PROVIDER` como `google`, `openai` ou `ollama`.
 </Callout>
 
-Non-RAG features (activity chat, course planning, MagicBlocks, the editor assistant) don't need
-embeddings and work on any provider.
+Recursos que não usam RAG (chat de atividade, planejamento de curso, MagicBlocks, o assistente do
+editor) não precisam de embeddings e funcionam com qualquer provedor.
 
-## File & video context (course planning)
+## Contexto de arquivo e vídeo (planejamento de curso)
 
-Course planning can take **images, PDFs, and YouTube links** as reference material. LearnHouse
-converts each attachment into the right format for your provider; what actually works depends on
-the provider's own capabilities:
+O planejamento de curso pode receber **imagens, PDFs e links do YouTube** como material de
+referência. O Notoriun converte cada anexo para o formato correto para o seu provedor; o que
+realmente funciona depende das capacidades do próprio provedor:
 
-| Attachment | Google Gemini | OpenAI | Anthropic (Claude) | DeepSeek / Mistral / others |
+| Anexo | Google Gemini | OpenAI | Anthropic (Claude) | DeepSeek / Mistral / outros |
 | --- | --- | --- | --- | --- |
-| Images | ✅ | ✅ | ✅ | ✅ on vision models |
-| PDFs | ✅ | ✅ (document-capable models) | ✅ | ⚠️ model-dependent |
-| YouTube URLs | ✅ | ❌ | ❌ | ❌ |
+| Imagens | ✅ | ✅ | ✅ | ✅ em modelos com visão |
+| PDFs | ✅ | ✅ (modelos com suporte a documentos) | ✅ | ⚠️ depende do modelo |
+| URLs do YouTube | ✅ | ❌ | ❌ | ❌ |
 
-Images and PDFs are widely supported across vision/document-capable models. **YouTube links are
-a Gemini-only capability** — Gemini fetches the video directly, while other providers have no
-equivalent. When an attachment type isn't supported, the request fails with a clear error rather
-than silently dropping it — so if you rely on **YouTube** course context, keep `provider: google`.
+Imagens e PDFs são amplamente suportados em modelos com visão/suporte a documentos. **Links do
+YouTube são uma capacidade exclusiva do Gemini** — o Gemini busca o vídeo diretamente, enquanto
+outros provedores não têm equivalente. Quando um tipo de anexo não é suportado, a requisição
+falha com um erro claro em vez de descartá-lo silenciosamente — então, se você depende de
+contexto de curso do **YouTube**, mantenha `provider: google`.
 
-## Per-organization AI configuration
+## Configuração de IA por organização
 
-Once AI is enabled on the instance, each organization can toggle AI on or off and set usage
-limits from its admin settings. The provider and API key are set once at deployment and shared
-across organizations.
+Uma vez que a IA está ativada na instância, cada organização pode ativar ou desativar a IA e
+definir limites de uso a partir das suas configurações de administração. O provedor e a chave de
+API são definidos uma vez no momento da implantação e compartilhados entre organizações.
 
-## Media generation (images & audio)
+## Geração de mídia (imagens e áudio)
 
-Image generation and audio / podcast generation (text-to-speech) are **Google-only** paths: they
-always use the Google GenAI SDK regardless of `LEARNHOUSE_AI_PROVIDER`, resolving their key from
-`LEARNHOUSE_AI_API_KEY` (when `provider=google`) or `LEARNHOUSE_GEMINI_API_KEY`. So if you already
-run on Gemini, they work with no extra configuration.
+Geração de imagem e geração de áudio / podcast (texto para fala) são caminhos **exclusivos do
+Google**: eles sempre usam o SDK GenAI do Google independentemente de `LEARNHOUSE_AI_PROVIDER`,
+resolvendo sua chave a partir de `LEARNHOUSE_AI_API_KEY` (quando `provider=google`) ou
+`LEARNHOUSE_GEMINI_API_KEY`. Então, se você já usa Gemini, eles funcionam sem configuração extra.
 
-Both model ids default to sensible values and only need overriding to opt into a newer/allowlisted
-model:
+Ambos os ids de modelo têm valores padrão sensatos e só precisam ser sobrescritos para adotar um
+modelo mais novo/permitido:
 
 ```bash
-# AI image generation ("nano banana"). Default: gemini-2.5-flash-image
+# Geração de imagem por IA ("nano banana"). Padrão: gemini-2.5-flash-image
 LEARNHOUSE_AI_IMAGE_MODEL=gemini-2.5-flash-image
 
-# AI audio / podcast generation (Gemini TTS). Default: gemini-2.5-flash-preview-tts
-# All Gemini TTS models are currently preview, so this is kept configurable.
+# Geração de áudio / podcast por IA (Gemini TTS). Padrão: gemini-2.5-flash-preview-tts
+# Todos os modelos Gemini TTS estão atualmente em preview, por isso isso é mantido configurável.
 LEARNHOUSE_AI_TTS_MODEL=gemini-2.5-flash-preview-tts
 ```
 
-The audio feature powers the editor's **Generate** audio tab (text-to-speech, a two-voice podcast,
-or a single-voice "Speak" talk). The spoken script for the podcast/Speak modes is written by the
-standard text model (`LEARNHOUSE_AI_MODEL_STANDARD`); the narration uses the TTS model above. All of
-it is metered by [AI credits](/platform/ai).
+O recurso de áudio alimenta a aba **Gerar** áudio do editor (texto para fala, um podcast de duas
+vozes, ou uma fala "Speak" de voz única). O roteiro falado para os modos podcast/Speak é escrito
+pelo modelo de texto padrão (`LEARNHOUSE_AI_MODEL_STANDARD`); a narração usa o modelo TTS acima.
+Tudo isso é medido pelos [créditos de IA](/platform/ai).
 
-## Usage limits
+## Limites de uso
 
-You can configure a per-organization request limit to control API costs. When a user exceeds the
-limit, further AI requests are rejected until the window resets.
+Você pode configurar um limite de requisições por organização para controlar custos de API.
+Quando um usuário excede o limite, novas requisições de IA são rejeitadas até que a janela seja
+reiniciada.
 
-## Environment variables reference
+## Referência de variáveis de ambiente
 
-| Variable | Description |
+| Variável | Descrição |
 | --- | --- |
-| `LEARNHOUSE_IS_AI_ENABLED` | Master switch for all AI features (`true`/`false`). |
-| `LEARNHOUSE_AI_PROVIDER` | `google`, `openai`, `anthropic`, `deepseek`, `moonshot`, `mistral`, `openrouter`, `bedrock`, or `ollama`. Defaults to `google`. |
-| `LEARNHOUSE_AI_API_KEY` | API key for the chosen provider. Not required for `ollama` or `bedrock`. |
-| `LEARNHOUSE_AI_BASE_URL` | Optional. Custom endpoint for OpenAI-compatible / local providers (e.g. Ollama). Auto-set for OpenRouter. |
-| `LEARNHOUSE_AI_MODEL_FAST` / `_STANDARD` / `_PRO` | Per-tier model overrides (see table above). |
-| `LEARNHOUSE_AI_EMBEDDING_PROVIDER` / `_MODEL` / `_DIMENSIONS` | Optional RAG embedding overrides. Default: same provider, per-provider model, 768 dims. |
-| `LEARNHOUSE_AI_IMAGE_MODEL` | Google image-generation model. Default `gemini-2.5-flash-image`. Google-only path. |
-| `LEARNHOUSE_AI_TTS_MODEL` | Google text-to-speech model for audio/podcast generation. Default `gemini-2.5-flash-preview-tts` (all Gemini TTS models are preview). Google-only path. |
-| `LEARNHOUSE_GEMINI_API_KEY` | Google/Gemini key. Also the **embeddings fallback** for providers without an embeddings API, and the key used for image/TTS generation on non-Google providers. |
-| `AWS_REGION` / `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Standard AWS credentials, used only when `provider=bedrock`. |
+| `LEARNHOUSE_IS_AI_ENABLED` | Interruptor geral para todos os recursos de IA (`true`/`false`). |
+| `LEARNHOUSE_AI_PROVIDER` | `google`, `openai`, `anthropic`, `deepseek`, `moonshot`, `mistral`, `openrouter`, `bedrock`, ou `ollama`. Padrão `google`. |
+| `LEARNHOUSE_AI_API_KEY` | Chave de API para o provedor escolhido. Não é necessária para `ollama` ou `bedrock`. |
+| `LEARNHOUSE_AI_BASE_URL` | Opcional. Endpoint personalizado para provedores compatíveis com OpenAI / locais (ex.: Ollama). Definido automaticamente para OpenRouter. |
+| `LEARNHOUSE_AI_MODEL_FAST` / `_STANDARD` / `_PRO` | Sobrescritas de modelo por camada (veja a tabela acima). |
+| `LEARNHOUSE_AI_EMBEDDING_PROVIDER` / `_MODEL` / `_DIMENSIONS` | Sobrescritas opcionais de embedding de RAG. Padrão: mesmo provedor, modelo por provedor, 768 dimensões. |
+| `LEARNHOUSE_AI_IMAGE_MODEL` | Modelo de geração de imagem do Google. Padrão `gemini-2.5-flash-image`. Caminho exclusivo do Google. |
+| `LEARNHOUSE_AI_TTS_MODEL` | Modelo de texto para fala do Google para geração de áudio/podcast. Padrão `gemini-2.5-flash-preview-tts` (todos os modelos Gemini TTS estão em preview). Caminho exclusivo do Google. |
+| `LEARNHOUSE_GEMINI_API_KEY` | Chave Google/Gemini. Também é o **fallback de embeddings** para provedores sem API de embeddings, e a chave usada para geração de imagem/TTS em provedores não-Google. |
+| `AWS_REGION` / `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Credenciais padrão da AWS, usadas apenas quando `provider=bedrock`. |

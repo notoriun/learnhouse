@@ -35,57 +35,57 @@ export const Block = ({ icon: Icon, name, description }) => (
   </li>
 )
 
-# Blocks
+# Blocos
 
-The LearnHouse editor supports a wide range of block types for building rich course content. You can insert any block by typing `/` and selecting from the menu.
+O editor do Notoriun suporta uma grande variedade de tipos de bloco para construir conteúdo de curso rico. Você pode inserir qualquer bloco digitando `/` e selecionando no menu.
 
-## Text Blocks
-
-<ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-  <Block icon={Paragraph} name="Paragraph" description="Standard body text with full inline formatting support." />
-  <Block icon={TextHOne} name="Heading 1" description="Top-level heading for major sections." />
-  <Block icon={TextHTwo} name="Heading 2" description="Second-level heading for subsections." />
-  <Block icon={TextHThree} name="Heading 3" description="Third-level heading for smaller sections." />
-  <Block icon={TextHFour} name="Heading 4" description="Fourth-level heading." />
-  <Block icon={TextHFive} name="Heading 5" description="Fifth-level heading." />
-  <Block icon={TextHSix} name="Heading 6" description="Sixth-level heading." />
-  <Block icon={ListBullets} name="Bullet List" description="Unordered list for grouping items." />
-  <Block icon={ListNumbers} name="Numbered List" description="Ordered list for sequential items." />
-  <Block icon={CodeBlock} name="Code Block" description="Syntax-highlighted code with language selection." />
-</ul>
-
-## Media Blocks
+## Blocos de Texto
 
 <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-  <Block icon={Image} name="Image" description="Upload images or insert by URL." />
-  <Block icon={Video} name="Video" description="Upload video files or embed from YouTube and other sources." />
-  <Block icon={SpeakerHigh} name="Audio" description="Upload or embed audio content." />
-  <Block icon={FilePdf} name="PDF" description="Embed PDF documents with a built-in viewer." />
-  <Block icon={Globe} name="Embed" description="Embed external content via URL (iframes)." />
-  <Block icon={Browser} name="Web Preview" description="Preview a web page with metadata." />
+  <Block icon={Paragraph} name="Parágrafo" description="Texto padrão do corpo, com suporte completo a formatação inline." />
+  <Block icon={TextHOne} name="Título 1" description="Título de nível mais alto, para seções principais." />
+  <Block icon={TextHTwo} name="Título 2" description="Título de segundo nível, para subseções." />
+  <Block icon={TextHThree} name="Título 3" description="Título de terceiro nível, para seções menores." />
+  <Block icon={TextHFour} name="Título 4" description="Título de quarto nível." />
+  <Block icon={TextHFive} name="Título 5" description="Título de quinto nível." />
+  <Block icon={TextHSix} name="Título 6" description="Título de sexto nível." />
+  <Block icon={ListBullets} name="Lista com Marcadores" description="Lista não ordenada para agrupar itens." />
+  <Block icon={ListNumbers} name="Lista Numerada" description="Lista ordenada para itens sequenciais." />
+  <Block icon={CodeBlock} name="Bloco de Código" description="Código com destaque de sintaxe e seleção de linguagem." />
 </ul>
 
-## Interactive Blocks
+## Blocos de Mídia
 
 <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-  <Block icon={Question} name="Quiz" description="Interactive quiz with questions to test understanding." />
-  <Block icon={Terminal} name="Code Playground" description="Runnable code with test cases and execution." />
-  <Block icon={Sparkle} name="Magic Block" description="AI-generated interactive content." />
-  <Block icon={MathOperations} name="Math Equation" description="Render mathematical notation using LaTeX syntax." />
-  <Block icon={Cards} name="Flip Card" description="Flashcard for learning and memorization." />
-  <Block icon={FlowArrow} name="Scenarios" description="Interactive branching scenarios with choices." />
+  <Block icon={Image} name="Imagem" description="Envie imagens ou insira por URL." />
+  <Block icon={Video} name="Vídeo" description="Envie arquivos de vídeo ou embuta do YouTube e outras fontes." />
+  <Block icon={SpeakerHigh} name="Áudio" description="Envie ou embuta conteúdo em áudio." />
+  <Block icon={FilePdf} name="PDF" description="Embuta documentos PDF com um visualizador integrado." />
+  <Block icon={Globe} name="Embed" description="Embuta conteúdo externo via URL (iframes)." />
+  <Block icon={Browser} name="Pré-visualização Web" description="Pré-visualize uma página web com seus metadados." />
 </ul>
 
-## UI Blocks
+## Blocos Interativos
 
 <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-  <Block icon={Info} name="Callout Info" description="Information callout box for tips and notes." />
-  <Block icon={Warning} name="Callout Warning" description="Warning callout box for important alerts." />
-  <Block icon={Tag} name="Badge" description="Styled badge or label element." />
-  <Block icon={Table} name="Table" description="Resizable tables for structured data." />
-  <Block icon={Minus} name="Divider" description="Horizontal rule to visually separate sections (type `---` to insert)." />
+  <Block icon={Question} name="Quiz" description="Quiz interativo com perguntas para testar a compreensão." />
+  <Block icon={Terminal} name="Playground de Código" description="Código executável com casos de teste e execução." />
+  <Block icon={Sparkle} name="Bloco Mágico" description="Conteúdo interativo gerado por IA." />
+  <Block icon={MathOperations} name="Equação Matemática" description="Renderiza notação matemática usando sintaxe LaTeX." />
+  <Block icon={Cards} name="Cartão Giratório" description="Flashcard para aprendizagem e memorização." />
+  <Block icon={FlowArrow} name="Cenários" description="Cenários interativos com ramificações e escolhas." />
 </ul>
 
-## Using Blocks
+## Blocos de Interface
 
-Each block can be individually moved, duplicated, or deleted. Click the handle on the left side of a block to drag it to a new position, or use the block menu for additional options.
+<ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+  <Block icon={Info} name="Callout de Informação" description="Caixa de callout informativa para dicas e observações." />
+  <Block icon={Warning} name="Callout de Aviso" description="Caixa de callout de aviso para alertas importantes." />
+  <Block icon={Tag} name="Selo" description="Elemento de selo ou etiqueta estilizado." />
+  <Block icon={Table} name="Tabela" description="Tabelas redimensionáveis para dados estruturados." />
+  <Block icon={Minus} name="Divisor" description="Linha horizontal para separar visualmente seções (digite `---` para inserir)." />
+</ul>
+
+## Usando Blocos
+
+Cada bloco pode ser movido, duplicado ou excluído individualmente. Clique na alça do lado esquerdo de um bloco para arrastá-lo para uma nova posição, ou use o menu do bloco para opções adicionais.

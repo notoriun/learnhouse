@@ -1,7 +1,7 @@
 {
-  "index": "Overview",
-  "architecture": "Architecture",
-  "contributing": "Contributing",
-  "api": "API Reference",
-  "migration": "Migration"
+  "index": "Visão Geral",
+  "architecture": "Arquitetura",
+  "contributing": "Contribuindo",
+  "api": "Referência da API",
+  "migration": "Migração"
 }

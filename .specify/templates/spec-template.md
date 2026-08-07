@@ -8,6 +8,9 @@
 
 **Input**: User description: "$ARGUMENTS"
 
+**Idioma**: o conteúdo preenchido DEVE ser escrito em português (pt-BR), conforme a
+seção "Idioma Oficial" da constituição.
+
 ## User Scenarios & Testing *(mandatory)*
 
 <!--

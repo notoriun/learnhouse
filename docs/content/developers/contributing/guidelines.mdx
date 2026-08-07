@@ -1,86 +1,96 @@
-# Contribution Guidelines
+# Diretrizes de Contribuição
 
-This page outlines the workflow and standards for contributing to LearnHouse.
+Esta página descreve o fluxo de trabalho e os padrões para contribuir com o Notoriun.
 
-## Workflow
+## Fluxo de Trabalho
 
-### 1. Fork and Clone
+### 1. Fork e Clone
 
-Fork the [LearnHouse repository](https://github.com/notoriun/learnhouse) on GitHub, then clone your fork:
+Faça um fork do [repositório do Notoriun](https://github.com/notoriun/learnhouse) no GitHub,
+depois clone seu fork:
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/learnhouse.git
 cd learnhouse
 ```
 
-### 2. Create a Feature Branch
+### 2. Crie uma Branch de Feature
 
-Always create a new branch for your changes. Use a descriptive branch name:
+Sempre crie uma nova branch para suas mudanças. Use um nome de branch descritivo:
 
 ```bash
 git checkout -b feature/your-feature-name
 ```
 
-Branch naming conventions:
+Convenções de nomenclatura de branch:
 
-- `feature/` -- New features or enhancements
-- `fix/` -- Bug fixes
-- `docs/` -- Documentation changes
-- `refactor/` -- Code refactoring without behavior changes
+- `feature/` -- Novos recursos ou melhorias
+- `fix/` -- Correções de bug
+- `docs/` -- Mudanças de documentação
+- `refactor/` -- Refatoração de código sem mudanças de comportamento
 
-### 3. Make Your Changes
+### 3. Faça Suas Mudanças
 
-Develop your changes locally using the [development environment](/developers/contributing/dev-environment). Keep commits focused and atomic.
+Desenvolva suas mudanças localmente usando o
+[ambiente de desenvolvimento](/developers/contributing/dev-environment). Mantenha os commits
+focados e atômicos.
 
-When adding or updating dependencies:
+Ao adicionar ou atualizar dependências:
 
-- **Frontend** -- Use `bun` to manage JavaScript/TypeScript dependencies (e.g., `bun add <package>`).
-- **Backend** -- Use `uv` to manage Python dependencies (e.g., `uv add <package>`).
+- **Frontend** -- Use o `bun` para gerenciar dependências JavaScript/TypeScript (ex.:
+  `bun add <package>`).
+- **Backend** -- Use o `uv` para gerenciar dependências Python (ex.: `uv add <package>`).
 
-### 4. Submit a Pull Request
+### 4. Envie um Pull Request
 
-Push your branch to your fork and open a pull request against the `main` branch of the LearnHouse repository:
+Envie sua branch para o seu fork e abra um pull request contra a branch `main` do repositório do
+Notoriun:
 
 ```bash
 git push origin feature/your-feature-name
 ```
 
-In your pull request description:
+Na descrição do seu pull request:
 
-- Explain **what** your change does and **why** it is needed.
-- Reference any related [GitHub issues](https://github.com/notoriun/learnhouse/issues).
-- Include screenshots or recordings for UI changes.
+- Explique **o que** sua mudança faz e **por que** ela é necessária.
+- Referencie quaisquer [issues do GitHub](https://github.com/notoriun/learnhouse/issues)
+  relacionadas.
+- Inclua screenshots ou gravações para mudanças de interface.
 
-## Code Style
+## Estilo de Código
 
 ### Frontend (TypeScript / React)
 
-- Use **TypeScript** for all new code.
-- Follow existing patterns in the codebase for component structure and naming.
-- Use functional components with hooks.
-- Format code consistently -- the project includes configuration for code formatters.
+- Use **TypeScript** para todo código novo.
+- Siga os padrões existentes no código para estrutura e nomenclatura de componentes.
+- Use componentes funcionais com hooks.
+- Formate o código de forma consistente -- o projeto inclui configuração para formatadores de
+  código.
 
 ### Backend (Python)
 
-- Follow **PEP 8** conventions.
-- Use type hints for function parameters and return values.
-- Write clear docstrings for public functions and classes.
-- Keep functions focused and concise.
+- Siga as convenções do **PEP 8**.
+- Use type hints para parâmetros de função e valores de retorno.
+- Escreva docstrings claras para funções e classes públicas.
+- Mantenha as funções focadas e concisas.
 
-## Testing
+## Testes
 
-- Test your changes locally before submitting a pull request.
-- Verify that existing functionality is not broken by your changes.
-- For new features, include tests where applicable.
+- Teste suas mudanças localmente antes de enviar um pull request.
+- Verifique que a funcionalidade existente não foi quebrada pelas suas mudanças.
+- Para novos recursos, inclua testes quando aplicável.
 
-## Review Process
+## Processo de Revisão
 
-After submitting a pull request:
+Depois de enviar um pull request:
 
-1. A maintainer will review your code and may request changes.
-2. Address any feedback by pushing additional commits to your branch.
-3. Once approved, a maintainer will merge your pull request.
+1. Um mantenedor vai revisar seu código e pode solicitar mudanças.
+2. Trate qualquer feedback enviando commits adicionais para sua branch.
+3. Uma vez aprovado, um mantenedor vai mesclar seu pull request.
 
-## Reporting Issues
+## Relatando Problemas
 
-If you find a bug or have a feature request, please [open an issue](https://github.com/notoriun/learnhouse/issues/new) on GitHub. Include as much detail as possible: steps to reproduce, expected behavior, actual behavior, and any relevant logs or screenshots.
+Se você encontrar um bug ou tiver uma solicitação de recurso, por favor
+[abra uma issue](https://github.com/notoriun/learnhouse/issues/new) no GitHub. Inclua o máximo de
+detalhes possível: passos para reproduzir, comportamento esperado, comportamento real, e
+quaisquer logs ou screenshots relevantes.

@@ -11,19 +11,19 @@ import { SITE_URL, REPO_URL, asset } from '../lib/site'
 
 export const metadata = {
   title: {
-    default: 'LearnHouse Docs',
-    template: '%s – LearnHouse Docs',
+    default: 'Documentação Notoriun',
+    template: '%s – Documentação Notoriun',
   },
   description:
-    'Official documentation for LearnHouse, the open-source learning management system (LMS). Guides for self-hosting, course creation, AI features, API reference, and more.',
+    'Documentação oficial do Notoriun, a plataforma de aprendizagem de código aberto. Guias para self-hosting, criação de cursos, recursos de IA, referência de API e muito mais.',
   keywords: [
-    'LearnHouse',
-    'open source LMS',
-    'learning management system',
-    'self-hosted LMS',
-    'course creation',
-    'LearnHouse documentation',
-    'LearnHouse docs',
+    'Notoriun',
+    'LMS de código aberto',
+    'plataforma de aprendizagem',
+    'LMS self-hosted',
+    'criação de cursos',
+    'documentação Notoriun',
+    'docs Notoriun',
   ],
   metadataBase: new URL(SITE_URL),
   robots: {
@@ -39,24 +39,11 @@ export const metadata = {
   },
   openGraph: {
     type: 'website',
-    locale: 'en_US',
+    locale: 'pt_BR',
     url: SITE_URL,
-    siteName: 'LearnHouse Docs',
+    siteName: 'Documentação Notoriun',
     description:
-      'Official documentation for LearnHouse, the open-source learning management system (LMS). Guides for self-hosting, course creation, AI features, API reference, and more.',
-    images: [
-      {
-        url: `${SITE_URL}/img/pages/learnhouse-github.png`,
-        alt: 'LearnHouse Docs',
-        width: 2051,
-        height: 1016,
-      },
-    ],
-  },
-  twitter: {
-    creator: '@getlearnhouse',
-    site: '@getlearnhouse',
-    card: 'summary_large_image',
+      'Documentação oficial do Notoriun, a plataforma de aprendizagem de código aberto. Guias para self-hosting, criação de cursos, recursos de IA, referência de API e muito mais.',
   },
   icons: {
     icon: [
@@ -70,7 +57,7 @@ export const metadata = {
 
 export default async function RootLayout({ children }) {
   return (
-    <html lang="en" dir="ltr" suppressHydrationWarning>
+    <html lang="pt-BR" dir="ltr" suppressHydrationWarning>
       <Head faviconGlyph="">
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -86,7 +73,7 @@ export default async function RootLayout({ children }) {
             pageMap={await getPageMap()}
             docsRepositoryBase={`${REPO_URL}/tree/dev/docs`}
             sidebar={{ defaultMenuCollapseLevel: 2 }}
-            editLink="Edit this page on GitHub"
+            editLink="Editar esta página no GitHub"
             footer={<></>}
             navbar={<></>}
             nextThemes={{ forcedTheme: 'light', defaultTheme: 'light' }}

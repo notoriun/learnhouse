@@ -1,12 +1,13 @@
 import { Callout } from 'nextra/components'
 
-# SSL and Domain Setup
+# Configuração de SSL e Domínio
 
-Securing your LearnHouse instance with SSL is strongly recommended for production deployments. This guide covers domain configuration and SSL setup options.
+Proteger sua instância do Notoriun com SSL é fortemente recomendado para implantações de
+produção. Este guia cobre a configuração de domínio e as opções de configuração de SSL.
 
-## Domain Configuration
+## Configuração de Domínio
 
-Set your domain in the `.env` file:
+Defina seu domínio no arquivo `.env`:
 
 ```env
 LEARNHOUSE_DOMAIN=learn.example.com
@@ -14,15 +15,18 @@ LEARNHOUSE_SSL=true
 LEARNHOUSE_COOKIE_DOMAIN=.example.com
 ```
 
-Make sure your DNS records point to the server running LearnHouse before enabling SSL.
+Certifique-se de que seus registros DNS apontam para o servidor que executa o Notoriun antes de
+ativar o SSL.
 
-## Using a Reverse Proxy
+## Usando um Proxy Reverso
 
-The recommended approach for SSL termination is to place a reverse proxy in front of LearnHouse. This gives you flexibility in certificate management and allows you to serve other applications on the same server.
+A abordagem recomendada para terminação SSL é colocar um proxy reverso na frente do Notoriun.
+Isso te dá flexibilidade no gerenciamento de certificados e permite servir outras aplicações no
+mesmo servidor.
 
 ### Caddy
 
-Caddy automatically obtains and renews Let's Encrypt certificates. Create a `Caddyfile`:
+O Caddy obtém e renova certificados Let's Encrypt automaticamente. Crie um `Caddyfile`:
 
 ```
 learn.example.com {
@@ -32,7 +36,7 @@ learn.example.com {
 
 ### Nginx
 
-An example nginx configuration with Let's Encrypt (via Certbot):
+Um exemplo de configuração do nginx com Let's Encrypt (via Certbot):
 
 ```nginx
 server {
@@ -60,23 +64,30 @@ server {
 
 ### Traefik
 
-If you use Traefik as your reverse proxy, you can configure it to route traffic to LearnHouse and handle Let's Encrypt certificates automatically through its built-in ACME support.
+Se você usa o Traefik como seu proxy reverso, você pode configurá-lo para rotear tráfego para o
+Notoriun e lidar com certificados Let's Encrypt automaticamente através do seu suporte ACME
+integrado.
 
 ## Let's Encrypt
 
-For free, automated SSL certificates, use Let's Encrypt with one of the reverse proxy options above:
+Para certificados SSL gratuitos e automatizados, use o Let's Encrypt com uma das opções de proxy
+reverso acima:
 
-- **Caddy** handles Let's Encrypt automatically with zero configuration.
-- **Nginx** works with [Certbot](https://certbot.eff.org/) for automated certificate issuance and renewal.
-- **Traefik** has built-in ACME/Let's Encrypt support.
+- O **Caddy** lida com Let's Encrypt automaticamente, sem nenhuma configuração.
+- O **Nginx** funciona com o [Certbot](https://certbot.eff.org/) para emissão e renovação
+  automatizada de certificados.
+- O **Traefik** tem suporte integrado a ACME/Let's Encrypt.
 
 <Callout type="warning">
-When enabling SSL, update all related configuration to use `https://` URLs, including `LEARNHOUSE_ALLOWED_ORIGINS` and `NEXTAUTH_URL`.
+Ao ativar SSL, atualize toda a configuração relacionada para usar URLs `https://`, incluindo
+`LEARNHOUSE_ALLOWED_ORIGINS` e `NEXTAUTH_URL`.
 </Callout>
 
-## Cookie Domain
+## Domínio de Cookie
 
-The `LEARNHOUSE_COOKIE_DOMAIN` variable controls which domain cookies are scoped to. This is important for authentication to work correctly.
+A variável `LEARNHOUSE_COOKIE_DOMAIN` controla a qual domínio os cookies pertencem. Isso é
+importante para que a autenticação funcione corretamente.
 
-- For a single domain like `learn.example.com`, set it to `.example.com`
-- Using a leading dot (`.example.com`) allows cookies to work across subdomains, which is required if you use multi-organization mode with subdomains
+- Para um único domínio como `learn.example.com`, defina-o como `.example.com`
+- Usar um ponto inicial (`.example.com`) permite que os cookies funcionem entre subdomínios, o
+  que é necessário se você usar o modo multi-organização com subdomínios

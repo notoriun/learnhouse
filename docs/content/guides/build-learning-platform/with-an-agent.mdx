@@ -1,79 +1,104 @@
 ---
-title: Let an Agent Build It
-description: Have a coding agent like Claude Code or Cursor build your headless LearnHouse platform for you, using a ready-made, self-contained specification.
+title: Deixe um Agente Construir
+description: Faça um agente de código como Claude Code ou Cursor construir sua plataforma headless do Notoriun para você, usando uma especificação pronta e autocontida.
 ---
 
 import { Callout, Steps } from 'nextra/components'
 
-# Let an Agent Build It
+# Deixe um Agente Construir
 
-If you'd rather not type out every file, hand the work to a coding agent. This page explains how to drive an agent (Claude Code, Cursor, Windsurf, Copilot, etc.) to build the same headless learning platform described in [Do It Yourself](/guides/build-learning-platform/do-it-yourself), using the self-contained **[Agent Spec](/guides/build-learning-platform/agent-spec)**.
+Se você preferir não digitar cada arquivo, entregue o trabalho a um agente de código. Esta
+página explica como direcionar um agente (Claude Code, Cursor, Windsurf, Copilot, etc.) para
+construir a mesma plataforma de aprendizado headless descrita em
+[Faça Você Mesmo](/guides/build-learning-platform/do-it-yourself), usando a
+**[Especificação para o Agente](/guides/build-learning-platform/agent-spec)** autocontida.
 
-The spec is written *for the model*: it states the goal, the exact API contract taken from the LearnHouse codebase, the file layout, the auth rules, and clear acceptance criteria. You supply three facts about your instance and let the agent do the rest.
+A especificação é escrita *para o modelo*: ela declara o objetivo, o contrato exato de API
+extraído do código do Notoriun, o layout de arquivos, as regras de autenticação, e critérios
+claros de aceitação. Você fornece três fatos sobre sua instância e deixa o agente fazer o resto.
 
 <Callout type="info">
-This still produces **your** code on **your** machine — the agent is just doing the typing. Review the result the same way you'd review a teammate's PR.
+Isso ainda produz **seu** código na **sua** máquina — o agente só está fazendo a digitação.
+Revise o resultado da mesma forma que revisaria o PR de um colega.
 </Callout>
 
-## What you'll need
+## O que você vai precisar
 
-- A coding agent with file-writing and terminal access (e.g. **Claude Code**).
-- A running LearnHouse instance and its API base URL (e.g. `http://localhost:1338/api/v1`).
-- Your **organization slug** and at least one **public, published course**.
-- Test credentials (an email + password you can sign up with) if you want the agent to verify the authenticated flow.
+- Um agente de código com acesso de escrita de arquivo e terminal (ex.: **Claude Code**).
+- Uma instância do Notoriun em execução e sua URL base de API (ex.: `http://localhost:1338/api/v1`).
+- O **slug da sua organização** e ao menos um **curso público e publicado**.
+- Credenciais de teste (um e-mail + senha com os quais você pode se cadastrar) se quiser que o
+  agente verifique o fluxo autenticado.
 
-## How to do it
+## Como fazer
 
 <Steps>
 
-### Open the Agent Spec
+### Abra a Especificação para o Agente
 
-Go to the **[Agent Spec](/guides/build-learning-platform/agent-spec)** page and copy the entire specification block.
+Vá para a página **[Especificação para o Agente](/guides/build-learning-platform/agent-spec)** e
+copie todo o bloco de especificação.
 
-### Fill in the three blanks
+### Preencha as três lacunas
 
-At the top of the spec there's a short **Configuration** section. Replace the placeholders with your values:
+No topo da especificação há uma pequena seção de **Configuração**. Substitua os placeholders
+pelos seus valores:
 
-- `API_BASE` — your API base URL (e.g. `http://localhost:1338/api/v1`)
-- `ORG_SLUG` — your organization slug
-- `TEST_EMAIL` / `TEST_PASSWORD` — optional, for verifying login/enrollment
+- `API_BASE` — a URL base da sua API (ex.: `http://localhost:1338/api/v1`)
+- `ORG_SLUG` — o slug da sua organização
+- `TEST_EMAIL` / `TEST_PASSWORD` — opcional, para verificar login/matrícula
 
-### Paste it into your agent
+### Cole no seu agente
 
-Start a new agent session in an empty directory and paste the filled-in spec as your first message. A good kickoff prompt:
+Inicie uma nova sessão de agente em um diretório vazio e cole a especificação preenchida como
+sua primeira mensagem. Um bom prompt inicial:
 
-> Build the project described in the specification below. Work in this directory, create all files, install dependencies, and run the dev server when done. Ask me before doing anything destructive.
+> Construa o projeto descrito na especificação abaixo. Trabalhe neste diretório, crie todos os
+> arquivos, instale as dependências, e execute o servidor de desenvolvimento quando terminar.
+> Me pergunte antes de fazer qualquer coisa destrutiva.
 >
-> _(paste the spec here)_
+> _(cole a especificação aqui)_
 
-### Review and run
+### Revise e execute
 
-When the agent finishes, it should have scaffolded the app, written the files, and started `npm run dev`. Open the URL it reports and click through: catalogue → course → activity → sign up → log in → enroll → progress.
+Quando o agente terminar, ele deve ter estruturado o app, escrito os arquivos, e iniciado
+`npm run dev`. Abra a URL que ele reportar e percorra: catálogo → curso → atividade → cadastro →
+login → matrícula → progresso.
 
-### Iterate
+### Itere
 
-If something's off (a media URL that won't load, an activity type that isn't rendered), tell the agent what you saw. The spec includes the troubleshooting notes it needs to fix the common cases.
+Se algo estiver errado (uma URL de mídia que não carrega, um tipo de atividade que não é
+renderizado), diga ao agente o que você viu. A especificação inclui as notas de solução de
+problemas necessárias para corrigir os casos comuns.
 
 </Steps>
 
-## What "done" looks like
+## Como é o "pronto"
 
-The spec's acceptance criteria ask the agent to confirm:
+Os critérios de aceitação da especificação pedem que o agente confirme:
 
-1. The catalogue lists your public courses.
-2. A course page shows chapters and activities.
-3. An activity renders (video, document, or dynamic page).
-4. A new user can sign up and log in.
-5. A logged-in user can enroll and see progress update.
+1. O catálogo lista seus cursos públicos.
+2. Uma página de curso mostra capítulos e atividades.
+3. Uma atividade renderiza (vídeo, documento, ou página dinâmica).
+4. Um novo usuário pode se cadastrar e fazer login.
+5. Um usuário conectado pode se matricular e ver o progresso atualizar.
 
-If your agent can check those boxes against your live instance, you're done.
+Se seu agente conseguir marcar essas caixas contra sua instância real, você terminou.
 
 <Callout type="warning">
-Agents are good at the scaffolding and the happy path, but they can't see your specific `content` field shapes or storage config. Expect to nudge it on the **activity viewer** (the keys inside `content` vary by sub-type) and **media URLs** (filesystem vs S3). The spec calls both out as the likely spots to adjust.
+Agentes são bons na estruturação e no caminho feliz, mas não conseguem ver os formatos
+específicos do campo `content` da sua instância ou a configuração de armazenamento. Espere ter
+que ajustá-lo no **visualizador de atividade** (as chaves dentro de `content` variam por
+subtipo) e nas **URLs de mídia** (filesystem vs S3). A especificação aponta ambos como os locais
+mais provavelmente precisando de ajuste.
 </Callout>
 
-## Why a spec instead of "build me an LMS"?
+## Por que uma especificação em vez de "me construa um LMS"?
 
-A vague prompt makes the agent invent an API. The [spec](/guides/build-learning-platform/agent-spec) pins down the **real** endpoints, response shapes, and the auth/refresh quirk — all lifted from this codebase — so the agent builds against the API that actually exists, not one it hallucinated. That's the difference between an app that runs and an app that 404s on every call.
+Um prompt vago faz o agente inventar uma API. A
+[especificação](/guides/build-learning-platform/agent-spec) fixa os endpoints **reais**, os
+formatos de resposta, e a peculiaridade de autenticação/refresh — tudo extraído deste código —
+então o agente constrói contra a API que realmente existe, não uma que ele alucinou. Essa é a
+diferença entre um app que funciona e um app que retorna 404 em toda chamada.
 
-Ready? **[Open the Agent Spec →](/guides/build-learning-platform/agent-spec)**
+Pronto? **[Abra a Especificação para o Agente →](/guides/build-learning-platform/agent-spec)**

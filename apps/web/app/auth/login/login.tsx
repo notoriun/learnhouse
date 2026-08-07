@@ -161,7 +161,15 @@ const LoginClient = (props: LoginClientProps) => {
           'O login corporativo está temporariamente indisponível. Tente novamente em instantes.',
       }),
     }
-    if (mensagens[ssoError]) setError(mensagens[ssoError])
+    if (mensagens[ssoError]) {
+      setError(mensagens[ssoError])
+      // `showErrorModal` é o que de fato renderiza a barra de erro (o bloco
+      // inteiro é `{showErrorModal && (...)}`). Sem esta linha, a mensagem ficava
+      // apenas no estado e nunca aparecia na tela: a pessoa era recusada no
+      // login corporativo e não recebia explicação alguma. Os caminhos de login
+      // nativo já ligavam este sinal; o de SSO tinha sido esquecido.
+      setShowErrorModal(true)
+    }
   }, []) // eslint-disable-line
 
   // Honor a post-login redirect via ?next / ?redirect, sanitized to an

@@ -1,12 +1,14 @@
 import { Callout } from 'nextra/components'
 
-# API Authentication
+# Autenticação da API
 
-The LearnHouse API supports **JWT cookies** for browser sessions and **API tokens** for programmatic access.
+A API do Notoriun suporta **cookies JWT** para sessões de navegador e **tokens de API** para
+acesso programático.
 
-## JWT Authentication
+## Autenticação JWT
 
-The login endpoint accepts `application/x-www-form-urlencoded` data with `username` (the user's email) and `password` fields, and returns a JWT access token (HS256, expires in 8 hours):
+O endpoint de login aceita dados `application/x-www-form-urlencoded` com os campos `username` (o
+e-mail do usuário) e `password`, e retorna um token de acesso JWT (HS256, expira em 8 horas):
 
 ```bash
 curl -X POST http://localhost:1338/api/v1/auth/login \
@@ -14,39 +16,42 @@ curl -X POST http://localhost:1338/api/v1/auth/login \
   -F 'password=your-password'
 ```
 
-Then authenticate requests via the `Authorization` header:
+Depois autentique requisições via o cabeçalho `Authorization`:
 
 ```bash
 curl http://localhost:1338/api/v1/users/profile \
   -H "Authorization: Bearer <access_token>"
 ```
 
-The token is also set as an `access_token_cookie` for browser-based sessions. Use `GET /api/v1/auth/refresh` to renew expired tokens within the 30-day refresh window.
+O token também é definido como um `access_token_cookie` para sessões baseadas em navegador. Use
+`GET /api/v1/auth/refresh` para renovar tokens expirados dentro da janela de refresh de 30 dias.
 
 <Callout type="info">
-Logins are rate-limited by IP, and repeated failed attempts temporarily lock the account. SaaS deployments also require `email_verified=true` before login succeeds.
+Logins têm limite de taxa por IP, e tentativas falhas repetidas bloqueiam temporariamente a conta.
+Implantações SaaS também exigem `email_verified=true` antes que o login seja bem-sucedido.
 </Callout>
 
-## API Tokens
+## Tokens de API
 
 <Callout type="info">
-API tokens are available on the **Pro plan**. Create and manage them in organization settings.
+Tokens de API estão disponíveis no **plano Pro**. Crie e gerencie-os nas configurações da
+organização.
 </Callout>
 
-For programmatic access, use API tokens (prefixed with `lh_`):
+Para acesso programático, use tokens de API (com o prefixo `lh_`):
 
 ```bash
 curl http://localhost:1338/api/v1/users/profile \
   -H "Authorization: Bearer lh_your_api_token_here"
 ```
 
-## Auth Endpoints
+## Endpoints de Autenticação
 
-| Method | Endpoint | Description |
+| Método | Endpoint | Descrição |
 | --- | --- | --- |
-| `POST` | `/api/v1/auth/login` | Login with form-encoded `username` + `password` |
-| `GET` | `/api/v1/auth/refresh` | Refresh an expired token |
-| `DELETE` | `/api/v1/auth/logout` | Invalidate the session |
-| `POST` | `/api/v1/auth/oauth` | Google OAuth login |
-| `POST` | `/api/v1/auth/verify-email` | Verify email address |
-| `POST` | `/api/v1/auth/resend-verification` | Resend a verification email |
+| `POST` | `/api/v1/auth/login` | Login com `username` + `password` codificados em formulário |
+| `GET` | `/api/v1/auth/refresh` | Renova um token expirado |
+| `DELETE` | `/api/v1/auth/logout` | Invalida a sessão |
+| `POST` | `/api/v1/auth/oauth` | Login via Google OAuth |
+| `POST` | `/api/v1/auth/verify-email` | Verifica o endereço de e-mail |
+| `POST` | `/api/v1/auth/resend-verification` | Reenvia um e-mail de verificação |

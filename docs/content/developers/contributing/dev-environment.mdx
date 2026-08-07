@@ -1,64 +1,77 @@
 import { Callout } from 'nextra/components'
 
-# Development Environment Setup
+# Configuração do Ambiente de Desenvolvimento
 
-The LearnHouse CLI provides a streamlined way to set up and run the entire development environment with a single command.
+A CLI do Notoriun fornece uma forma simplificada de configurar e executar todo o ambiente de
+desenvolvimento com um único comando.
 
-## Prerequisites
+## Pré-requisitos
 
-Make sure you have the following installed before proceeding:
+Certifique-se de ter o seguinte instalado antes de continuar:
 
-- **Docker** (with Docker Compose v2)
+- **Docker** (com Docker Compose v2)
 - **Node.js 18+**
-- **[Bun](https://bun.sh/)** — used to install and run the web and collab workspaces
-- **[uv](https://docs.astral.sh/uv/)** — used to manage and run the Python API
+- **[Bun](https://bun.sh/)** — usado para instalar e executar os workspaces web e collab
+- **[uv](https://docs.astral.sh/uv/)** — usado para gerenciar e executar a API Python
 
 <Callout type="warning">
-Make sure Docker has at least **4GB of RAM** allocated. You can check and adjust this in Docker Desktop under Settings &gt; Resources.
+Certifique-se de que o Docker tenha pelo menos **4GB de RAM** alocados. Você pode verificar e
+ajustar isso no Docker Desktop em Settings &gt; Resources.
 </Callout>
 
 <Callout type="info">
-`npx learnhouse dev` runs `bun install` and `uv sync` to install project dependencies, but it does **not** install `bun` or `uv` themselves — install them on your host first.
+`npx learnhouse dev` executa `bun install` e `uv sync` para instalar as dependências do projeto,
+mas **não** instala o `bun` ou o `uv` propriamente — instale-os no seu host primeiro.
 </Callout>
 
-## Setup Steps
+## Passos de Configuração
 
-### 1. Clone the Repository and Start Development
+### 1. Clone o Repositório e Inicie o Desenvolvimento
 
 ```bash
 git clone https://github.com/notoriun/learnhouse && cd learnhouse && npx learnhouse dev
 ```
 
-That single command handles everything:
+Esse único comando cuida de tudo:
 
-- **Starts backing services** -- PostgreSQL and Redis are launched via Docker Compose.
-- **Installs dependencies** -- Python dependencies are installed via `uv` and JavaScript dependencies via `bun`, all automatically.
-- **Starts the API** -- The FastAPI backend starts on port 1338 with hot reload.
-- **Starts the frontend** -- The Next.js development server starts with `--turbopack` and hot reload.
-- **Starts the collaboration server** -- The Hocuspocus collaboration server starts via `tsx watch`.
+- **Inicia os serviços de apoio** -- PostgreSQL e Redis são lançados via Docker Compose.
+- **Instala as dependências** -- Dependências Python são instaladas via `uv` e dependências
+  JavaScript via `bun`, tudo automaticamente.
+- **Inicia a API** -- O backend FastAPI inicia na porta 1338 com hot reload.
+- **Inicia o frontend** -- O servidor de desenvolvimento do Next.js inicia com `--turbopack` e
+  hot reload.
+- **Inicia o servidor de colaboração** -- O servidor de colaboração Hocuspocus inicia via
+  `tsx watch`.
 
-All services are coordinated automatically so you do not need to manage them individually.
+Todos os serviços são coordenados automaticamente, então você não precisa gerenciá-los
+individualmente.
 
-## Accessing the Application
+## Acessando a Aplicação
 
-Once `npx learnhouse dev` is running, you can access:
+Uma vez que `npx learnhouse dev` está em execução, você pode acessar:
 
-| Service | URL |
+| Serviço | URL |
 | --- | --- |
 | Frontend | [http://localhost:3000](http://localhost:3000) |
 | API | [http://localhost:1338](http://localhost:1338) |
-| API Documentation (Swagger) | [http://localhost:1338/docs](http://localhost:1338/docs) |
+| Documentação da API (Swagger) | [http://localhost:1338/docs](http://localhost:1338/docs) |
 
 <Callout type="info">
-The Swagger UI at `/docs` is only available in development mode. Production instances do not expose the interactive API documentation.
+O Swagger UI em `/docs` só está disponível em modo de desenvolvimento. Instâncias de produção não
+expõem a documentação interativa da API.
 </Callout>
 
-## Stopping the Environment
+## Parando o Ambiente
 
-Press `Ctrl+C` in the terminal where `npx learnhouse dev` is running to stop all services.
+Pressione `Ctrl+C` no terminal onde `npx learnhouse dev` está em execução para parar todos os
+serviços.
 
-## Troubleshooting
+## Solução de Problemas
 
-- **Port conflicts** -- Make sure ports 3000 (web), 1338 (API), 4000 (collab), 5432 (Postgres), and 6379 (Redis) are not in use by other applications.
-- **Docker not running** -- Ensure the Docker daemon is started before running `npx learnhouse dev`.
-- **Dependency issues** -- The CLI installs all dependencies automatically. If you encounter issues, try deleting `node_modules` and `.venv` directories and re-running `npx learnhouse dev`.
+- **Conflitos de porta** -- Certifique-se de que as portas 3000 (web), 1338 (API), 4000
+  (collab), 5432 (Postgres), e 6379 (Redis) não estão em uso por outras aplicações.
+- **Docker não está em execução** -- Garanta que o daemon do Docker está iniciado antes de
+  executar `npx learnhouse dev`.
+- **Problemas de dependência** -- A CLI instala todas as dependências automaticamente. Se você
+  encontrar problemas, tente excluir os diretórios `node_modules` e `.venv` e executar
+  `npx learnhouse dev` novamente.

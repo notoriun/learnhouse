@@ -17,7 +17,7 @@ export async function generateMetadata({ params }) {
   const config = groupBySlug(group)
   if (!config) return {}
   return {
-    title: `${config.title} — API Reference`,
+    title: `${config.title} — Referência de API`,
     description: config.description,
     alternates: { canonical: `/reference/${config.slug}` },
   }
@@ -32,14 +32,14 @@ export default async function GroupPage({ params }) {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'APIReference',
-    name: `LearnHouse API — ${model.title}`,
+    name: `API do Notoriun — ${model.title}`,
     description: model.description,
     url: `${SITE_URL}/reference/${model.slug}`,
     programmingModel: 'REST',
-    targetPlatform: 'LearnHouse',
+    targetPlatform: 'Notoriun',
     isPartOf: {
       '@type': 'WebSite',
-      name: 'LearnHouse Docs',
+      name: 'Documentação Notoriun',
       url: SITE_URL,
     },
   }

@@ -1,37 +1,37 @@
 import { Callout } from 'nextra/components'
 
-# Automations
+# Automações
 
-LearnHouse pushes real-time events to your own systems and to no-code automation tools. Use these to sync learners into your CRM, notify a Slack channel on course completion, trigger certificate printing, or feed any downstream workflow.
+O Notoriun envia eventos em tempo real para os seus próprios sistemas e para ferramentas de automação no-code. Use-os para sincronizar alunos com o seu CRM, notificar um canal do Slack na conclusão de um curso, disparar a impressão de certificados, ou alimentar qualquer fluxo de trabalho posterior.
 
 <Callout type="info">
-Automations are available on the **Pro plan** or higher. Both webhooks and Zapier rely on API tokens scoped to a single organization.
+Automações estão disponíveis no plano **Pro** ou superior. Tanto webhooks quanto Zapier dependem de tokens de API restritos a uma única organização.
 </Callout>
 
-## What's available
+## O que está disponível
 
-- **[Webhooks](/platform/automations/webhooks)** — Direct, signed HTTP `POST` deliveries to any URL you control. Best for custom backends and self-hosted services.
-- **[Zapier](/platform/automations/zapier)** — Official Zapier app with triggers for every LearnHouse event and actions for enrolling users, completing activities, and looking up learners. Best for no-code workflows into Slack, Google Sheets, HubSpot, and 6,000+ other Zapier apps.
-- **[Event Catalogue](/platform/automations/events)** — The canonical list of every event that can fire, with payload schemas.
+- **[Webhooks](/platform/automations/webhooks)** — Entregas HTTP `POST` diretas e assinadas para qualquer URL que você controle. Ideal para backends próprios e serviços self-hosted.
+- **[Zapier](/platform/automations/zapier)** — App oficial do Zapier, com triggers para cada evento do Notoriun e ações para matricular usuários, concluir atividades e buscar alunos. Ideal para fluxos no-code no Slack, Google Sheets, HubSpot e mais de 6.000 outros apps do Zapier.
+- **[Catálogo de Eventos](/platform/automations/events)** — A lista canônica de todo evento que pode disparar, com os esquemas de payload.
 
-## How it works
+## Como Funciona
 
-Every automation is powered by the same internal event bus:
+Toda automação é alimentada pelo mesmo barramento de eventos interno:
 
-1. Something happens inside LearnHouse (a learner completes a course, a user is invited, an assignment is graded, …).
-2. The event is dispatched to every active subscriber for that organization — webhook endpoints you configured manually, and any Zapier REST Hook subscriptions created by your active Zaps.
-3. Each endpoint receives the same JSON envelope with an event name, a delivery ID, an organization ID, and an event-specific `data` payload.
+1. Algo acontece dentro do Notoriun (um aluno conclui um curso, um usuário é convidado, uma tarefa é corrigida, …).
+2. O evento é disparado para todo assinante ativo daquela organização — endpoints de webhook que você configurou manualmente, e qualquer assinatura de REST Hook do Zapier criada pelos seus Zaps ativos.
+3. Cada endpoint recebe o mesmo envelope JSON, com um nome de evento, um ID de entrega, um ID de organização e um payload `data` específico do evento.
 
-Signing, retries, delivery logs, and SSRF protection all work identically across both paths. Choosing between webhooks and Zapier is a question of where you want to handle the event, not whether you'll get a different payload.
+Assinatura, novas tentativas, logs de entrega e proteção contra SSRF funcionam de forma idêntica nos dois caminhos. Escolher entre webhooks e Zapier é uma questão de onde você quer tratar o evento, não de receber um payload diferente.
 
-## Choosing between webhooks and Zapier
+## Escolhendo entre Webhooks e Zapier
 
-| You want to… | Use |
+| Você quer… | Use |
 | --- | --- |
-| Call a custom backend you control | **Webhooks** |
-| Route events into Slack, Google Sheets, HubSpot, Airtable, Notion, etc. | **Zapier** |
-| Verify cryptographic signatures on payloads | **Webhooks** (Zapier handles its own auth internally) |
-| Run a **LearnHouse action** from another app (e.g., enroll a user when a HubSpot form is submitted) | **Zapier** |
-| Keep infrastructure dependencies to a minimum | **Webhooks** |
+| Chamar um backend próprio que você controla | **Webhooks** |
+| Rotear eventos para Slack, Google Sheets, HubSpot, Airtable, Notion, etc. | **Zapier** |
+| Verificar assinaturas criptográficas nos payloads | **Webhooks** (o Zapier trata sua própria autenticação internamente) |
+| Executar uma **ação do Notoriun** a partir de outro app (ex.: matricular um usuário quando um formulário do HubSpot é enviado) | **Zapier** |
+| Manter as dependências de infraestrutura no mínimo | **Webhooks** |
 
-You can use both at the same time for the same events.
+Você pode usar os dois ao mesmo tempo, para os mesmos eventos.

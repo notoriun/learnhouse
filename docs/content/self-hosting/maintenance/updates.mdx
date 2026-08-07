@@ -1,119 +1,141 @@
 import { Callout } from 'nextra/components'
 
-# Updates
+# Atualizações
 
-Keeping LearnHouse up to date ensures you have the latest features, bug fixes, and security patches.
+Manter o Notoriun atualizado garante que você tenha os recursos, correções de bugs e patches de
+segurança mais recentes.
 
-## Updating LearnHouse
+## Atualizando o Notoriun
 
-Use the built-in `update` command. It backs up your database, pulls the new image, migrates uploaded content to a persistent volume, restarts the stack, and applies database migrations.
+Use o comando integrado `update`. Ele faz backup do seu banco de dados, baixa a nova imagem,
+migra o conteúdo enviado para um volume persistente, reinicia a stack e aplica migrações de banco
+de dados.
 
 ```bash
-# Update to the latest version
+# Atualizar para a versão mais recente
 npx learnhouse update
 
-# Update to a specific version
+# Atualizar para uma versão específica
 npx learnhouse update --to 1.4.2
-# or using the short form:
+# ou usando a forma curta:
 npx learnhouse update -v 1.4.2
 ```
 
-| Flag | Description |
+| Flag | Descrição |
 |---|---|
-| `-v, --to <version>` | Pull a specific image tag (e.g. `1.4.2`, `v1.4.2`). Defaults to `latest`. |
-| `--migrate` | Run database migrations without prompting |
-| `--no-migrate` | Skip database migrations without prompting |
-| `--no-backup` | Skip the pre-upgrade database backup (not recommended for production) |
+| `-v, --to <version>` | Baixa uma tag de imagem específica (ex.: `1.4.2`, `v1.4.2`). Padrão: `latest`. |
+| `--migrate` | Executa migrações de banco de dados sem perguntar |
+| `--no-migrate` | Pula migrações de banco de dados sem perguntar |
+| `--no-backup` | Pula o backup de banco de dados pré-atualização (não recomendado para produção) |
 
 <Callout type="info">
-The update command creates a database backup automatically before making any changes. The backup is saved to `{installDir}/backups/db-pre-upgrade-{timestamp}.sql.gz`.
+O comando update cria um backup do banco de dados automaticamente antes de fazer qualquer
+mudança. O backup é salvo em `{installDir}/backups/db-pre-upgrade-{timestamp}.sql.gz`.
 </Callout>
 
-## What `update` Does
+## O Que o `update` Faz
 
-The command runs these steps in order:
+O comando executa estes passos em ordem:
 
-1. **Database backup** — `pg_dump` to `./backups/` (skipped with `--no-backup`)
-2. **Alembic baseline** — stamps the current schema for installs that pre-date Alembic tracking (one-time, idempotent)
-3. **Image tag update** — rewrites the tag in `docker-compose.yml`
-4. **Content volume migration** — moves uploaded media into a named Docker volume so it survives future container recreations (one-time, idempotent)
-5. **Image pull** — `docker compose pull` fetches the new image
-6. **Stack restart** — `docker compose down && docker compose up -d --pull always`
-7. **Health wait** — polls `/api/v1/health` until the app responds
-8. **Database migrations** — `alembic upgrade head` (prompted unless `--migrate`/`--no-migrate` passed)
+1. **Backup do banco de dados** — `pg_dump` para `./backups/` (pulado com `--no-backup`)
+2. **Baseline do Alembic** — marca o schema atual para instalações anteriores ao rastreamento do
+   Alembic (uma vez, idempotente)
+3. **Atualização da tag de imagem** — reescreve a tag no `docker-compose.yml`
+4. **Migração do volume de conteúdo** — move a mídia enviada para um volume Docker nomeado, para
+   que sobreviva a futuras recriações de contêiner (uma vez, idempotente)
+5. **Download da imagem** — `docker compose pull` busca a nova imagem
+6. **Reinício da stack** — `docker compose down && docker compose up -d --pull always`
+7. **Espera de saúde** — consulta `/api/v1/health` até a aplicação responder
+8. **Migrações de banco de dados** — `alembic upgrade head` (perguntado a menos que
+   `--migrate`/`--no-migrate` seja passado)
 
-## Recommended Update Procedure
+## Procedimento de Atualização Recomendado
 
 ```bash
-# 1. Review the release notes
+# 1. Revise as notas de versão
 # https://github.com/notoriun/learnhouse/releases
 
-# 2. Run the update (backup is created automatically)
+# 2. Execute a atualização (o backup é criado automaticamente)
 npx learnhouse update
 
-# 3. Verify all services are healthy
+# 3. Verifique se todos os serviços estão saudáveis
 npx learnhouse doctor
 
-# 4. Check logs for any errors
+# 4. Verifique os logs em busca de erros
 npx learnhouse logs
 ```
 
-## Database Migrations
+## Migrações de Banco de Dados
 
-LearnHouse uses [Alembic](https://alembic.sqlalchemy.org/) to evolve the database schema between versions. After the new container starts, the CLI prompts:
+O Notoriun usa o [Alembic](https://alembic.sqlalchemy.org/) para evoluir o schema do banco de
+dados entre versões. Depois que o novo contêiner inicia, a CLI pergunta:
 
 ```
-? Run database migrations now? › Yes / No
+? Executar migrações de banco de dados agora? › Yes / No
 ```
 
-- **Yes** — runs `alembic upgrade head` in the app container. Recommended.
-- **No** — skips migrations. You can run them later manually.
+- **Yes** — executa `alembic upgrade head` no contêiner da aplicação. Recomendado.
+- **No** — pula as migrações. Você pode executá-las manualmente depois.
 
-To skip the prompt, pass `--migrate` (always run) or `--no-migrate` (always skip).
+Para pular a pergunta, passe `--migrate` (sempre executar) ou `--no-migrate` (sempre pular).
 
 <Callout type="warning">
-If you skip migrations, the new version of the app may error until they are applied. Run them manually when ready:
+Se você pular as migrações, a nova versão da aplicação pode apresentar erros até que elas sejam
+aplicadas. Execute-as manualmente quando estiver pronto:
 
 ```bash
 docker compose exec learnhouse-app sh -c "cd /app/api && uv run alembic upgrade head"
 ```
 </Callout>
 
-### Installs Created Before v1.3
+### Instalações Criadas Antes da v1.3
 
-Early LearnHouse installs created their schema via SQLAlchemy's `create_all` without Alembic tracking. The update command detects this automatically and stamps the current schema as the baseline before running any delta migrations — so `upgrade head` applies only new changes instead of replaying everything.
+Instalações antigas do Notoriun criaram seu schema via `create_all` do SQLAlchemy, sem
+rastreamento do Alembic. O comando update detecta isso automaticamente e marca o schema atual
+como a baseline antes de executar qualquer migração incremental — então `upgrade head` aplica
+apenas as mudanças novas em vez de repetir tudo.
 
-## Rolling Back
+## Revertendo uma Atualização
 
-If an update causes issues, restore from the pre-upgrade backup:
+Se uma atualização causar problemas, restaure a partir do backup pré-atualização:
 
 ```bash
-# List available backups
+# Liste os backups disponíveis
 ls {installDir}/backups/
 
-# Restore the database
+# Restaure o banco de dados
 npx learnhouse restore backups/db-pre-upgrade-<timestamp>.sql.gz
 
-# Revert the image tag in docker-compose.yml to the previous version
-# (edit the file: change image: ghcr.io/learnhouse/app:<new> back to <old>)
+# Revert a tag de imagem no docker-compose.yml para a versão anterior
+# (edite o arquivo: mude image: ghcr.io/notoriun/learnhouse/app:<nova> de volta para <antiga>)
 
-# Restart on the old image
+# Reinicie na imagem antiga
 npx learnhouse start
 ```
 
-Backups are named `db-pre-upgrade-{timestamp}.sql.gz` when created by `update`, and `learnhouse-backup-{timestamp}.tar.gz` when created by the `backup` command. The pre-upgrade backup created by `update` includes only the database dump; to also preserve your `.env`, run `npx learnhouse backup` manually before updating.
+Backups são nomeados `db-pre-upgrade-{timestamp}.sql.gz` quando criados pelo `update`, e
+`learnhouse-backup-{timestamp}.tar.gz` quando criados pelo comando `backup`. O backup
+pré-atualização criado pelo `update` inclui apenas o dump do banco de dados; para também
+preservar seu `.env`, execute `npx learnhouse backup` manualmente antes de atualizar.
 
 <Callout type="warning">
-Uploaded files stored on the filesystem (in the `learnhouse_content_*` Docker volume) are **not** included in the database backup. To back up uploaded files, use `docker volume export` or a volume-level snapshot provided by your hosting platform.
+Arquivos enviados armazenados no filesystem (no volume Docker `learnhouse_content_*`) **não**
+estão incluídos no backup do banco de dados. Para fazer backup dos arquivos enviados, use
+`docker volume export` ou um snapshot em nível de volume fornecido pela sua plataforma de
+hospedagem.
 </Callout>
 
-## Checking for Updates
+## Verificando Atualizações
 
-The CLI automatically checks for a new version each time you run a command and prints a notice if one is available.
+A CLI verifica automaticamente se há uma nova versão a cada vez que você executa um comando e
+exibe um aviso se houver uma disponível.
 
-Review the [LearnHouse release notes](https://github.com/notoriun/learnhouse/releases) before updating to understand what has changed. Some updates may include:
+Revise as [notas de versão do Notoriun](https://github.com/notoriun/learnhouse/releases) antes de
+atualizar, para entender o que mudou. Algumas atualizações podem incluir:
 
-- New features or UI changes
-- Database migrations (applied automatically when you accept the prompt or pass `--migrate`)
-- Configuration changes that may require updating your `.env` file
-- Breaking changes (rare, documented in release notes with a migration guide)
+- Novos recursos ou mudanças de interface
+- Migrações de banco de dados (aplicadas automaticamente quando você aceita a pergunta ou passa
+  `--migrate`)
+- Mudanças de configuração que podem exigir a atualização do seu arquivo `.env`
+- Mudanças que quebram compatibilidade (raras, documentadas nas notas de versão com um guia de
+  migração)

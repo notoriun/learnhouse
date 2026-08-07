@@ -64,10 +64,10 @@ mdxFiles.sort((a, b) => {
 
 const sections = []
 
-sections.push('# LearnHouse Documentation — Full Content')
+sections.push('# Documentação Notoriun — Conteúdo Completo')
 sections.push('')
-sections.push('> This file contains the complete text of all LearnHouse documentation pages.')
-sections.push(`> Source: ${SITE_URL}`)
+sections.push('> Este arquivo contém o texto completo de todas as páginas de documentação do Notoriun.')
+sections.push(`> Fonte: ${SITE_URL}`)
 sections.push('')
 
 for (const { filePath, slug } of mdxFiles) {
@@ -129,10 +129,10 @@ for (const [specPath, methods] of Object.entries(spec.paths || {})) {
 
 sections.push('---')
 sections.push('')
-sections.push('# LearnHouse API Reference')
+sections.push('# Referência de API do Notoriun')
 sections.push(`URL: ${SITE_URL}/reference`)
 sections.push('')
-sections.push(`Base URL: ${API_BASE_URL} — all endpoints are prefixed with /api/v1.`)
+sections.push(`URL base: ${API_BASE_URL} — todos os endpoints têm o prefixo /api/v1.`)
 sections.push('Authentication: send an organization API token (prefix lh_, Pro plan) as')
 sections.push('`Authorization: Bearer <token>`. Session-only endpoints reject API tokens and')
 sections.push('need a user JWT from POST /api/v1/auth/login (form-encoded username/password).')
