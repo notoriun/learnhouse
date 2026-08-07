@@ -6,7 +6,7 @@ import { API_GROUPS, METHOD_TO_ACTION } from '../lib/reference/config.js'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CONTENT_DIR = path.join(__dirname, '..', 'content')
 const OUTPUT_FILE = path.join(__dirname, '..', 'public', 'llms-full.txt')
-const SITE_URL = 'https://docs.learnhouse.app'
+const SITE_URL = 'https://docs.notoriun.com.br'
 const API_BASE_URL = (process.env.LEARNHOUSE_API_URL || 'https://api.learnhouse.io').replace(/\/$/, '')
 const SNAPSHOT_PATH = path.join(__dirname, '..', 'lib', 'reference', 'openapi.snapshot.json')
 
@@ -65,9 +65,9 @@ mdxFiles.sort((a, b) => {
 
 const sections = []
 
-sections.push('# LearnHouse Documentation — Full Content')
+sections.push('# Documentação Notoriun — Conteúdo Completo')
 sections.push('')
-sections.push('> This file contains the complete text of all LearnHouse documentation pages.')
+sections.push('> Este arquivo contém o texto completo de todas as páginas de documentação do Notoriun.')
 sections.push(`> Source: ${SITE_URL}`)
 sections.push('')
 
@@ -130,10 +130,10 @@ for (const [specPath, methods] of Object.entries(spec.paths || {})) {
 
 sections.push('---')
 sections.push('')
-sections.push('# LearnHouse API Reference')
+sections.push('# Referência de API do Notoriun')
 sections.push(`URL: ${SITE_URL}/reference`)
 sections.push('')
-sections.push(`Base URL: ${API_BASE_URL} — all endpoints are prefixed with /api/v1.`)
+sections.push(`URL base: ${API_BASE_URL} — todos os endpoints têm o prefixo /api/v1.`)
 sections.push('Authentication: send an organization API token (prefix lh_, Pro plan) as')
 sections.push('`Authorization: Bearer <token>`. Session-only endpoints reject API tokens and')
 sections.push('need a user JWT from POST /api/v1/auth/login (form-encoded username/password).')

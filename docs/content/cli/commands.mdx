@@ -1,40 +1,42 @@
 import { Callout } from 'nextra/components'
 
-# Commands
+# Comandos
 
-Full reference for all LearnHouse CLI commands.
+Referência completa de todos os comandos da CLI do Notoriun.
 
 ## `setup`
 
-Interactive wizard that generates a complete Docker Compose deployment. See [Setup Wizard](/cli/setup-wizard) for details.
+Assistente interativo que gera uma implantação Docker Compose completa. Veja
+[Assistente de Instalação](/cli/setup-wizard) para detalhes.
 
 ```bash
 npx learnhouse@latest setup
 ```
 
-| Flag | Description |
+| Flag | Descrição |
 |---|---|
-| `--ci` | Non-interactive mode with defaults (for CI/automation) |
-| `--name <name>` | Installation name (default: `default`) |
-| `--domain <domain>` | Domain name (default: `localhost`) |
-| `--port <port>` | HTTP port (default: `80`) |
-| `--admin-email <email>` | Admin email (default: `admin@school.dev`) |
-| `--admin-password <password>` | Admin password (required in `--ci` mode) |
-| `--org-name <name>` | Organization display name (default: `Default Organization`) |
-| `--org-slug <slug>` | Organization slug used in URLs (default: `default`) |
-| `--channel <channel>` | Release channel: `stable` or `dev` (default: `stable`) |
-| `--no-start` | Skip starting services after setup |
-| `--external-db <uri>` | Use an external Postgres instead of the in-container DB |
-| `--external-redis <uri>` | Use an external Redis instead of the in-container Redis |
-| `--docker-ipv6` | Enable IPv6 on the compose network (needed for IPv6-only external DBs) |
+| `--ci` | Modo não interativo com padrões (para CI/automação) |
+| `--name <name>` | Nome da instalação (padrão: `default`) |
+| `--domain <domain>` | Nome de domínio (padrão: `localhost`) |
+| `--port <port>` | Porta HTTP (padrão: `80`) |
+| `--admin-email <email>` | E-mail do admin (padrão: `admin@school.dev`) |
+| `--admin-password <password>` | Senha do admin (obrigatória no modo `--ci`) |
+| `--org-name <name>` | Nome de exibição da organização (padrão: `Default Organization`) |
+| `--org-slug <slug>` | Slug da organização usado em URLs (padrão: `default`) |
+| `--channel <channel>` | Canal de release: `stable` ou `dev` (padrão: `stable`) |
+| `--no-start` | Pula o início dos serviços após a instalação |
+| `--external-db <uri>` | Usa um Postgres externo em vez do banco em contêiner |
+| `--external-redis <uri>` | Usa um Redis externo em vez do Redis em contêiner |
+| `--docker-ipv6` | Ativa IPv6 na rede do compose (necessário para bancos externos só-IPv6) |
 
 <Callout type="info">
-Use `--org-slug` to set a custom URL prefix (e.g. `--org-slug acme` → users browse `/orgs/acme`). The default is `default`.
+Use `--org-slug` para definir um prefixo de URL customizado (ex.: `--org-slug acme` → usuários
+navegam em `/orgs/acme`). O padrão é `default`.
 </Callout>
 
 ## `start`
 
-Start all Docker containers for your deployment.
+Inicia todos os contêineres Docker da sua implantação.
 
 ```bash
 npx learnhouse start
@@ -42,7 +44,7 @@ npx learnhouse start
 
 ## `stop`
 
-Stop all running containers without removing data volumes.
+Para todos os contêineres em execução sem remover volumes de dados.
 
 ```bash
 npx learnhouse stop
@@ -50,33 +52,34 @@ npx learnhouse stop
 
 ## `status`
 
-Show the live status of each LearnHouse container.
+Mostra o status em tempo real de cada contêiner do Notoriun.
 
 ```bash
 npx learnhouse status
 ```
 
-Displays each service name, container state, health check result, and restart count.
+Exibe o nome de cada serviço, estado do contêiner, resultado da verificação de saúde, e contagem
+de reinícios.
 
 ## `health`
 
-Run health checks against the running deployment and report the results.
+Executa verificações de saúde contra a implantação em execução e reporta os resultados.
 
 ```bash
 npx learnhouse health
 ```
 
-Checks:
-- Container running state and health
-- PostgreSQL connectivity (TCP + query)
-- Redis ping
-- HTTP health endpoint (`/api/v1/health`)
-- Disk usage
-- Memory and CPU consumption
+Verifica:
+- Estado de execução e saúde do contêiner
+- Conectividade com PostgreSQL (TCP + consulta)
+- Ping do Redis
+- Endpoint HTTP de saúde (`/api/v1/health`)
+- Uso de disco
+- Consumo de memória e CPU
 
 ## `logs`
 
-Stream logs from all containers in real-time.
+Acompanha os logs de todos os contêineres em tempo real.
 
 ```bash
 npx learnhouse logs
@@ -84,7 +87,8 @@ npx learnhouse logs
 
 ## `config`
 
-Display current installation metadata — version, directory, URL, organization slug, and file locations.
+Exibe os metadados atuais da instalação — versão, diretório, URL, slug da organização, e
+localizações de arquivo.
 
 ```bash
 npx learnhouse config
@@ -92,183 +96,201 @@ npx learnhouse config
 
 ## `update`
 
-Update LearnHouse to the latest release or a specific version. See [Updates](/self-hosting/maintenance/updates) for details.
+Atualiza o Notoriun para a versão mais recente ou uma versão específica. Veja
+[Atualizações](/self-hosting/maintenance/updates) para detalhes.
 
 ```bash
-# Update to latest
+# Atualiza para a versão mais recente
 npx learnhouse update
 
-# Update to a specific version
+# Atualiza para uma versão específica
 npx learnhouse update --to 1.4.2
-# or using the short form:
+# ou usando a forma curta:
 npx learnhouse update -v 1.4.2
 ```
 
-| Flag | Description |
+| Flag | Descrição |
 |---|---|
-| `-v, --to <version>` | Pull a specific image tag from `ghcr.io/learnhouse/app` (e.g. `1.4.2`, `v1.4.2`). Defaults to `latest`. |
-| `--migrate` | Run database migrations automatically after restart (no prompt) |
-| `--no-migrate` | Skip database migrations without prompting |
-| `--no-backup` | Skip the pre-upgrade database backup (not recommended for production) |
+| `-v, --to <version>` | Baixa uma tag de imagem específica de `ghcr.io/notoriun/learnhouse/app` (ex.: `1.4.2`, `v1.4.2`). Padrão: `latest`. |
+| `--migrate` | Executa migrações de banco de dados automaticamente após reiniciar (sem pergunta) |
+| `--no-migrate` | Pula migrações de banco de dados sem perguntar |
+| `--no-backup` | Pula o backup de banco de dados pré-atualização (não recomendado para produção) |
 
-**What `update` does, in order:**
+**O que o `update` faz, em ordem:**
 
-1. Creates a database backup (unless `--no-backup`)
-2. Stamps an Alembic baseline if your DB was never migrated (installs created before v1.3)
-3. Rewrites the image tag in `docker-compose.yml`
-4. Migrates uploaded media to a persistent Docker volume (one-time, idempotent)
-5. Pulls the new image (`docker compose pull`)
-6. Restarts the stack with `--pull always`
-7. Waits for the health endpoint to respond
-8. Runs `alembic upgrade head` (unless `--no-migrate`)
+1. Cria um backup do banco de dados (a menos que `--no-backup`)
+2. Marca uma baseline do Alembic se seu banco nunca foi migrado (instalações criadas antes da v1.3)
+3. Reescreve a tag de imagem no `docker-compose.yml`
+4. Migra a mídia enviada para um volume Docker persistente (uma vez, idempotente)
+5. Baixa a nova imagem (`docker compose pull`)
+6. Reinicia a stack com `--pull always`
+7. Espera o endpoint de saúde responder
+8. Executa `alembic upgrade head` (a menos que `--no-migrate`)
 
 <Callout type="warning">
-If the migration step fails, the CLI prints the rollback command and exits with a non-zero code. Your pre-upgrade backup is in `{installDir}/backups/`. To roll back: restore the backup, revert the image tag in `docker-compose.yml`, and run `npx learnhouse start`.
+Se o passo de migração falhar, a CLI exibe o comando de rollback e sai com um código
+diferente de zero. Seu backup pré-atualização está em `{installDir}/backups/`. Para reverter:
+restaure o backup, revert a tag de imagem no `docker-compose.yml`, e execute
+`npx learnhouse start`.
 </Callout>
 
 ## `backup`
 
-Create a database backup as a `.tar.gz` archive containing a `pg_dump` and optionally your `.env` file.
+Cria um backup de banco de dados como um arquivo `.tar.gz` contendo um `pg_dump` e, opcionalmente,
+seu arquivo `.env`.
 
 ```bash
 npx learnhouse backup
 ```
 
-Backups are saved to `{installDir}/backups/learnhouse-backup-{timestamp}.tar.gz`.
+Backups são salvos em `{installDir}/backups/learnhouse-backup-{timestamp}.tar.gz`.
 
-The backup prompt lets you choose between creating a new backup or restoring from an existing one. Pass `--restore` to skip the prompt.
+O prompt de backup permite escolher entre criar um novo backup ou restaurar de um existente.
+Passe `--restore` para pular o prompt.
 
 ## `restore`
 
-Restore a database from a backup archive. This overwrites the current database.
+Restaura um banco de dados a partir de um arquivo de backup. Isso sobrescreve o banco de dados
+atual.
 
 ```bash
 npx learnhouse restore <archive.tar.gz>
 ```
 
-Alternatively:
+Alternativamente:
 
 ```bash
 npx learnhouse backup --restore <archive.tar.gz>
 ```
 
 <Callout type="warning">
-Restore only works with local (Docker) databases, not external Postgres connections. Restart services after restoring: `npx learnhouse stop && npx learnhouse start`.
+Restore só funciona com bancos de dados locais (Docker), não com conexões Postgres externas.
+Reinicie os serviços depois de restaurar: `npx learnhouse stop && npx learnhouse start`.
 </Callout>
 
-The dump uses `--clean --if-exists` so it can be replayed into an existing database without errors (tables are dropped and recreated). If the `.env` file was included in the backup, you will be prompted whether to restore it.
+O dump usa `--clean --if-exists`, então pode ser reaplicado em um banco de dados existente sem
+erros (as tabelas são excluídas e recriadas). Se o arquivo `.env` foi incluído no backup, você
+será perguntado se quer restaurá-lo.
 
 ## `doctor`
 
-Run comprehensive diagnostics to identify issues.
+Executa diagnósticos abrangentes para identificar problemas.
 
 ```bash
 npx learnhouse doctor
 ```
 
-Checks:
-- Docker installation and daemon status
-- Docker Compose v2 availability
-- Container health and restart counts
-- Port availability
-- DNS resolution (for non-localhost domains)
-- Disk space (warns below 1 GB)
-- Docker volume sizes
-- Log analysis (scans for recent errors)
-- `.env` validation (required variables, secret length)
-- Image freshness (compares local digest against registry)
+Verifica:
+- Instalação do Docker e status do daemon
+- Disponibilidade do Docker Compose v2
+- Saúde do contêiner e contagens de reinício
+- Disponibilidade de porta
+- Resolução de DNS (para domínios não-localhost)
+- Espaço em disco (avisa abaixo de 1 GB)
+- Tamanhos de volume Docker
+- Análise de log (busca por erros recentes)
+- Validação do `.env` (variáveis obrigatórias, tamanho de segredo)
+- Atualidade da imagem (compara o digest local com o registry)
 
 ## `deployments`
 
-View and manage deployments on the current machine.
+Visualiza e gerencia implantações na máquina atual.
 
 ```bash
 npx learnhouse deployments
 ```
 
-Features:
-- List all LearnHouse deployments with container status
-- Scale memory limits for `learnhouse-app`, `db`, and `redis`
-- View current resource usage via `docker stats`
+Recursos:
+- Lista todas as implantações do Notoriun com status de contêiner
+- Escala limites de memória para `learnhouse-app`, `db`, e `redis`
+- Visualiza o uso atual de recursos via `docker stats`
 
 ## `env`
 
-Interactive environment variable editor. Edit variables by category:
+Editor interativo de variáveis de ambiente. Edite variáveis por categoria:
 
-- Domain & Hosting
-- Database & Redis
-- Security
-- AI
-- Email (Resend only — edit `.env` directly to set SMTP credentials)
-- S3 Storage
+- Domínio e Hospedagem
+- Banco de Dados e Redis
+- Segurança
+- IA
+- E-mail (só Resend — edite o `.env` diretamente para definir credenciais SMTP)
+- Armazenamento S3
 - OAuth
 
 ```bash
 npx learnhouse env
 ```
 
-Secret values are masked in the display. Optionally restart services after changes.
+Valores secretos são mascarados na exibição. Opcionalmente reinicia os serviços após as
+mudanças.
 
 ## `shell`
 
-Open an interactive shell (`/bin/sh`) inside a running container.
+Abre um shell interativo (`/bin/sh`) dentro de um contêiner em execução.
 
 ```bash
 npx learnhouse shell
 ```
 
-Displays a list of running containers to choose from.
+Exibe uma lista de contêineres em execução para escolher.
 
 ## `dev`
 
-Start a local development environment. See [Dev Mode](/cli/dev-mode) for details.
+Inicia um ambiente de desenvolvimento local. Veja [Modo de Desenvolvimento](/cli/dev-mode) para
+detalhes.
 
 ```bash
 npx learnhouse dev
 ```
 
-| Flag | Description |
+| Flag | Descrição |
 |---|---|
-| `--ee` | Enable Enterprise Edition features (keeps the `ee/` folder active) |
-| `--admin-email <email>` | Admin email (default: `admin@school.dev`) |
-| `--admin-password <password>` | Admin password (skips the interactive prompt) |
+| `--ee` | Ativa recursos da Edição Enterprise (mantém a pasta `ee/` ativa) |
+| `--admin-email <email>` | E-mail do admin (padrão: `admin@school.dev`) |
+| `--admin-password <password>` | Senha do admin (pula o prompt interativo) |
 
-## Troubleshooting
+## Solução de Problemas
 
-### Containers restart in a loop
+### Contêineres reiniciam em loop
 
-Run `npx learnhouse doctor` — it scans logs and surfaces the root cause. Common causes:
-- Missing required env var in `.env`
-- Port conflict (another process is using port 80 or 5432)
-- Postgres volume corruption (restore from backup)
+Execute `npx learnhouse doctor` — ele analisa os logs e revela a causa raiz. Causas comuns:
+- Variável de ambiente obrigatória ausente no `.env`
+- Conflito de porta (outro processo está usando a porta 80 ou 5432)
+- Corrupção do volume do Postgres (restaure a partir do backup)
 
-### `update` migration fails
+### A migração do `update` falha
 
-If `npx learnhouse update` reports a migration failure:
+Se `npx learnhouse update` reportar uma falha de migração:
 
 ```bash
-# 1. Restore your pre-upgrade backup
+# 1. Restaure seu backup pré-atualização
 npx learnhouse restore backups/db-pre-upgrade-*.sql.gz
 
-# 2. Revert the image tag in docker-compose.yml to the previous version
-# (open the file and change image: ghcr.io/learnhouse/app:<new> back to <old>)
+# 2. Revert a tag de imagem no docker-compose.yml para a versão anterior
+# (abra o arquivo e mude image: ghcr.io/notoriun/learnhouse/app:<nova> de volta para <antiga>)
 
-# 3. Restart on the old image
+# 3. Reinicie na imagem antiga
 npx learnhouse start
 ```
 
-Then check the [LearnHouse releases page](https://github.com/learnhouse/learnhouse/releases) and the [GitHub issues](https://github.com/learnhouse/learnhouse/issues) for your version before retrying.
+Depois verifique a [página de releases do Notoriun](https://github.com/notoriun/learnhouse/releases)
+e as [issues do GitHub](https://github.com/notoriun/learnhouse/issues) para sua versão antes de
+tentar novamente.
 
-### Database unreachable after update
+### Banco de dados inacessível após atualização
 
-The `learnhouse-db` container may need a moment after startup. Wait 20-30 seconds and run `npx learnhouse health`. If health checks keep failing, run `npx learnhouse logs` to see the Postgres logs.
+O contêiner `learnhouse-db` pode precisar de um momento após a inicialização. Espere 20-30
+segundos e execute `npx learnhouse health`. Se as verificações de saúde continuarem falhando,
+execute `npx learnhouse logs` para ver os logs do Postgres.
 
-### `restore` errors: "relation already exists"
+### Erros de `restore`: "relation already exists"
 
-The restore command uses `pg_dump --clean --if-exists`, which drops existing tables before recreating them. If you see this error, your backup was created with an older CLI version (before v1.4.8). As a workaround:
+O comando restore usa `pg_dump --clean --if-exists`, que exclui tabelas existentes antes de
+recriá-las. Se você ver esse erro, seu backup foi criado com uma versão mais antiga da CLI
+(antes da v1.4.8). Como solução alternativa:
 
 ```bash
-# Drop and recreate the database, then restore
+# Exclui e recria o banco de dados, depois restaura
 docker compose exec db psql -U learnhouse -c "DROP DATABASE learnhouse; CREATE DATABASE learnhouse;"
 npx learnhouse restore <backup.tar.gz>
 ```

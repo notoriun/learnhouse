@@ -1,47 +1,55 @@
 import { Callout } from 'nextra/components'
 
-# Audit Logs
+# Logs de Auditoria
 
-Audit logs provide a detailed record of all actions taken on the platform, giving administrators full visibility into who did what and when. This is essential for compliance, security monitoring, and troubleshooting.
+Logs de auditoria fornecem um registro detalhado de todas as ações realizadas na plataforma,
+dando aos administradores visibilidade completa sobre quem fez o quê e quando. Isso é essencial
+para conformidade, monitoramento de segurança, e solução de problemas.
 
 <Callout>
-Audit logs require an Enterprise plan.
+Logs de auditoria exigem um plano Enterprise.
 </Callout>
 
-## What's Captured
+## O Que É Capturado
 
-Every mutation (create, update, delete) on the platform is recorded with the following details:
+Toda mutação (criação, atualização, exclusão) na plataforma é registrada com os seguintes
+detalhes:
 
-| Field | Description |
+| Campo | Descrição |
 |---|---|
-| User | Who performed the action (username and ID). |
-| Action | The HTTP method (POST, PUT, DELETE, PATCH). |
-| Resource | What was affected (e.g., `/courses`, `/users`). |
-| Resource ID | The specific item that was modified. |
-| Status code | The HTTP response status. |
-| IP address | The origin of the request. |
-| Timestamp | When the action occurred. |
-| Payload | The request body (with sensitive data scrubbed). |
+| Usuário | Quem realizou a ação (nome de usuário e ID). |
+| Ação | O método HTTP (POST, PUT, DELETE, PATCH). |
+| Recurso | O que foi afetado (ex.: `/courses`, `/users`). |
+| ID do recurso | O item específico que foi modificado. |
+| Código de status | O status de resposta HTTP. |
+| Endereço IP | A origem da requisição. |
+| Timestamp | Quando a ação ocorreu. |
+| Payload | O corpo da requisição (com dados sensíveis removidos). |
 
-## Sensitive Data Handling
+## Tratamento de Dados Sensíveis
 
-Audit logs automatically scrub sensitive fields from request payloads before storing them. Fields like `password`, `token`, `secret`, and similar keys are redacted to prevent sensitive data from appearing in logs.
+Logs de auditoria removem automaticamente campos sensíveis dos payloads de requisição antes de
+armazená-los. Campos como `password`, `token`, `secret`, e chaves similares são redigidos para
+evitar que dados sensíveis apareçam nos logs.
 
-## Filtering & Search
+## Filtragem e Busca
 
-You can filter audit logs by:
+Você pode filtrar logs de auditoria por:
 
-- User (ID, username, or full name)
-- Action type
-- Resource type and ID
-- HTTP status code
-- IP address
-- Date range
+- Usuário (ID, nome de usuário, ou nome completo)
+- Tipo de ação
+- Tipo e ID de recurso
+- Código de status HTTP
+- Endereço IP
+- Intervalo de datas
 
-## CSV Export
+## Exportação CSV
 
-Audit logs can be exported as CSV files for offline analysis, compliance reporting, or integration with external SIEM tools.
+Logs de auditoria podem ser exportados como arquivos CSV para análise offline, relatórios de
+conformidade, ou integração com ferramentas SIEM externas.
 
-## Performance
+## Desempenho
 
-Audit log entries are buffered in Redis and flushed to the database in batches every 60 seconds. This ensures that logging does not impact platform performance, even under heavy usage.
+As entradas de log de auditoria são armazenadas em buffer no Redis e enviadas ao banco de dados
+em lotes a cada 60 segundos. Isso garante que o log não impacte o desempenho da plataforma,
+mesmo sob uso intenso.

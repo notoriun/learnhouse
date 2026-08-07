@@ -41,14 +41,14 @@ function buildPath(pathTemplate, pathValues, queryValues) {
   let path = pathTemplate
   for (const p of pathValues) {
     const value = p.value?.trim()
-    if (!value) return { error: `Missing path parameter “${p.name}”` }
+    if (!value) return { error: `Parâmetro de caminho ausente: “${p.name}”` }
     path = path.replaceAll(`{${p.name}}`, encodeURIComponent(value))
   }
   const qs = []
   for (const q of queryValues) {
     const value = q.value?.trim()
     if (value) qs.push(`${encodeURIComponent(q.name)}=${encodeURIComponent(value)}`)
-    else if (q.required) return { error: `Missing required query parameter “${q.name}”` }
+    else if (q.required) return { error: `Parâmetro de query obrigatório ausente: “${q.name}”` }
   }
   return { path: qs.length ? `${path}?${qs.join('&')}` : path }
 }
@@ -63,7 +63,7 @@ function ParamInputs({ values, onChange }) {
             <code>{p.name}</code>{' '}
             <em>
               {p.kind}
-              {p.required ? ' · required' : ''}
+              {p.required ? ' · obrigatório' : ''}
             </em>
           </span>
           <input
@@ -139,7 +139,7 @@ export default function Playground({ method, path, playground, auth, opId }) {
           const file = files[f.name]
           if (file) form.append(f.name, file)
           else if (f.required) {
-            setResult({ error: `Missing required file “${f.name}”` })
+            setResult({ error: `Arquivo obrigatório ausente: “${f.name}”` })
             setSending(false)
             return
           }
@@ -156,7 +156,7 @@ export default function Playground({ method, path, playground, auth, opId }) {
           try {
             parsedBody = JSON.parse(body)
           } catch (err) {
-            setResult({ error: `Body is not valid JSON: ${err.message}` })
+            setResult({ error: `O corpo não é um JSON válido: ${err.message}` })
             setSending(false)
             return
           }
@@ -192,7 +192,7 @@ export default function Playground({ method, path, playground, auth, opId }) {
         ts: new Date().toISOString(),
       })
     } catch (err) {
-      setResult({ error: `Request failed: ${err.message}` })
+      setResult({ error: `A requisição falhou: ${err.message}` })
     } finally {
       setSending(false)
     }
@@ -221,7 +221,7 @@ export default function Playground({ method, path, playground, auth, opId }) {
           weight="bold"
           className={`lh-ref-nav-caret ${open ? 'lh-ref-nav-caret-open' : ''}`}
         />
-        Try it
+        Testar
       </button>
 
       {open && (
@@ -235,7 +235,7 @@ export default function Playground({ method, path, playground, auth, opId }) {
               {binaryFields.map((f) => (
                 <label key={f.name} className="lh-ref-play-param">
                   <span>
-                    <code>{f.name}</code> <em>file{f.required ? ' · required' : ''}</em>
+                    <code>{f.name}</code> <em>arquivo{f.required ? ' · obrigatório' : ''}</em>
                   </span>
                   <input
                     type="file"
@@ -252,10 +252,10 @@ export default function Playground({ method, path, playground, auth, opId }) {
           {!isMultipart && playground.bodyTemplate && (
             <label className="lh-ref-play-bodyfield">
               <span>
-                Body{' '}
+                Corpo{' '}
                 <em>
                   {playground.contentType === 'application/x-www-form-urlencoded'
-                    ? 'form fields as JSON'
+                    ? 'campos do formulário como JSON'
                     : 'JSON'}
                 </em>
               </span>
@@ -271,10 +271,10 @@ export default function Playground({ method, path, playground, auth, opId }) {
           <div className="lh-ref-play-actions">
             <button className="lh-ref-play-send" onClick={send} disabled={sending || needsToken}>
               <Play size={12} weight="fill" />
-              {sending ? 'Sending…' : 'Send request'}
+              {sending ? 'Enviando…' : 'Enviar requisição'}
             </button>
             {needsToken && (
-              <span className="lh-ref-play-note">Paste your API token above to send requests.</span>
+              <span className="lh-ref-play-note">Cole seu token de API acima para enviar requisições.</span>
             )}
           </div>
 
@@ -285,7 +285,7 @@ export default function Playground({ method, path, playground, auth, opId }) {
                 <span className={`lh-ref-play-status ${statusClass}`}>{result.status}</span>
                 <span className="lh-ref-play-latency">{result.latency} ms</span>
               </div>
-              <pre className="lh-ref-play-response">{result.body || '(empty response)'}</pre>
+              <pre className="lh-ref-play-response">{result.body || '(resposta vazia)'}</pre>
             </div>
           )}
         </div>

@@ -1,73 +1,84 @@
-# Frontend Architecture
+# Arquitetura do Frontend
 
-The LearnHouse frontend is a **Next.js 16** application located at `apps/web` in the project. It serves as the primary user interface for learners, instructors, and administrators.
+O frontend do Notoriun é uma aplicação **Next.js 16** localizada em `apps/web` no projeto. Ele
+serve como a interface de usuário principal para alunos, instrutores e administradores.
 
-## Technology Stack
+## Stack de Tecnologia
 
-- **Next.js 16.2.3** with the App Router (standalone output)
-- **React 19.2.5** with Server Components
+- **Next.js 16.2.3** com o App Router (saída standalone)
+- **React 19.2.5** com Server Components
 - **TypeScript 6.0.2**
-- **TailwindCSS v4** for styling
-- **Bun** as the package manager
-- **Turbopack** for development builds (`next dev --turbopack`)
-- **SWR** for client-side data fetching
+- **TailwindCSS v4** para estilização
+- **Bun** como gerenciador de pacotes
+- **Turbopack** para builds de desenvolvimento (`next dev --turbopack`)
+- **SWR** para busca de dados no lado do cliente
 
-## Key Dependencies
+## Dependências Principais
 
-- **@tiptap/core** -- Block-based rich text editor
-- **@radix-ui** -- Accessible, unstyled UI primitives
-- **@hocuspocus/provider** -- Real-time collaboration client
-- **yjs** -- CRDT library for conflict-free collaborative editing
-- **@codemirror** -- Code editor component
-- **recharts** -- Charting and data visualization
-- **formik / yup** -- Form handling and validation
-- **motion** -- Animation library
-- **i18next** -- Internationalization
-- **wavesurfer.js** -- Audio/podcast player
-- **jspdf / html2canvas** -- Certificate generation
-- **unsplash-js** -- Unsplash image integration
+- **@tiptap/core** -- Editor de texto rico baseado em blocos
+- **@radix-ui** -- Primitivas de UI acessíveis e sem estilo
+- **@hocuspocus/provider** -- Cliente de colaboração em tempo real
+- **yjs** -- Biblioteca CRDT para edição colaborativa livre de conflitos
+- **@codemirror** -- Componente de editor de código
+- **recharts** -- Gráficos e visualização de dados
+- **formik / yup** -- Manipulação e validação de formulário
+- **motion** -- Biblioteca de animação
+- **i18next** -- Internacionalização
+- **wavesurfer.js** -- Player de áudio/podcast
+- **jspdf / html2canvas** -- Geração de certificado
+- **unsplash-js** -- Integração de imagens do Unsplash
 
 ## App Router
 
-The frontend uses the Next.js App Router, which enables:
+O frontend usa o App Router do Next.js, que permite:
 
-- **Server Components by default** -- Pages and layouts render on the server, reducing client-side JavaScript and improving initial load times.
-- **Client Components where needed** -- Interactive elements opt into client-side rendering with the `"use client"` directive.
-- **Streaming and Suspense** -- Content is progressively streamed to the browser as it becomes ready.
-- **Route Groups and Layouts** -- Shared layouts and nested routing keep the codebase organized.
+- **Server Components por padrão** -- Páginas e layouts renderizam no servidor, reduzindo o
+  JavaScript do lado do cliente e melhorando os tempos de carregamento inicial.
+- **Client Components quando necessário** -- Elementos interativos optam por renderização no
+  cliente com a diretiva `"use client"`.
+- **Streaming e Suspense** -- O conteúdo é transmitido progressivamente para o navegador conforme
+  fica pronto.
+- **Grupos de Rota e Layouts** -- Layouts compartilhados e roteamento aninhado mantêm o código
+  organizado.
 
-## Authentication
+## Autenticação
 
-Authentication is handled via **JWT tokens** issued by the FastAPI backend. On login, the backend sets an `access_token_cookie` (HS256, 8-hour expiry) that the frontend attaches to API requests. Protected routes check for a valid session before rendering.
+A autenticação é feita via **tokens JWT** emitidos pelo backend FastAPI. No login, o backend
+define um `access_token_cookie` (HS256, expiração de 8 horas) que o frontend anexa às
+requisições de API. Rotas protegidas verificam uma sessão válida antes de renderizar.
 
-## Communication with the Backend
+## Comunicação com o Backend
 
-The frontend communicates with the FastAPI backend over HTTP. API calls are made from both:
+O frontend se comunica com o backend FastAPI via HTTP. As chamadas de API são feitas a partir de:
 
-- **Server Components** -- Data is fetched at request time on the server, which keeps sensitive tokens off the client.
-- **Client Components** -- Interactive features make API calls directly from the browser using **SWR** for caching and revalidation.
+- **Server Components** -- Os dados são buscados no momento da requisição no servidor, o que
+  mantém tokens sensíveis fora do cliente.
+- **Client Components** -- Recursos interativos fazem chamadas de API diretamente do navegador
+  usando **SWR** para cache e revalidação.
 
-## Directory Structure
+## Estrutura de Diretórios
 
 ```
 apps/web/
-├── app/           # App Router pages and layouts
-├── components/    # Reusable UI components
-├── services/      # API client and service functions
-├── hooks/         # Shared React hooks
-├── lib/           # Utilities and client helpers
-├── locales/       # i18next translation resources
-├── styles/        # Global styles
-├── ee/            # Enterprise Edition components
-└── public/        # Static assets
+├── app/           # Páginas e layouts do App Router
+├── components/    # Componentes de UI reutilizáveis
+├── services/      # Cliente de API e funções de serviço
+├── hooks/         # Hooks React compartilhados
+├── lib/           # Utilitários e helpers de cliente
+├── locales/       # Recursos de tradução i18next
+├── styles/        # Estilos globais
+├── ee/            # Componentes da Edição Enterprise
+└── public/        # Assets estáticos
 ```
 
-## Development
+## Desenvolvimento
 
-The frontend runs on **port 3000** during local development. Start the dev server with Turbopack enabled:
+O frontend roda na **porta 3000** durante o desenvolvimento local. Inicie o servidor de dev com o
+Turbopack ativado:
 
 ```bash
-bun dev  # runs next dev --turbopack
+bun dev  # executa next dev --turbopack
 ```
 
-When using the LearnHouse CLI (`learnhouse dev`), the frontend starts automatically with hot reload enabled.
+Ao usar a CLI do Notoriun (`learnhouse dev`), o frontend inicia automaticamente com hot reload
+ativado.

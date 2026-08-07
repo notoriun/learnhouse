@@ -1,6 +1,6 @@
 ---
-title: Build a Learning Platform
-description: Build your own headless learning platform on the web with Next.js and the LearnHouse API. Start with an anonymous public catalogue, then add authentication, enrollment, and progress tracking.
+title: Construir uma Plataforma de Aprendizado
+description: Construa sua própria plataforma de aprendizado headless na web com Next.js e a API do Notoriun. Comece com um catálogo público anônimo, depois adicione autenticação, matrícula, e rastreamento de progresso.
 ---
 
 import { Callout, Tabs } from 'nextra/components'
@@ -8,70 +8,97 @@ import GuideCards from '../../../components/GuideCards/GuideCards'
 import HeadlessArchitecture from '../../../components/diagrams/HeadlessArchitecture'
 import ResourceModelDiagram from '../../../components/diagrams/ResourceModelDiagram'
 
-# Build a Learning Platform
+# Construir uma Plataforma de Aprendizado
 
-LearnHouse is **API-first**. The official web app is just one client of a public REST API — which means you can build your *own* learning platform on top of the same API, with your own design, your own routing, and your own brand.
+O Notoriun é **API-first**. O app web oficial é só um cliente de uma API REST pública — o que
+significa que você pode construir sua *própria* plataforma de aprendizado em cima da mesma API,
+com seu próprio design, seu próprio roteamento, e sua própria marca.
 
-This guide takes you from an empty folder to a working **headless learning platform**: a Next.js app that lists your courses, plays your content, signs users in, enrolls them, and tracks their progress — all powered by the LearnHouse API. It's the kind of result you'll find in the [`learnhouse/headless-examples`](https://github.com/learnhouse/headless-examples) repository.
+Este guia leva você de uma pasta vazia a uma **plataforma de aprendizado headless** funcionando:
+um app Next.js que lista seus cursos, reproduz seu conteúdo, autentica usuários, os matricula, e
+rastreia seu progresso — tudo alimentado pela API do Notoriun. É o tipo de resultado que você vai
+encontrar no repositório [`notoriun/headless-examples`](https://github.com/notoriun/headless-examples).
 
-## Pick your path
+## Escolha seu caminho
 
 <GuideCards set="build" />
 
-- **[Do it yourself](/guides/build-learning-platform/do-it-yourself)** — Follow the build step by step. Every command and file is provided, and the whole thing is tested end to end. This is the best way to actually understand how the API fits together.
-- **[Let an agent build it](/guides/build-learning-platform/with-an-agent)** — Hand a coding agent (Claude Code, Cursor, etc.) a self-contained [spec](/guides/build-learning-platform/agent-spec) and let it generate the app for you, then review and run it.
+- **[Faça você mesmo](/guides/build-learning-platform/do-it-yourself)** — Siga a construção
+  passo a passo. Todo comando e arquivo é fornecido, e tudo é testado de ponta a ponta. Esta é a
+  melhor forma de realmente entender como a API se encaixa.
+- **[Deixe um agente construir](/guides/build-learning-platform/with-an-agent)** — Entregue a um
+  agente de código (Claude Code, Cursor, etc.) uma
+  [especificação](/guides/build-learning-platform/agent-spec) autocontida e deixe-o gerar o app
+  para você, depois revise e execute.
 
-## What you'll build
+## O que você vai construir
 
-A learning platform you reach in two stages — **anonymous first, authenticated second**. You'll have a working public site before you touch a single token.
+Uma plataforma de aprendizado que você alcança em dois estágios — **primeiro anônimo, depois
+autenticado**. Você terá um site público funcionando antes mesmo de tocar em um único token.
 
-<Tabs items={['Stage 1 — Anonymous', 'Stage 2 — Authenticated']}>
+<Tabs items={['Estágio 1 — Anônimo', 'Estágio 2 — Autenticado']}>
   <Tabs.Tab>
-    No login, no tokens. Public content only:
-    - A **course catalogue** listing every public course in your organization.
-    - A **course page** showing chapters and activities.
-    - An **activity viewer** that renders dynamic pages, videos, and documents.
+    Sem login, sem tokens. Só conteúdo público:
+    - Um **catálogo de cursos** listando todo curso público na sua organização.
+    - Uma **página de curso** mostrando capítulos e atividades.
+    - Um **visualizador de atividade** que renderiza páginas dinâmicas, vídeos, e documentos.
   </Tabs.Tab>
   <Tabs.Tab>
-    Layered on top of stage 1, without rewriting it:
-    - **Signup & login** with the LearnHouse auth endpoints.
-    - **Enrollment** — learners join a course.
-    - **Progress tracking** — mark activities complete and show how far a learner has come.
+    Colocado sobre o estágio 1, sem reescrevê-lo:
+    - **Cadastro e login** com os endpoints de autenticação do Notoriun.
+    - **Matrícula** — alunos entram em um curso.
+    - **Rastreamento de progresso** — marca atividades como concluídas e mostra o quanto um
+      aluno avançou.
   </Tabs.Tab>
 </Tabs>
 
-## Architecture
+## Arquitetura
 
-Your Next.js app is a thin, fast client in front of the LearnHouse API. Reads happen in **Server Components**; anything involving a token goes through a **Route Handler acting as a Backend-for-Frontend (BFF)**, so LearnHouse tokens never reach the browser. Media is streamed straight from the API's content-delivery endpoint.
+Seu app Next.js é um cliente fino e rápido na frente da API do Notoriun. Leituras acontecem em
+**Server Components**; qualquer coisa envolvendo um token passa por um **Route Handler agindo
+como um Backend-for-Frontend (BFF)**, então tokens do Notoriun nunca alcançam o navegador. A
+mídia é transmitida diretamente do endpoint de entrega de conteúdo da API.
 
 <HeadlessArchitecture />
 
 <Callout type="info">
-Using a server-side BFF isn't just for security — it also sidesteps CORS entirely. Your browser only ever talks to your own Next.js origin, and your server talks to LearnHouse.
+Usar um BFF do lado do servidor não é só para segurança — também evita o CORS por completo. Seu
+navegador só fala com sua própria origem Next.js, e seu servidor fala com o Notoriun.
 </Callout>
 
-## The resources you'll touch
+## Os recursos que você vai tocar
 
-Everything in LearnHouse hangs off an **Organization**. Content is a tree of **Course → Chapter → Activity**. A learner's progress is a separate tree: each **User** has a **Trail**, which holds a **Run** per enrolled course, which holds a **Step** per completed activity.
+Tudo no Notoriun pende de uma **Organização**. Conteúdo é uma árvore de **Curso → Capítulo →
+Atividade**. O progresso de um aluno é uma árvore separada: cada **Usuário** tem uma **Trilha**,
+que contém uma **Execução (Run)** por curso matriculado, que contém um **Passo (Step)** por
+atividade concluída.
 
 <ResourceModelDiagram />
 
-| Resource | What it is | Key endpoint |
+| Recurso | O que é | Endpoint principal |
 | --- | --- | --- |
-| Organization | Top-level tenant, addressed by `org_slug` | `GET /api/v1/orgs/slug/{org_slug}` |
-| Course | A course, addressed by `course_uuid` | `GET /api/v1/courses/org_slug/{org_slug}/page/{page}/limit/{limit}` |
-| Chapter + Activity | The course's content tree | `GET /api/v1/courses/{course_uuid}/meta` |
-| Trail / Run / Step | A learner's enrollment & progress | `GET /api/v1/trail/org/{org_id}/trail` |
+| Organização | Tenant de nível superior, endereçado por `org_slug` | `GET /api/v1/orgs/slug/{org_slug}` |
+| Curso | Um curso, endereçado por `course_uuid` | `GET /api/v1/courses/org_slug/{org_slug}/page/{page}/limit/{limit}` |
+| Capítulo + Atividade | A árvore de conteúdo do curso | `GET /api/v1/courses/{course_uuid}/meta` |
+| Trilha / Execução / Passo | A matrícula e progresso de um aluno | `GET /api/v1/trail/org/{org_id}/trail` |
 
-## Prerequisites
+## Pré-requisitos
 
-- **Node.js 18+** and a package manager (`npm`, `pnpm`, or `bun`).
-- **A running LearnHouse instance.** Spin one up locally with the [Quickstart](/getting-started/quickstart) or [self-hosting guide](/self-hosting), or use [LearnHouse Cloud](https://learnhouse.app). The examples assume the API is at `http://localhost:1338`.
-- **Your organization slug** and **at least one public, published course** with some content. Create one in the dashboard if you don't have it yet.
-- Basic familiarity with the [API Reference](/developers/api).
+- **Node.js 18+** e um gerenciador de pacotes (`npm`, `pnpm`, ou `bun`).
+- **Uma instância do Notoriun em execução.** Coloque uma no ar localmente com o
+  [Início Rápido](/getting-started/quickstart) ou o [guia de self-hosting](/self-hosting), ou
+  use uma instância na nuvem gerenciada. Os exemplos assumem que a API está em
+  `http://localhost:1338`.
+- **O slug da sua organização** e **ao menos um curso público e publicado** com algum conteúdo.
+  Crie um no painel se ainda não tiver.
+- Familiaridade básica com a [Referência da API](/developers/api).
 
 <Callout type="warning">
-Throughout this guide the API base URL is `http://localhost:1338/api/v1`. If your instance lives elsewhere (a custom port, a domain, or Cloud), substitute your own base URL — every example reads it from a single environment variable.
+Ao longo deste guia a URL base da API é `http://localhost:1338/api/v1`. Se sua instância está em
+outro lugar (uma porta customizada, um domínio, ou a nuvem gerenciada), substitua pela sua
+própria URL base — todo exemplo a lê de uma única variável de ambiente.
 </Callout>
 
-Ready? Head to **[Do It Yourself](/guides/build-learning-platform/do-it-yourself)** to start building, or **[Let an Agent Build It](/guides/build-learning-platform/with-an-agent)** to delegate.
+Pronto? Vá para **[Faça Você Mesmo](/guides/build-learning-platform/do-it-yourself)** para
+começar a construir, ou **[Deixe um Agente Construir](/guides/build-learning-platform/with-an-agent)**
+para delegar.

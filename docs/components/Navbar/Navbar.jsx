@@ -4,7 +4,7 @@ import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Search } from 'nextra/components'
-import { GithubLogo, DiscordLogo, Code, ArrowUpRight, List, X, Plug, Globe, GraduationCap, BracketsCurly } from '@phosphor-icons/react/dist/ssr'
+import { GithubLogo, Code, ArrowUpRight, List, X, BracketsCurly } from '@phosphor-icons/react/dist/ssr'
 
 function Navbar() {
   const { resolvedTheme } = useTheme()
@@ -29,7 +29,7 @@ function Navbar() {
     return () => { document.body.style.overflow = '' }
   }, [mobileMenuOpen])
 
-  const logoSrc = '/img/logos/learnhouse-dark.svg'
+  const logoSrc = '/img/logos/notoriun-dark.svg'
 
   return (
     <>
@@ -39,7 +39,7 @@ function Navbar() {
           <div className="lh-navbar-left">
             <Link href="/" className="lh-navbar-logo">
               {mounted ? (
-                <img src={logoSrc} alt="LearnHouse" />
+                <img src={logoSrc} alt="Notoriun" />
               ) : (
                 <div style={{ width: 100, height: 20 }} />
               )}
@@ -62,36 +62,6 @@ function Navbar() {
                 <BracketsCurly size={15} weight="fill" />
                 API Reference
               </Link>
-              <a
-                href="https://university.learnhouse.io"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="lh-navbar-nav-item"
-              >
-                <GraduationCap size={15} weight="fill" />
-                Learn
-                <ArrowUpRight size={11} weight="bold" />
-              </a>
-              <a
-                href="https://learnhouse.app/integrations"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="lh-navbar-nav-item"
-              >
-                <Plug size={15} weight="fill" />
-                Integrations
-                <ArrowUpRight size={11} weight="bold" />
-              </a>
-              <a
-                href="https://learnhouse.app"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="lh-navbar-nav-item"
-              >
-                <Globe size={15} weight="fill" />
-                Website
-                <ArrowUpRight size={11} weight="bold" />
-              </a>
             </nav>
           </div>
 
@@ -99,22 +69,13 @@ function Navbar() {
           <div className="lh-navbar-right">
             <Search className="lh-navbar-search" placeholder="Search docs..." />
             <a
-              href="https://github.com/learnhouse/learnhouse"
+              href="https://github.com/notoriun/learnhouse"
               target="_blank"
               rel="noopener noreferrer"
               className="lh-navbar-nav-item lh-hide-mobile"
             >
               <GithubLogo size={16} weight="fill" />
               GitHub
-            </a>
-            <a
-              href="https://discord.gg/CMyZjjYZ6x"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="lh-navbar-nav-item lh-hide-mobile"
-            >
-              <DiscordLogo size={16} weight="fill" />
-              Discord
             </a>
 
             {/* Mobile hamburger */}
@@ -145,28 +106,9 @@ function Navbar() {
             <BracketsCurly size={16} weight="fill" />
             API Reference
           </Link>
-          <a href="https://university.learnhouse.io" target="_blank" rel="noopener noreferrer" className="lh-mobile-drawer-link">
-            <GraduationCap size={16} weight="fill" />
-            Learn
-            <ArrowUpRight size={12} weight="bold" />
-          </a>
-          <a href="https://learnhouse.app/integrations" target="_blank" rel="noopener noreferrer" className="lh-mobile-drawer-link">
-            <Plug size={16} weight="fill" />
-            Integrations
-            <ArrowUpRight size={12} weight="bold" />
-          </a>
-          <a href="https://learnhouse.app" target="_blank" rel="noopener noreferrer" className="lh-mobile-drawer-link">
-            <Globe size={16} weight="fill" />
-            Website
-            <ArrowUpRight size={12} weight="bold" />
-          </a>
-          <a href="https://github.com/learnhouse/learnhouse" target="_blank" rel="noopener noreferrer" className="lh-mobile-drawer-link">
+          <a href="https://github.com/notoriun/learnhouse" target="_blank" rel="noopener noreferrer" className="lh-mobile-drawer-link">
             <GithubLogo size={16} weight="fill" />
             GitHub
-          </a>
-          <a href="https://discord.gg/CMyZjjYZ6x" target="_blank" rel="noopener noreferrer" className="lh-mobile-drawer-link">
-            <DiscordLogo size={16} weight="fill" />
-            Discord
           </a>
         </div>
         <div className="lh-mobile-drawer-sidebar" id="mobile-sidebar-mount" />

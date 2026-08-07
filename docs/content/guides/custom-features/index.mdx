@@ -1,27 +1,31 @@
 ---
-title: Custom Features & Webhooks
-description: Extend LearnHouse beyond the official frontend — authenticate with API tokens, create and query content programmatically, and react to events with webhooks.
+title: Recursos Customizados e Webhooks
+description: Estenda o Notoriun além do frontend oficial — autentique com tokens de API, crie e consulte conteúdo programaticamente, e reaja a eventos com webhooks.
 ---
 
 import { Callout } from 'nextra/components'
 import GuideCards from '../../../components/GuideCards/GuideCards'
 
-# Custom Features & Webhooks
+# Recursos Customizados e Webhooks
 
-The [build guide](/guides/build-learning-platform) showed how to *read* the API as a frontend. This guide is about going further: driving LearnHouse **programmatically** — creating and managing content from your own scripts and services, and reacting to what happens inside LearnHouse with **webhooks**.
+O [guia de construção](/guides/build-learning-platform) mostrou como *ler* a API como um
+frontend. Este guia é sobre ir mais além: controlar o Notoriun **programaticamente** — criando e
+gerenciando conteúdo a partir dos seus próprios scripts e serviços, e reagindo ao que acontece
+dentro do Notoriun com **webhooks**.
 
 <GuideCards set="custom" />
 
-## Two ways to authenticate
+## Duas formas de autenticar
 
-| | User session (JWT) | API token |
+| | Sessão de usuário (JWT) | Token de API |
 | --- | --- | --- |
-| **For** | Acting *as a logged-in user* (a frontend) | Server-to-server automation, scripts, integrations |
-| **How** | `POST /api/v1/auth/login` → bearer token | A long-lived token created in org settings |
-| **Prefix** | a JWT | `lh_…` |
-| **Plan** | any | **Pro** |
+| **Para** | Agir *como um usuário conectado* (um frontend) | Automação servidor-a-servidor, scripts, integrações |
+| **Como** | `POST /api/v1/auth/login` → token bearer | Um token de longa duração criado nas configurações da organização |
+| **Prefixo** | um JWT | `lh_…` |
+| **Plano** | qualquer | **Pro** |
 
-For everything in this guide, use an **API token**. It's a single bearer credential you attach to every request:
+Para tudo neste guia, use um **token de API**. É uma única credencial bearer que você anexa a
+toda requisição:
 
 ```bash
 curl "http://localhost:1338/api/v1/courses/org_slug/{org_slug}/page/1/limit/10" \
@@ -29,12 +33,16 @@ curl "http://localhost:1338/api/v1/courses/org_slug/{org_slug}/page/1/limit/10" 
 ```
 
 <Callout type="warning">
-API tokens work on resource routes (courses, chapters, activities, collections…) but **not** on routes that require a real user session — `/users/*`, `/orgs/*`, `/roles/*`, and **webhook management** all reject `lh_` tokens with `403`. Use a courses read to smoke-test a token.
+Tokens de API funcionam em rotas de recurso (courses, chapters, activities, collections…) mas
+**não** em rotas que exigem uma sessão de usuário real — `/users/*`, `/orgs/*`, `/roles/*`, e a
+**gestão de webhook** todos rejeitam tokens `lh_` com `403`. Use uma leitura de courses para
+testar rapidamente um token.
 </Callout>
 
-### Creating an API token
+### Criando um token de API
 
-API tokens are a **Pro** feature. Create one in your organization settings, or via the API itself (with a user session that has `roles` permissions):
+Tokens de API são um recurso **Pro**. Crie um nas configurações da sua organização, ou via a
+própria API (com uma sessão de usuário que tenha permissões `roles`):
 
 ```bash
 curl -X POST "http://localhost:1338/api/v1/orgs/{org_id}/api-tokens" \
@@ -47,7 +55,8 @@ curl -X POST "http://localhost:1338/api/v1/orgs/{org_id}/api-tokens" \
   }'
 ```
 
-The response includes the **full token exactly once** — store it securely, it can't be retrieved again:
+A resposta inclui o **token completo exatamente uma vez** — armazene-o com segurança, ele não
+pode ser recuperado novamente:
 
 ```json
 {
@@ -60,23 +69,31 @@ The response includes the **full token exactly once** — store it securely, it 
 ```
 
 <Callout type="info">
-Tokens support fine-grained permissions via a `rights` object (per-resource read/write scopes) and an optional `expires_at`. Set `rights` to grant a token only the access it needs. The full schema is on the interactive Swagger UI at `http://localhost:1338/docs` (development mode). List, revoke, and regenerate tokens under `/api/v1/orgs/{org_id}/api-tokens`.
+Tokens suportam permissões granulares via um objeto `rights` (escopos de leitura/escrita por
+recurso) e um `expires_at` opcional. Defina `rights` para conceder a um token só o acesso de que
+ele precisa. O esquema completo está no Swagger UI interativo em `http://localhost:1338/docs`
+(modo de desenvolvimento). Liste, revogue, e regenere tokens sob `/api/v1/orgs/{org_id}/api-tokens`.
 </Callout>
 
-## Request conventions
+## Convenções de requisição
 
-A few things that are true across the whole API:
+Algumas coisas que valem em toda a API:
 
-- **Base path** — every endpoint is under `/api/v1/`.
-- **Auth** — `Authorization: Bearer <token>` (JWT or `lh_` token).
-- **Reads are JSON** — `GET` returns JSON; lists are plain arrays unless documented otherwise.
-- **Writes are often multipart** — create/update endpoints that can take a file (courses, activities, avatars) accept `multipart/form-data`, not JSON. Endpoints without files (collections, trails, users) take JSON.
-- **Errors** — non-2xx responses are `{ "detail": "..." }`. Always read `detail`.
-- **UUIDs vs ids** — resources expose a stable `{resource}_uuid` (e.g. `course_…`, `activity_…`); numeric `id`s are used by a few routes (notably `org_id`).
+- **Caminho base** — todo endpoint está sob `/api/v1/`.
+- **Autenticação** — `Authorization: Bearer <token>` (JWT ou token `lh_`).
+- **Leituras são JSON** — `GET` retorna JSON; listas são arrays simples a menos que documentado
+  de outra forma.
+- **Escritas costumam ser multipart** — endpoints de criação/atualização que podem receber um
+  arquivo (courses, activities, avatars) aceitam `multipart/form-data`, não JSON. Endpoints sem
+  arquivos (collections, trails, users) recebem JSON.
+- **Erros** — respostas não-2xx são `{ "detail": "..." }`. Sempre leia `detail`.
+- **UUIDs vs ids** — recursos expõem um `{resource}_uuid` estável (ex.: `course_…`,
+  `activity_…`); ids numéricos são usados por algumas rotas (notavelmente `org_id`).
 
-## Recipe: create a course programmatically
+## Receita: criar um curso programaticamente
 
-Courses are created with multipart form data (so a thumbnail can ride along). `org_id` is a query parameter:
+Cursos são criados com dados multipart form (para que uma miniatura possa acompanhar). `org_id`
+é um parâmetro de query:
 
 ```bash
 curl -X POST "http://localhost:1338/api/v1/courses/?org_id=1" \
@@ -88,13 +105,15 @@ curl -X POST "http://localhost:1338/api/v1/courses/?org_id=1" \
 ```
 
 <Callout type="info">
-`name`, `description`, and `about` are all required on course creation — omitting `about` returns `422`. Creating courses, chapters, and activities requires a role with create permission (Admin / Maintainer / Instructor), not a plain member account.
+`name`, `description`, e `about` são todos obrigatórios na criação do curso — omitir `about`
+retorna `422`. Criar cursos, capítulos, e atividades exige um papel com permissão de criação
+(Admin / Maintainer / Instructor), não uma conta de membro simples.
 </Callout>
 
-Then add structure — a chapter (JSON), then activities inside it:
+Depois adicione estrutura — um capítulo (JSON), depois atividades dentro dele:
 
 ```bash
-# Create a chapter
+# Cria um capítulo
 curl -X POST "http://localhost:1338/api/v1/chapters/" \
   -H "Authorization: Bearer lh_your_api_token" \
   -H "Content-Type: application/json" \
@@ -102,37 +121,45 @@ curl -X POST "http://localhost:1338/api/v1/chapters/" \
 ```
 
 <Callout type="info">
-For bulk or AI-assisted course creation from existing media, see the [Migration](/developers/migration) guides — there's a three-call flow that builds an entire course tree in one transaction.
+Para criação de curso em massa ou assistida por IA a partir de mídia existente, veja os guias de
+[Migração](/developers/migration) — há um fluxo de três chamadas que constrói toda uma árvore de
+curso em uma transação.
 </Callout>
 
-## Recipe: search and list content
+## Receita: buscar e listar conteúdo
 
 ```bash
-# Paginated list of courses
+# Lista paginada de cursos
 curl "http://localhost:1338/api/v1/courses/org_slug/{org_slug}/page/1/limit/20" \
   -H "Authorization: Bearer lh_your_api_token"
 
-# Full-text search (max 50 per page)
+# Busca de texto completo (máx. 50 por página)
 curl "http://localhost:1338/api/v1/courses/org_slug/{org_slug}/search?query=python&page=1&limit=10" \
   -H "Authorization: Bearer lh_your_api_token"
 ```
 
-## Discoverability: the OpenAPI spec
+## Descoberta: a especificação OpenAPI
 
-Because the API is built with FastAPI, a complete machine-readable spec is available:
+Como a API é construída com FastAPI, uma especificação legível por máquina completa está
+disponível:
 
-- **OpenAPI JSON** — `http://localhost:1338/openapi.json` (served on all instances)
-- **Swagger UI** — `http://localhost:1338/docs` (development mode only)
-- **ReDoc** — `http://localhost:1338/redoc` (development mode only)
+- **OpenAPI JSON** — `http://localhost:1338/openapi.json` (servido em todas as instâncias)
+- **Swagger UI** — `http://localhost:1338/docs` (só modo de desenvolvimento)
+- **ReDoc** — `http://localhost:1338/redoc` (só modo de desenvolvimento)
 
-Point a client generator at `openapi.json` to produce a typed SDK in your language of choice.
+Aponte um gerador de cliente para `openapi.json` para produzir um SDK tipado na sua linguagem de
+escolha.
 
 <Callout type="info">
-The interactive HTML docs (`/docs` and `/redoc`) are served in **development mode only**. The raw `/openapi.json` spec is generated by FastAPI and available on all instances.
+A documentação HTML interativa (`/docs` e `/redoc`) é servida só em **modo de desenvolvimento**.
+A especificação bruta `/openapi.json` é gerada pelo FastAPI e está disponível em todas as
+instâncias.
 </Callout>
 
-## Next: react to events
+## A seguir: reagir a eventos
 
-Polling the API to find out "did anyone finish a course?" is wasteful. **Webhooks** push those events to you the moment they happen — enrollment, completion, signups, and dozens more.
+Fazer polling na API para descobrir "alguém terminou um curso?" é desperdício. **Webhooks**
+enviam esses eventos para você no momento em que acontecem — matrícula, conclusão, cadastros, e
+mais dezenas.
 
-→ **[Consume webhooks](/guides/custom-features/webhooks)**
+→ **[Consumir webhooks](/guides/custom-features/webhooks)**

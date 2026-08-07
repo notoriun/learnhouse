@@ -1,32 +1,48 @@
 ---
-title: Guides
-description: Hands-on, end-to-end guides for building with LearnHouse — ship your own headless learning platform with Next.js, drive the API, and react to events with webhooks.
+title: Guias
+description: Guias práticos e completos para construir com o Notoriun — lance sua própria plataforma de aprendizado headless com Next.js, controle a API, e reaja a eventos com webhooks.
 ---
 
 import { Callout } from 'nextra/components'
 import GuideCards from '../../components/GuideCards/GuideCards'
 
-# Guides
+# Guias
 
-The rest of the docs explain *what* LearnHouse is and *how each feature works*. **Guides** are different: each one walks you all the way through **building something real** with LearnHouse, end to end.
+O resto da documentação explica *o que* o Notoriun é e *como cada recurso funciona*. **Guias**
+são diferentes: cada um leva você até o fim de **construir algo real** com o Notoriun, de ponta a
+ponta.
 
-Every guide is written to be followed top to bottom, with copy-paste commands and code, and is tested against a real LearnHouse instance. Where there's a faster path, you'll get a choice: do it yourself, or hand the work to a coding agent.
+Todo guia é escrito para ser seguido do início ao fim, com comandos e código para copiar e
+colar, e é testado contra uma instância real do Notoriun. Onde há um caminho mais rápido, você
+terá uma escolha: fazer você mesmo, ou entregar o trabalho a um agente de código.
 
 <GuideCards set="index" />
 
-## What you'll find here
+## O que você vai encontrar aqui
 
-- **[Build a learning platform](/guides/build-learning-platform)** — Create your own web learning platform on top of the LearnHouse API with Next.js. You start with a fully anonymous public catalogue, then layer on authentication, enrollment, and progress tracking. Pick the **do-it-yourself** path or have an **agent** build it from a ready-made spec.
-- **[Custom features & webhooks](/guides/custom-features)** — Go beyond the official frontend: authenticate with API tokens, create and query content programmatically, and subscribe to webhooks to react to learning activity in real time.
+- **[Construir uma plataforma de aprendizado](/guides/build-learning-platform)** — Crie sua
+  própria plataforma web de aprendizado em cima da API do Notoriun com Next.js. Você começa com
+  um catálogo público totalmente anônimo, depois adiciona autenticação, matrícula, e
+  rastreamento de progresso. Escolha o caminho **faça você mesmo** ou faça um **agente**
+  construí-la a partir de uma especificação pronta.
+- **[Recursos customizados e webhooks](/guides/custom-features)** — Vá além do frontend oficial:
+  autentique com tokens de API, crie e consulte conteúdo programaticamente, e inscreva-se em
+  webhooks para reagir à atividade de aprendizado em tempo real.
 
 <Callout type="info">
-New to LearnHouse? Start with the [Quickstart](/getting-started/quickstart) to get an instance running, then come back here to build on top of it. The guides assume you have an organization and at least one course.
+Novo no Notoriun? Comece com o [Início Rápido](/getting-started/quickstart) para colocar uma
+instância em execução, depois volte aqui para construir sobre ela. Os guias assumem que você tem
+uma organização e ao menos um curso.
 </Callout>
 
-## Before you start
+## Antes de começar
 
-These guides interact with the LearnHouse REST API, documented in the [Developers → API Reference](/developers/api). You'll get the most out of them if you're comfortable with:
+Estes guias interagem com a API REST do Notoriun, documentada em
+[Desenvolvedores → Referência da API](/developers/api). Você vai aproveitar mais se estiver
+confortável com:
 
-- **HTTP & REST** — the API is a standard JSON REST API under `/api/v1/`.
-- **A running LearnHouse instance** — local ([self-hosting](/self-hosting)) or [Cloud](https://learnhouse.app). The examples use `http://localhost:1338` as the API base.
-- **JavaScript / TypeScript** — the build guide uses Next.js, but the API calls are framework-agnostic.
+- **HTTP e REST** — a API é uma API REST JSON padrão sob `/api/v1/`.
+- **Uma instância do Notoriun em execução** — local ([self-hosting](/self-hosting)) ou na nuvem
+  gerenciada. Os exemplos usam `http://localhost:1338` como base da API.
+- **JavaScript / TypeScript** — o guia de construção usa Next.js, mas as chamadas de API são
+  agnósticas de framework.

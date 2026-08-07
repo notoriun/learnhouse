@@ -1,20 +1,22 @@
 import { Callout } from 'nextra/components'
 
-# Email Configuration
+# Configuração de E-mail
 
-LearnHouse supports two email providers for transactional email delivery: **Resend** and **SMTP**. Email is used for user invitations, password resets, and system notifications.
+O Notoriun suporta dois provedores de e-mail para entrega de e-mails transacionais: **Resend** e
+**SMTP**. O e-mail é usado para convites de usuário, redefinição de senha e notificações do
+sistema.
 
-## Choosing a Provider
+## Escolhendo um Provedor
 
-Set the email provider in your `.env` file using the `LEARNHOUSE_EMAIL_PROVIDER` variable:
+Defina o provedor de e-mail no seu arquivo `.env` usando a variável `LEARNHOUSE_EMAIL_PROVIDER`:
 
 ```env
-LEARNHOUSE_EMAIL_PROVIDER=resend   # or "smtp"
+LEARNHOUSE_EMAIL_PROVIDER=resend   # ou "smtp"
 ```
 
-## Option 1: Resend
+## Opção 1: Resend
 
-[Resend](https://resend.com) is a developer-friendly email API service.
+[Resend](https://resend.com) é um serviço de API de e-mail amigável para desenvolvedores.
 
 ```env
 LEARNHOUSE_EMAIL_PROVIDER=resend
@@ -22,16 +24,17 @@ LEARNHOUSE_RESEND_API_KEY=re_your-resend-api-key
 LEARNHOUSE_SYSTEM_EMAIL_ADDRESS=noreply@example.com
 ```
 
-### Getting a Resend API Key
+### Obtendo uma Chave de API do Resend
 
-1. Create an account at [resend.com](https://resend.com)
-2. Add and verify your sending domain
-3. Generate an API key from the Resend dashboard
-4. Copy the API key into your `.env` file
+1. Crie uma conta em [resend.com](https://resend.com)
+2. Adicione e verifique seu domínio de envio
+3. Gere uma chave de API no painel do Resend
+4. Copie a chave de API para o seu arquivo `.env`
 
-## Option 2: SMTP
+## Opção 2: SMTP
 
-You can use any SMTP server, including services like Amazon SES, Mailgun, or your own mail server.
+Você pode usar qualquer servidor SMTP, incluindo serviços como Amazon SES, Mailgun, ou seu
+próprio servidor de e-mail.
 
 ```env
 LEARNHOUSE_EMAIL_PROVIDER=smtp
@@ -43,37 +46,41 @@ LEARNHOUSE_SMTP_USE_TLS=true
 LEARNHOUSE_SYSTEM_EMAIL_ADDRESS=noreply@example.com
 ```
 
-### SMTP Variables
+### Variáveis SMTP
 
-| Variable | Description | Default |
+| Variável | Descrição | Padrão |
 |---|---|---|
-| `LEARNHOUSE_SMTP_HOST` | SMTP server hostname | -- |
-| `LEARNHOUSE_SMTP_PORT` | SMTP server port | `587` |
-| `LEARNHOUSE_SMTP_USERNAME` | SMTP authentication username | -- |
-| `LEARNHOUSE_SMTP_PASSWORD` | SMTP authentication password | -- |
-| `LEARNHOUSE_SMTP_USE_TLS` | Enable TLS encryption | `true` |
+| `LEARNHOUSE_SMTP_HOST` | Hostname do servidor SMTP | -- |
+| `LEARNHOUSE_SMTP_PORT` | Porta do servidor SMTP | `587` |
+| `LEARNHOUSE_SMTP_USERNAME` | Usuário de autenticação SMTP | -- |
+| `LEARNHOUSE_SMTP_PASSWORD` | Senha de autenticação SMTP | -- |
+| `LEARNHOUSE_SMTP_USE_TLS` | Ativa criptografia TLS | `true` |
 
-## Applying Changes
+## Aplicando Mudanças
 
-After updating your email configuration, restart your instance:
+Depois de atualizar sua configuração de e-mail, reinicie sua instância:
 
 ```bash
 learnhouse stop
 learnhouse start
 ```
 
-## System Email Address
+## Endereço de E-mail do Sistema
 
-The `LEARNHOUSE_SYSTEM_EMAIL_ADDRESS` is the "from" address used for all outgoing emails. When using Resend, this address must belong to a domain that is verified in your Resend account. When using SMTP, ensure the address is permitted by your SMTP server.
+O `LEARNHOUSE_SYSTEM_EMAIL_ADDRESS` é o endereço "de" usado para todos os e-mails enviados. Ao
+usar o Resend, esse endereço deve pertencer a um domínio verificado na sua conta Resend. Ao usar
+SMTP, garanta que o endereço seja permitido pelo seu servidor SMTP.
 
 <Callout type="info">
-If email is not configured, features like user invitations and password resets will not work. Users can still be created manually by an administrator.
+Se o e-mail não estiver configurado, recursos como convites de usuário e redefinição de senha não
+vão funcionar. Usuários ainda podem ser criados manualmente por um administrador.
 </Callout>
 
-## What Emails Are Sent
+## Quais E-mails São Enviados
 
-LearnHouse sends the following types of email:
+O Notoriun envia os seguintes tipos de e-mail:
 
-- **User invitations** -- when an admin invites a user to join the platform or an organization
-- **Password resets** -- when a user requests a password reset
-- **System notifications** -- important system-level notifications
+- **Convites de usuário** -- quando um admin convida um usuário para entrar na plataforma ou em
+  uma organização
+- **Redefinição de senha** -- quando um usuário solicita uma redefinição de senha
+- **Notificações do sistema** -- notificações importantes de nível de sistema

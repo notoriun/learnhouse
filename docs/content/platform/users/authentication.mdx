@@ -1,34 +1,34 @@
 import { Callout } from 'nextra/components'
 
-# Authentication
+# Autenticação
 
-LearnHouse supports multiple authentication methods to fit different deployment scenarios.
+O Notoriun suporta múltiplos métodos de autenticação para se adequar a diferentes cenários de implantação.
 
-## Login Methods
+## Métodos de Login
 
-- **Email and password** — the default authentication method for every LearnHouse instance.
-- **Google OAuth** — third-party social login provider.
-- **Corporate login (Keycloak/OIDC)** — federated identity with the platform's Keycloak or a per-organization OIDC provider, including federated sign-up and one-shot user migration — see [Login Corporativo](/platform/users/corporate-login).
+- **E-mail e senha** — o método de autenticação padrão de toda instância do Notoriun.
+- **Google OAuth** — provedor de login social de terceiro.
+- **Login corporativo (Keycloak/OIDC)** — identidade federada com o Keycloak da plataforma ou um provedor OIDC próprio por organização, incluindo cadastro federado e migração de usuários em uma única execução — veja [Login Corporativo](/platform/users/corporate-login).
 
-For enterprise deployments, SAML (via WorkOS) and Custom OIDC are available — see [Enterprise SSO](/enterprise/sso).
+Para implantações enterprise, SAML (via WorkOS) e OIDC Personalizado estão disponíveis — veja [SSO Enterprise](/enterprise/sso).
 
-## Security
+## Segurança
 
-Logins are rate-limited per IP, and accounts are temporarily locked after repeated failed attempts. SaaS-mode deployments additionally require users to verify their email address before they can sign in.
+Os logins têm limite de tentativas por IP, e as contas são temporariamente bloqueadas após tentativas repetidas com falha. Implantações em modo SaaS também exigem que os usuários verifiquem o e-mail antes de conseguirem entrar.
 
-## Signup Mechanisms
+## Mecanismos de Cadastro
 
-Organizations can control how new users join the platform:
+Organizações podem controlar como novos usuários entram na plataforma:
 
-- **Open signup** — Anyone can create an account and join the organization.
-- **Invite-only** — Only users who receive an invitation can create an account.
+- **Cadastro aberto** — Qualquer pessoa pode criar uma conta e entrar na organização.
+- **Somente convite** — Só quem recebe um convite pode criar uma conta.
 
-The signup mechanism is configured per-organization in the [organization settings](/platform/organizations/settings).
+O mecanismo de cadastro é configurado por organização nas [configurações da organização](/platform/organizations/settings).
 
 <Callout>
-Choose invite-only signup for private or internal deployments where you want to control exactly who has access.
+Escolha o cadastro somente por convite para implantações privadas ou internas, onde você quer controlar exatamente quem tem acesso.
 </Callout>
 
-## Session Management
+## Gestão de Sessão
 
-Once authenticated, users maintain a session via JWT tokens. The backend issues an access token (8-hour expiry) and a refresh token (30-day expiry) that keep users signed in across page loads.
+Uma vez autenticado, o usuário mantém a sessão via tokens JWT. O backend emite um token de acesso (validade de 8 horas) e um token de renovação (validade de 30 dias) que mantêm o usuário conectado entre carregamentos de página.

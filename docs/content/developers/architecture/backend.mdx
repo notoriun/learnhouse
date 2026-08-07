@@ -1,96 +1,112 @@
 import { Callout } from 'nextra/components'
 
-# Backend Architecture
+# Arquitetura do Backend
 
-The LearnHouse backend is a **FastAPI** application written in Python, located at `apps/api` in the project. It serves as the central API layer that handles all business logic and data management.
+O backend do Notoriun é uma aplicação **FastAPI** escrita em Python, localizada em `apps/api` no
+projeto. Ele serve como a camada de API central que lida com toda a lógica de negócio e a gestão
+de dados.
 
-## Technology Stack
+## Stack de Tecnologia
 
-- **FastAPI** 0.135.3 -- High-performance Python web framework
+- **FastAPI** 0.135.3 -- Framework web Python de alta performance
 - **Python 3.14**
-- **SQLModel** 0.0.38 -- ORM for database interactions (built on SQLAlchemy and Pydantic)
-- **Alembic** -- Database migration management
-- **PostgreSQL 16** with **pgvector** extension -- Primary relational database
-- **redis-py** 7.4.0 -- Python Redis client
-- **Uvicorn** 0.44.0 -- ASGI server
-- **uv** -- Python package manager
+- **SQLModel** 0.0.38 -- ORM para interações com o banco de dados (construído sobre SQLAlchemy e
+  Pydantic)
+- **Alembic** -- Gestão de migrações de banco de dados
+- **PostgreSQL 16** com a extensão **pgvector** -- Banco de dados relacional principal
+- **redis-py** 7.4.0 -- Cliente Redis para Python
+- **Uvicorn** 0.44.0 -- Servidor ASGI
+- **uv** -- Gerenciador de pacotes Python
 
-## Key Dependencies
+## Dependências Principais
 
-- **psycopg2-binary** -- PostgreSQL adapter
-- **pyjwt[crypto]** -- JWT token handling
-- **pwdlib[argon2]** -- Password hashing with Argon2
-- **google-genai** 1.71.0 -- Gemini AI integration (the only AI provider)
-- **llama-index-core + pgvector** -- RAG and vector embeddings
-- **stripe** -- Payment processing
-- **workos** -- Enterprise SSO
-- **boto3** -- S3-compatible storage
-- **resend** -- Transactional email
-- **sentry-sdk** -- Error tracking and monitoring
+- **psycopg2-binary** -- Adaptador PostgreSQL
+- **pyjwt[crypto]** -- Manipulação de tokens JWT
+- **pwdlib[argon2]** -- Hashing de senha com Argon2
+- **google-genai** 1.71.0 -- Integração com IA Gemini (o único provedor de IA)
+- **llama-index-core + pgvector** -- RAG e embeddings vetoriais
+- **stripe** -- Processamento de pagamentos
+- **workos** -- SSO Enterprise
+- **boto3** -- Armazenamento compatível com S3
+- **resend** -- E-mail transacional
+- **sentry-sdk** -- Rastreamento de erros e monitoramento
 
-## Configuration
+## Configuração
 
-The backend uses a dual configuration system:
+O backend usa um sistema de configuração dual:
 
-- **YAML config** at `config/config.yaml` for structured settings
-- **Environment variables** which override YAML values when set
+- **Config YAML** em `config/config.yaml` para configurações estruturadas
+- **Variáveis de ambiente** que sobrescrevem os valores do YAML quando definidas
 
-The API prefix for all endpoints is `/api/v1/`.
+O prefixo de API para todos os endpoints é `/api/v1/`.
 
-## Responsibilities
+## Responsabilidades
 
-The backend handles all core platform operations:
+O backend lida com todas as operações centrais da plataforma:
 
-- **Authentication and authorization** -- JWT-based token authentication with role-based access control
-- **Course management** -- CRUD operations for organizations, courses, chapters, and activities
-- **User management** -- Registration, profiles, and permissions
-- **File storage and uploads** -- Handling media uploads with support for local filesystem and S3-compatible storage (via boto3)
-- **AI features** -- Integration with Google Gemini and LlamaIndex for learning assistance and RAG
-- **Search** -- Content indexing and search across courses and activities
-- **Payments** -- Stripe integration for course monetization
-- **Email** -- Transactional email via Resend
+- **Autenticação e autorização** -- Autenticação por token baseada em JWT com controle de acesso
+  baseado em papéis
+- **Gestão de curso** -- Operações CRUD para organizações, cursos, capítulos e atividades
+- **Gestão de usuário** -- Registro, perfis e permissões
+- **Armazenamento de arquivos e envios** -- Manipulação de envios de mídia com suporte a
+  filesystem local e armazenamento compatível com S3 (via boto3)
+- **Recursos de IA** -- Integração com Google Gemini e LlamaIndex para assistência de
+  aprendizado e RAG
+- **Busca** -- Indexação de conteúdo e busca em cursos e atividades
+- **Pagamentos** -- Integração com Stripe para monetização de curso
+- **E-mail** -- E-mail transacional via Resend
 
-## Database Layer
+## Camada de Banco de Dados
 
-SQLModel is used as the ORM, connecting to a PostgreSQL 16 database with the pgvector extension for AI embeddings. Database models define the schema for all entities: organizations, users, courses, chapters, activities, collections, and more. Migrations are managed with **Alembic** to keep the schema in sync across environments.
+O SQLModel é usado como ORM, conectando-se a um banco de dados PostgreSQL 16 com a extensão
+pgvector para embeddings de IA. Os modelos de banco de dados definem o schema para todas as
+entidades: organizações, usuários, cursos, capítulos, atividades, coleções e mais. As migrações
+são gerenciadas com **Alembic** para manter o schema sincronizado entre ambientes.
 
-## Caching
+## Cache
 
-Redis is used for:
+O Redis é usado para:
 
-- **Response caching** -- Frequently accessed data is cached to reduce database load.
-- **Session data** -- Temporary session information is stored in Redis for fast retrieval.
+- **Cache de resposta** -- Dados acessados frequentemente são armazenados em cache para reduzir
+  a carga no banco de dados.
+- **Dados de sessão** -- Informações temporárias de sessão são armazenadas no Redis para
+  recuperação rápida.
 
-## API Documentation
+## Documentação da API
 
-FastAPI automatically generates interactive API documentation, but it is only available when running in development mode.
+O FastAPI gera automaticamente documentação interativa da API, mas ela só está disponível quando
+executado em modo de desenvolvimento.
 
 <Callout type="info">
-Swagger UI (`/docs/`) and ReDoc (`/redoc/`) are only accessible when `LEARNHOUSE_DEVELOPMENT_MODE=True` is set. They are disabled in production.
+O Swagger UI (`/docs/`) e o ReDoc (`/redoc/`) só são acessíveis quando
+`LEARNHOUSE_DEVELOPMENT_MODE=True` está definido. Eles são desativados em produção.
 </Callout>
 
-## Directory Structure
+## Estrutura de Diretórios
 
 ```
 apps/api/
 ├── src/
-│   ├── routers/      # API route definitions
-│   ├── db/           # SQLModel table definitions
-│   ├── services/     # Business logic
-│   ├── security/     # Authentication and authorization
-│   └── core/         # Configuration and dependencies
-├── migrations/       # Alembic database migrations
-├── ee/               # Enterprise Edition features
-└── config/           # YAML configuration files
+│   ├── routers/      # Definições de rota da API
+│   ├── db/           # Definições de tabela SQLModel
+│   ├── services/     # Lógica de negócio
+│   ├── security/     # Autenticação e autorização
+│   └── core/         # Configuração e dependências
+├── migrations/       # Migrações de banco de dados Alembic
+├── ee/               # Recursos da Edição Enterprise
+└── config/           # Arquivos de configuração YAML
 ```
 
-## Development
+## Desenvolvimento
 
-The backend runs on **port 1338** by default during local development (configurable via `LEARNHOUSE_PORT`). In production Docker deployments, it runs on port 9000. Install dependencies and run the server:
+O backend roda na **porta 1338** por padrão durante o desenvolvimento local (configurável via
+`LEARNHOUSE_PORT`). Em implantações Docker de produção, ele roda na porta 9000. Instale as
+dependências e execute o servidor:
 
 ```bash
-uv sync              # install dependencies
-uv run python app.py # start the dev server (which calls uvicorn internally)
+uv sync              # instala dependências
+uv run python app.py # inicia o servidor de dev (que chama o uvicorn internamente)
 ```
 
-When using the LearnHouse CLI (`learnhouse dev`), the backend starts automatically with hot reload enabled.
+Ao usar a CLI do Notoriun (`learnhouse dev`), o backend inicia automaticamente com hot reload
+ativado.

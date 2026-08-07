@@ -1,58 +1,58 @@
-# System Requirements
+# Requisitos de Sistema
 
-Before installing LearnHouse, ensure your server meets the following requirements.
+Antes de instalar o Notoriun, confirme que seu servidor atende aos seguintes requisitos.
 
-## Software Requirements
+## Requisitos de Software
 
-| Software | Minimum Version | Notes |
+| Software | Versão Mínima | Observações |
 |---|---|---|
-| Docker Engine | 20.10+ | Required for running containers |
-| Docker Compose | 2.0+ | Included with Docker Desktop; install separately on Linux |
-| Node.js | 18+ | Required to run the LearnHouse CLI |
-| npm | 8+ | Comes with Node.js |
+| Docker Engine | 20.10+ | Necessário para rodar contêineres |
+| Docker Compose | 2.0+ | Incluído no Docker Desktop; instale separadamente no Linux |
+| Node.js | 18+ | Necessário para rodar a CLI do Notoriun |
+| npm | 8+ | Vem com o Node.js |
 
-## Hardware Requirements
+## Requisitos de Hardware
 
-| Resource | Minimum | Recommended |
+| Recurso | Mínimo | Recomendado |
 |---|---|---|
 | RAM | 2 GB | 4 GB |
-| Disk Space | 10 GB | 20 GB+ |
-| CPU | 1 core | 2+ cores |
+| Espaço em disco | 10 GB | 20 GB+ |
+| CPU | 1 núcleo | 2+ núcleos |
 
-Disk usage will grow over time depending on the amount of uploaded content (videos, documents, images). Plan storage capacity accordingly if you expect heavy usage.
+O uso de disco vai crescer com o tempo, dependendo da quantidade de conteúdo enviado (vídeos, documentos, imagens). Planeje a capacidade de armazenamento de acordo, se você espera uso intenso.
 
-## Operating System
+## Sistema Operacional
 
-LearnHouse is supported on:
+O Notoriun é suportado em:
 
-- **Linux** (Ubuntu 20.04+, Debian 11+, CentOS 8+, or any distribution with Docker support)
-- **macOS** (with Docker Desktop)
-- **Windows** (via WSL2 with Docker Desktop)
+- **Linux** (Ubuntu 20.04+, Debian 11+, CentOS 8+, ou qualquer distribuição com suporte a Docker)
+- **macOS** (com Docker Desktop)
+- **Windows** (via WSL2 com Docker Desktop)
 
-Linux is recommended for production deployments.
+Linux é recomendado para implantações em produção.
 
-## Network Requirements
+## Requisitos de Rede
 
-- Port **80** (HTTP) and/or port **443** (HTTPS) must be available
-- Outbound internet access is required during installation to pull Docker images
-- A domain name is recommended for production use but not required for local testing
+- A porta **80** (HTTP) e/ou porta **443** (HTTPS) devem estar disponíveis
+- Acesso à internet de saída é necessário durante a instalação, para baixar imagens Docker
+- Um nome de domínio é recomendado para uso em produção, mas não é obrigatório para testes locais
 
-## Verifying Prerequisites
+## Verificando os Pré-requisitos
 
-Run the following commands to verify your system is ready:
+Execute os comandos a seguir para verificar se seu sistema está pronto:
 
 ```bash
-# Check Docker
+# Verifica o Docker
 docker --version
 
-# Check Docker Compose
+# Verifica o Docker Compose
 docker compose version
 
-# Check Node.js
+# Verifica o Node.js
 node --version
 
-# Check npm
+# Verifica o npm
 npm --version
 ```
 
-All commands should return version numbers that meet or exceed the minimums listed above.
+Todos os comandos devem retornar números de versão iguais ou superiores aos mínimos listados acima.

@@ -1,38 +1,38 @@
 import { Callout } from 'nextra/components'
 
-# Configuration Overview
+# Visão Geral da Configuração
 
-LearnHouse uses environment variables as its primary configuration method. When you run `learnhouse setup`, the CLI generates a `.env` file with all the necessary variables based on your choices.
+O Notoriun usa variáveis de ambiente como seu método principal de configuração. Quando você executa `learnhouse setup`, a CLI gera um arquivo `.env` com todas as variáveis necessárias, com base nas suas escolhas.
 
-## Configuration Methods
+## Métodos de Configuração
 
-LearnHouse supports two configuration methods:
+O Notoriun suporta dois métodos de configuração:
 
-1. **Environment variables** (via `.env` file) -- the primary and recommended method
-2. **Configuration file** (`config.yaml`) -- an alternative for advanced users
+1. **Variáveis de ambiente** (via arquivo `.env`) -- o método principal e recomendado
+2. **Arquivo de configuração** (`config.yaml`) -- uma alternativa para usuários avançados
 
 <Callout type="info">
-If both are present, environment variables always take precedence over values defined in `config.yaml`.
+Se ambos estiverem presentes, as variáveis de ambiente sempre têm precedência sobre os valores definidos no `config.yaml`.
 </Callout>
 
-## Editing Configuration
+## Editando a Configuração
 
-You can modify your configuration at any time using the CLI:
+Você pode modificar sua configuração em qualquer momento usando a CLI:
 
 ```bash
 learnhouse config --edit
 ```
 
-Alternatively, edit the `.env` file directly and restart services:
+Alternativamente, edite o arquivo `.env` diretamente e reinicie os serviços:
 
 ```bash
 learnhouse restart
 ```
 
-## Configuration Sections
+## Seções de Configuração
 
-- [Environment Variables](/self-hosting/configuration/environment-variables) -- Complete reference of all available environment variables.
-- [AI Setup](/self-hosting/configuration/ai-setup) -- Enable and configure AI-powered features.
-- [Email](/self-hosting/configuration/email) -- Set up email delivery for invitations, password resets, and notifications.
-- [Content Storage](/self-hosting/configuration/storage) -- Configure filesystem or S3-compatible storage for uploaded content.
-- [SSL and Domain](/self-hosting/configuration/ssl) -- Set up your domain name and SSL certificates.
+- [Variáveis de Ambiente](/self-hosting/configuration/environment-variables) -- Referência completa de todas as variáveis de ambiente disponíveis.
+- [Configuração de IA](/self-hosting/configuration/ai-setup) -- Ative e configure recursos com IA.
+- [E-mail](/self-hosting/configuration/email) -- Configure a entrega de e-mail para convites, redefinição de senha e notificações.
+- [Armazenamento de Conteúdo](/self-hosting/configuration/storage) -- Configure armazenamento em filesystem ou compatível com S3 para conteúdo enviado.
+- [SSL e Domínio](/self-hosting/configuration/ssl) -- Configure seu nome de domínio e certificados SSL.

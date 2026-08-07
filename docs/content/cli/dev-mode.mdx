@@ -1,81 +1,91 @@
 import { Callout } from 'nextra/components'
 
-# Dev Mode
+# Modo de Desenvolvimento
 
-The `dev` command starts a full local development environment with hot reload for all services.
+O comando `dev` inicia um ambiente de desenvolvimento local completo com hot reload para todos
+os serviços.
 
 ```bash
 npx learnhouse dev
 ```
 
-## How It Works
+## Como Funciona
 
-The command splits infrastructure and application services:
+O comando divide infraestrutura e serviços de aplicação:
 
-- **Infrastructure** (Docker): PostgreSQL with pgvector + Redis run in containers via `.learnhouse/docker-compose.dev.yml`
-- **Application** (local): API, Web, and Collab servers run directly on your machine with hot reload
+- **Infraestrutura** (Docker): PostgreSQL com pgvector + Redis rodam em contêineres via
+  `.learnhouse/docker-compose.dev.yml`
+- **Aplicação** (local): Os servidores de API, Web, e Collab rodam diretamente na sua máquina
+  com hot reload
 
-## Requirements
+## Requisitos
 
-- Docker (for database and Redis)
-- [bun](https://bun.sh/) (for web and collab dependencies)
-- [uv](https://docs.astral.sh/uv/) (for Python API dependencies)
+- Docker (para banco de dados e Redis)
+- [bun](https://bun.sh/) (para dependências de web e collab)
+- [uv](https://docs.astral.sh/uv/) (para dependências da API Python)
 
 <Callout type="warning">
-`bun` and `uv` must be installed beforehand. The CLI runs `bun install` and `uv sync` to install project dependencies, but it does not install the package managers themselves.
+`bun` e `uv` devem ser instalados previamente. A CLI executa `bun install` e `uv sync` para
+instalar as dependências do projeto, mas não instala os próprios gerenciadores de pacotes.
 </Callout>
 
-## Startup Flow
+## Fluxo de Inicialização
 
-1. **Detect project root** — Looks for the monorepo structure (`apps/api`, `apps/web`, `apps/collab`)
-2. **Start infrastructure** — Launches PostgreSQL and Redis containers (reuses existing ones if running)
-3. **Health checks** — Waits for database and Redis to be ready
-4. **Admin setup** — When the database and Redis containers are created for the first time, prompts for an admin email and password. On subsequent runs with existing containers, the prompt is skipped and the existing credentials remain valid. You can also pass `--admin-email` and `--admin-password` to skip the prompt.
-5. **Install dependencies** — Runs `bun install` and `uv sync` if needed
-6. **Start services** — Launches API, Web, and Collab with color-coded output
+1. **Detecta a raiz do projeto** — Procura pela estrutura do monorepo (`apps/api`, `apps/web`,
+   `apps/collab`)
+2. **Inicia a infraestrutura** — Lança os contêineres do PostgreSQL e Redis (reutiliza os
+   existentes se já estiverem em execução)
+3. **Verificações de saúde** — Espera o banco de dados e o Redis estarem prontos
+4. **Configuração do admin** — Quando os contêineres de banco de dados e Redis são criados por
+   pela primeira vez, pergunta por um e-mail e senha de admin. Em execuções subsequentes com
+   contêineres já existentes, o prompt é pulado e as credenciais existentes permanecem válidas.
+   Você também pode passar `--admin-email` e `--admin-password` para pular o prompt.
+5. **Instala dependências** — Executa `bun install` e `uv sync` se necessário
+6. **Inicia os serviços** — Lança API, Web, e Collab com saída colorida
 
-## Services
+## Serviços
 
-| Service | Command | Port |
+| Serviço | Comando | Porta |
 | --- | --- | --- |
 | API | `uv run python app.py` | 1338 |
 | Web | `next dev --turbopack` | 3000 |
 | Collab | `tsx watch src/index.ts` | 4000 |
 
-## Interactive Controls
+## Controles Interativos
 
-While running, you can type commands to manage services:
+Enquanto está em execução, você pode digitar comandos para gerenciar os serviços:
 
-| Key | Action |
+| Tecla | Ação |
 | --- | --- |
-| `ra` | Restart API |
-| `rw` | Restart Web |
-| `rc` | Restart Collab |
-| `rb` | Restart all services |
-| `q` | Quit (graceful shutdown) |
+| `ra` | Reinicia a API |
+| `rw` | Reinicia o Web |
+| `rc` | Reinicia o Collab |
+| `rb` | Reinicia todos os serviços |
+| `q` | Sai (encerramento gracioso) |
 
-## Enterprise Edition
+## Edição Enterprise
 
-Use the `--ee` flag to enable Enterprise Edition features:
+Use a flag `--ee` para ativar os recursos da Edição Enterprise:
 
 ```bash
 npx learnhouse dev --ee
 ```
 
-Without the flag, the `apps/api/ee/` directory is temporarily hidden during development.
+Sem a flag, o diretório `apps/api/ee/` é temporariamente escondido durante o desenvolvimento.
 
-## Shutdown
+## Encerramento
 
-When you quit (`q` or Ctrl+C):
+Quando você sai (`q` ou Ctrl+C):
 
-- Local services (API, Web, Collab) are stopped
-- Docker containers (PostgreSQL, Redis) keep running for the next session
-- To fully stop infrastructure:
+- Os serviços locais (API, Web, Collab) são parados
+- Os contêineres Docker (PostgreSQL, Redis) continuam em execução para a próxima sessão
+- Para parar totalmente a infraestrutura:
 
 ```bash
 docker compose -f .learnhouse/docker-compose.dev.yml -p learnhouse-dev down
 ```
 
 <Callout type="info">
-Database data persists across dev sessions via Docker volumes. Your data is safe between restarts.
+Os dados do banco de dados persistem entre sessões de dev via volumes Docker. Seus dados estão
+seguros entre reinícios.
 </Callout>

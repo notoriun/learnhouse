@@ -1,59 +1,39 @@
 import { Callout } from 'nextra/components'
 
-# Cloud vs Self Hosting
+# Considerações sobre Self Hosting
 
-LearnHouse is open-source software. You can use the managed **LearnHouse Cloud** platform or self-host the core platform on your own infrastructure using the **LearnHouse CLI**. This page explains the differences so you can make an informed choice.
+O Notoriun é software de código aberto, pensado para ser hospedado na sua própria infraestrutura usando a **CLI**. Esta página explica o que essa responsabilidade envolve, para você planejar com informação.
 
-## Comparison
+## O que self-hosting exige de você
 
-|                              | ☁️ LearnHouse Cloud                                | 🖥️ Self Hosting                 |
-| ---------------------------- | ------------------------------------------------- | -------------------------------- |
-| 🌍 Worldwide CDN             | ✅ Included                                        | ⚙️ Manual setup + additional cost |
-| 🔄 Weekly updates            | ✅ Automatic                                       | 🔧 Manual                        |
-| 🛠️ Maintenance               | ✅ Managed by the LearnHouse team                  | 👤 Your responsibility            |
-| 🔒 Security patches          | ✅ Applied automatically                           | 🔧 Manual                        |
-| 📊 Threat & uptime monitoring | ✅ Included                                       | ❌ Not included                   |
-| 🔐 SSL certificate           | ✅ Included                                        | 🔧 Manual                        |
-| 💾 Continuous backups         | ✅ Included                                        | ⚙️ Manual + additional cost       |
-| 📈 Scalability               | ✅ Automatic                                       | ⚙️ Depends on your provider       |
-| 🖥️ Direct SSH & DB access    | ❌ Not available                                   | ✅ Full access                    |
-| 🎧 Product support           | ✅ Email support                                   | 👥 Community support              |
-| 💚 Where your money goes     | ✅ Supporting the team and funding new features     | 🏢 Third-party hosting companies  |
+- **🔄 Atualizações** — aplicar novas versões manualmente, no seu próprio ritmo.
+- **🛠️ Manutenção** — monitorar e manter os serviços no ar (banco de dados, cache, aplicação).
+- **🔒 Patches de segurança** — acompanhar releases e aplicar correções de segurança você mesmo.
+- **📊 Monitoramento de disponibilidade** — configurar suas próprias ferramentas de observabilidade.
+- **🔐 Certificado SSL** — provisionar e renovar certificados (ex.: via Let's Encrypt/Caddy).
+- **💾 Backups** — definir e testar sua própria rotina de backup.
+- **📈 Escalabilidade** — dimensionar a infraestrutura conforme o crescimento do uso.
+- **🖥️ Acesso direto** — em troca, você tem acesso completo por SSH, ao banco de dados e à rede.
 
-## ☁️ When to choose LearnHouse Cloud
+## Quando self-hosting faz mais sentido
 
-**Best for:** teams, organizations, and businesses that want to focus on content and learners — not infrastructure.
+**Ideal para:** empresas, instituições e equipes com requisitos de infraestrutura específicos e recursos de engenharia dedicados.
 
-- **Launch in minutes** — no servers to provision, no DevOps overhead. Your team can start building courses immediately.
-- **Zero-maintenance operations** — updates, security patches, SSL certificates, and backups are handled automatically by the LearnHouse team.
-- **Enterprise-grade reliability** — global CDN, threat monitoring, uptime guarantees, and automatic scaling out of the box.
-- **Priority support** — dedicated email support with faster response times for production issues.
-- **Invest in the product** — your subscription directly funds development of new features and improvements for the entire LearnHouse ecosystem.
-
-<Callout type="info">
-LearnHouse Cloud is the recommended option for most organizations. It eliminates operational complexity and lets your team focus entirely on creating great learning experiences.
-</Callout>
-
-## 🖥️ When to choose Self Hosting
-
-**Best for:** enterprises, institutions, and teams with strict infrastructure requirements and dedicated engineering resources.
-
-- **Full data sovereignty** — host on your own infrastructure with complete control over where data lives. Ideal for organizations with data residency mandates.
-- **Regulatory compliance** — meet on-premises hosting requirements for HIPAA, SOC 2, internal security policies, or government regulations.
-- **Deep infrastructure access** — direct SSH, database access, and full control over networking, storage, and compute resources.
-- **Custom integrations** — connect to internal systems, private networks, SSO providers, and proprietary tooling without restrictions.
-- **Dedicated engineering teams** — organizations with DevOps or platform engineering teams that prefer to own their deployment pipeline.
+- **Soberania completa dos dados** — hospede na sua própria infraestrutura, com controle total sobre onde os dados vivem. Ideal para organizações com exigências de residência de dados.
+- **Conformidade regulatória** — atenda requisitos de hospedagem on-premises para HIPAA, SOC 2, políticas internas de segurança ou regulamentações governamentais.
+- **Acesso profundo à infraestrutura** — SSH direto, acesso ao banco de dados e controle total sobre rede, armazenamento e capacidade de processamento.
+- **Integrações personalizadas** — conecte a sistemas internos, redes privadas, provedores de SSO e ferramentas proprietárias sem restrições.
+- **Equipes de engenharia dedicadas** — organizações com times de DevOps ou plataforma que preferem ser donas do próprio pipeline de implantação.
 
 <Callout type="warning">
-Self hosting requires your team to manage updates, backups, security patches, and scaling. Make sure you have the engineering capacity before choosing this path.
+Self hosting exige que sua equipe gerencie atualizações, backups, patches de segurança e escalabilidade. Garanta que você tem a capacidade de engenharia necessária antes de escolher este caminho.
 </Callout>
 
 <Callout type="info">
-Both options give you access to the same core feature set. Self-hosted instances can be upgraded at any time with `learnhouse update`, which pulls the latest release from the [LearnHouse GitHub repository](https://github.com/learnhouse/learnhouse).
+Instâncias self-hosted podem ser atualizadas em qualquer momento com `learnhouse update`, que baixa a versão mais recente do [repositório no GitHub](https://github.com/notoriun/learnhouse).
 </Callout>
 
-## Next steps
+## Próximos passos
 
-- Ready to get started? Head to the [Quickstart](/getting-started/quickstart).
-- Want to try the cloud platform? Visit [learnhouse.app](https://learnhouse.app) to create your account.
-- Need help configuring a self-hosted instance? See the [Self Hosting Guide](/self-hosting).
+- Pronto para começar? Vá para os [primeiros passos rápidos](/getting-started/quickstart).
+- Precisa de ajuda para configurar sua instância? Veja o [Guia de Self Hosting](/self-hosting).

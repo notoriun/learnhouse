@@ -1,33 +1,43 @@
 import { Callout } from 'nextra/components'
 
-# API Endpoints
+# Endpoints da API
 
 <Callout type="info">
-This overview has been superseded by the **[full API Reference](/reference)** — a complete,
-always-up-to-date reference generated from the live OpenAPI specification, with request and
-response schemas, cURL/JavaScript/Python examples and an in-browser playground.
+Esta visão geral foi substituída pela **[Referência Completa da API](/reference)** — uma
+referência completa e sempre atualizada, gerada a partir da especificação OpenAPI em produção,
+com esquemas de requisição e resposta, exemplos em cURL/JavaScript/Python e um playground direto
+no navegador.
 </Callout>
 
-All endpoints are prefixed with `/api/v1/`. The [API Reference](/reference) documents every
-public endpoint group:
+Todos os endpoints têm o prefixo `/api/v1/`. A [Referência da API](/reference) documenta todo
+grupo de endpoints públicos:
 
-- **[Authentication](/reference/auth)** — login, refresh, logout
-- **[API Tokens](/reference/api-tokens)** — create and manage `lh_` tokens
-- **[Organizations](/reference/orgs)**, **[Users](/reference/users)**, **[User Groups](/reference/usergroups)**
-- **[Courses](/reference/courses)**, **[Chapters](/reference/chapters)**, **[Activities](/reference/activities)**, **[Blocks](/reference/blocks)**
-- **[Assignments](/reference/assignments)** — including [headless grading flows](/developers/api/headless-assignments)
-- **[Folders](/reference/folders)**, **[Media](/reference/media)**, **[Certifications](/reference/certifications)**
-- **[Payments](/reference/payments)**, **[Search](/reference/search)**, **[Analytics](/reference/analytics)**
-- **[Webhooks](/reference/webhooks)** and **[Headless](/reference/headless)** server-to-server endpoints
+- **[Autenticação](/reference/auth)** — login, refresh, logout
+- **[Tokens de API](/reference/api-tokens)** — criação e gestão de tokens `lh_`
+- **[Organizações](/reference/orgs)**, **[Usuários](/reference/users)**,
+  **[Grupos de Usuários](/reference/usergroups)**
+- **[Cursos](/reference/courses)**, **[Capítulos](/reference/chapters)**,
+  **[Atividades](/reference/activities)**, **[Blocos](/reference/blocks)**
+- **[Tarefas](/reference/assignments)** — incluindo
+  [fluxos de correção headless](/developers/api/headless-assignments)
+- **[Pastas](/reference/folders)**, **[Mídia](/reference/media)**,
+  **[Certificações](/reference/certifications)**
+- **[Pagamentos](/reference/payments)**, **[Busca](/reference/search)**,
+  **[Analytics](/reference/analytics)**
+- **[Webhooks](/reference/webhooks)** e endpoints servidor-a-servidor
+  **[Headless](/reference/headless)**
 
-## Common Patterns
+## Padrões Comuns
 
-- All endpoints are prefixed with `/api/v1/`.
-- Resources follow standard REST conventions: `GET` to list or retrieve, `POST` to create, `PUT` to update, `DELETE` to remove.
-- Create/update endpoints commonly accept **multipart form data** rather than JSON, since many also accept file uploads (e.g. thumbnails, avatars).
-- Authenticated endpoints require either the `Authorization: Bearer <token>` header or the `access_token_cookie` cookie.
-- Programmatic access uses API tokens with the `lh_` prefix (Pro plan).
-- Responses are returned as JSON.
+- Todos os endpoints têm o prefixo `/api/v1/`.
+- Os recursos seguem as convenções REST padrão: `GET` para listar ou obter, `POST` para criar,
+  `PUT` para atualizar, `DELETE` para remover.
+- Endpoints de criação/atualização geralmente aceitam **dados multipart form** em vez de JSON,
+  já que muitos também aceitam envio de arquivos (ex.: miniaturas, avatares).
+- Endpoints autenticados exigem o cabeçalho `Authorization: Bearer <token>` ou o cookie
+  `access_token_cookie`.
+- Acesso programático usa tokens de API com o prefixo `lh_` (plano Pro).
+- As respostas são retornadas como JSON.
 
-For a local development instance, the interactive Swagger UI also remains available at
-[http://localhost:1338/docs](http://localhost:1338/docs).
+Para uma instância de desenvolvimento local, a interface interativa do Swagger também permanece
+disponível em [http://localhost:1338/docs](http://localhost:1338/docs).

@@ -49,7 +49,7 @@ function AuthChips({ op }) {
   if (!op.auth) {
     return (
       <div className="lh-ref-authrow">
-        <span className="lh-ref-authchip">No authentication</span>
+        <span className="lh-ref-authchip">Sem autenticação</span>
       </div>
     )
   }
@@ -57,7 +57,7 @@ function AuthChips({ op }) {
     return (
       <div className="lh-ref-authrow">
         <span className="lh-ref-authchip lh-ref-authchip-token">
-          API token
+          Token de API
           {op.tokenRight && (
             <code>
               {op.tokenRight.bucket}:{op.tokenRight.action}
@@ -65,9 +65,9 @@ function AuthChips({ op }) {
           )}
         </span>
         {op.access === 'token' ? (
-          <span className="lh-ref-authchip">or user session</span>
+          <span className="lh-ref-authchip">ou sessão de usuário</span>
         ) : (
-          <span className="lh-ref-authchip">required — no session fallback</span>
+          <span className="lh-ref-authchip">obrigatório — sem alternativa de sessão</span>
         )}
       </div>
     )
@@ -76,14 +76,14 @@ function AuthChips({ op }) {
     return (
       <div className="lh-ref-authrow">
         <span className="lh-ref-authchip lh-ref-authchip-session">
-          User session only — API tokens not accepted
+          Somente sessão de usuário — tokens de API não são aceitos
         </span>
       </div>
     )
   }
   return (
     <div className="lh-ref-authrow">
-      <span className="lh-ref-authchip">User session</span>
+      <span className="lh-ref-authchip">Sessão de usuário</span>
     </div>
   )
 }
@@ -98,7 +98,7 @@ export default function OperationArticle({ op }) {
         <div className="lh-ref-op-prose">
           <h2 className="lh-ref-op-title" id={op.id}>
             {op.summary}
-            {op.deprecated && <span className="lh-ref-pill lh-ref-pill-deprecated">deprecated</span>}
+            {op.deprecated && <span className="lh-ref-pill lh-ref-pill-deprecated">obsoleto</span>}
           </h2>
           <div className="lh-ref-op-endpoint">
             <MethodBadge method={op.method} />
@@ -107,18 +107,18 @@ export default function OperationArticle({ op }) {
           <AuthChips op={op} />
           <Description text={op.description} />
 
-          <ParamsTable title="Path parameters" rows={op.pathParams} />
-          <ParamsTable title="Query parameters" rows={op.queryParams} />
+          <ParamsTable title="Parâmetros de caminho" rows={op.pathParams} />
+          <ParamsTable title="Parâmetros de query" rows={op.queryParams} />
 
           {op.requestBody && (
             <section className="lh-ref-section">
               <h3 className="lh-ref-section-title">
-                Request body
+                Corpo da requisição
                 <span className="lh-ref-contenttype">
                   {CONTENT_TYPE_LABEL[op.requestBody.contentType] || op.requestBody.contentType}
                 </span>
                 {op.requestBody.required && (
-                  <span className="lh-ref-pill lh-ref-pill-required">required</span>
+                  <span className="lh-ref-pill lh-ref-pill-required">obrigatório</span>
                 )}
               </h3>
               <SchemaFields fields={op.requestBody.fields} />
@@ -127,7 +127,7 @@ export default function OperationArticle({ op }) {
 
           {successResponses.some((r) => r.fields.length > 0) && (
             <section className="lh-ref-section">
-              <h3 className="lh-ref-section-title">Returns</h3>
+              <h3 className="lh-ref-section-title">Retorna</h3>
               {successResponses.map(
                 (r) =>
                   r.fields.length > 0 && (
@@ -147,12 +147,12 @@ export default function OperationArticle({ op }) {
 
           {errorResponses.length > 0 && (
             <details className="lh-ref-errors">
-              <summary>Error responses</summary>
+              <summary>Respostas de erro</summary>
               <ul>
                 {errorResponses.map((r) => (
                   <li key={r.status}>
                     <code className="lh-ref-errors-status">{r.status}</code>{' '}
-                    {r.description || 'Error'}
+                    {r.description || 'Erro'}
                     {r.typeLabel ? (
                       <>
                         {' — '}

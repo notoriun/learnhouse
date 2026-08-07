@@ -57,7 +57,7 @@ function Pagination() {
     <div className="lh-pagination">
       {prev ? (
         <Link href={prev.route} className="lh-pagination-link lh-pagination-prev">
-          <span className="lh-pagination-label">Previous</span>
+          <span className="lh-pagination-label">Anterior</span>
           <span className="lh-pagination-title">
             {typeof prev.title === 'string' ? prev.title : prev.name}
           </span>
@@ -65,7 +65,7 @@ function Pagination() {
       ) : <div />}
       {next ? (
         <Link href={next.route} className="lh-pagination-link lh-pagination-next">
-          <span className="lh-pagination-label">Next</span>
+          <span className="lh-pagination-label">Próximo</span>
           <span className="lh-pagination-title">
             {typeof next.title === 'string' ? next.title : next.name}
           </span>
@@ -76,13 +76,13 @@ function Pagination() {
 }
 
 function EditOnGitHub({ filePath }) {
-  // `filePath` comes from Nextra page metadata and is the actual source path
-  // relative to the docs app root (e.g. "content/cli/index.mdx"). The docs app
-  // lives under docs/ in the learnhouse monorepo, so prefix with that. Using it
-  // directly avoids guessing folder-index vs leaf-file from the URL.
+  // `filePath` vem dos metadados de página do Nextra e é o caminho real do
+  // arquivo-fonte relativo à raiz do app de docs (ex.: "content/cli/index.mdx").
+  // O app de docs vive em docs/ dentro do monorepo, daí o prefixo. Usar isso
+  // direto evita ter que adivinhar índice de pasta vs. arquivo-folha pela URL.
   if (!filePath) return null
 
-  const href = `https://github.com/learnhouse/learnhouse/edit/dev/docs/${filePath}`
+  const href = `https://github.com/notoriun/learnhouse/edit/dev/docs/${filePath}`
 
   return (
     <a
@@ -92,7 +92,7 @@ function EditOnGitHub({ filePath }) {
       className="lh-edit-github"
     >
       <PencilSimple size={13} weight="bold" />
-      Edit on GitHub
+      Editar no GitHub
     </a>
   )
 }
@@ -100,7 +100,7 @@ function EditOnGitHub({ filePath }) {
 function LastEdited({ timestamp }) {
   if (!timestamp) return null
 
-  const date = new Date(timestamp).toLocaleDateString('en-US', {
+  const date = new Date(timestamp).toLocaleDateString('pt-BR', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -108,60 +108,8 @@ function LastEdited({ timestamp }) {
 
   return (
     <div className="lh-last-edited">
-      Last edited on {date}
+      Última edição em {date}
     </div>
-  )
-}
-
-function CloudAd() {
-  return (
-    <a
-      href="https://learnhouse.app"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group block nice-shadow rounded-2xl overflow-hidden bg-white! no-underline! relative transition-transform hover:scale-[1.02]"
-    >
-      {/* Dot pattern background */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-40"
-        style={{
-          backgroundImage: 'radial-gradient(circle, #a5b4fc 1px, transparent 1px)',
-          backgroundSize: '14px 14px',
-          maskImage: 'linear-gradient(to bottom, black 20%, transparent 70%)',
-          WebkitMaskImage: 'linear-gradient(to bottom, black 20%, transparent 70%)',
-        }}
-      />
-
-      <div className="relative p-4">
-        <div className="flex items-center gap-2.5" style={{ marginBottom: 16 }}>
-          <img src="/img/logos/learnhouse-dark.svg" alt="LearnHouse" className="h-3.5" />
-          <span
-            className="text-[8px] font-bold uppercase tracking-wide text-white! px-1.5 py-px rounded"
-            style={{
-              background: 'linear-gradient(180deg, #818cf8 0%, #6366f1 100%)',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 1px 3px rgba(99,102,241,0.4), 0 0.5px 0 rgba(99,102,241,0.2)',
-              border: '0.5px solid rgba(99,102,241,0.5)',
-              textShadow: '0 1px 1px rgba(0,0,0,0.15)',
-            }}
-          >
-            Cloud
-          </span>
-        </div>
-        <p className="text-[12px] font-semibold text-neutral-900! leading-snug m-0!">
-          Try LearnHouse Cloud
-        </p>
-        <p className="mt-1.5 text-[10.5px] text-neutral-400! leading-relaxed m-0!">
-          Managed hosting with automatic updates, backups, and scaling.
-        </p>
-        <div className="mt-3 inline-flex items-center gap-1 text-[10.5px] font-semibold text-indigo-500! group-hover:gap-2 transition-all">
-          Get started free
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        </div>
-      </div>
-    </a>
   )
 }
 
@@ -192,7 +140,6 @@ export default function Wrapper({ children, toc, metadata }) {
           {toc && toc.length > 0 && (
             <TOC headings={toc} />
           )}
-          <CloudAd />
         </div>
       </div>
     </div>

@@ -2,78 +2,80 @@ import { Callout } from 'nextra/components'
 
 # CLI
 
-The LearnHouse CLI is the primary tool for deploying, managing, and developing LearnHouse. It orchestrates Docker Compose services and provides an interactive setup wizard for production deployments, as well as a full local development environment.
+A CLI do Notoriun é a ferramenta principal para implantar, gerenciar e desenvolver o Notoriun.
+Ela orquestra serviços do Docker Compose e fornece um assistente de instalação interativo para
+implantações de produção, além de um ambiente de desenvolvimento local completo.
 
-<img src="/img/pages/cli/cli-screenshot.png" alt="LearnHouse CLI" style={{ borderRadius: '12px', marginTop: '1rem' }} />
+**Pacote**: [`learnhouse`](https://www.npmjs.com/package/learnhouse) no npm
 
-**Package**: [`learnhouse`](https://www.npmjs.com/package/learnhouse) on npm
+## Instalação
 
-## Installation
-
-### Quick Start (recommended)
+### Início Rápido (recomendado)
 
 ```bash
 npx learnhouse@latest setup
 ```
 
-### One-line Install (macOS / Linux)
+### Instalação em Uma Linha (macOS / Linux)
 
-Installs Docker, Node.js, and launches the CLI:
+Instala o Docker, o Node.js, e inicia a CLI:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/learnhouse/learnhouse/main/apps/cli/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/notoriun/learnhouse/main/apps/cli/install.sh | bash
 ```
 
 ### Windows (PowerShell)
 
 ```powershell
-irm https://raw.githubusercontent.com/learnhouse/learnhouse/main/apps/cli/install.ps1 | iex
+irm https://raw.githubusercontent.com/notoriun/learnhouse/main/apps/cli/install.ps1 | iex
 ```
 
-## Requirements
+## Requisitos
 
 - **Node.js** 18+
-- **Docker** with Docker Compose v2
+- **Docker** com Docker Compose v2
 
-## What It Does
+## O Que Ela Faz
 
-The CLI handles two main workflows:
+A CLI lida com dois fluxos de trabalho principais:
 
-### Production Deployment
+### Implantação de Produção
 
-The [setup wizard](/cli/setup-wizard) generates a complete Docker Compose deployment with:
+O [assistente de instalação](/cli/setup-wizard) gera uma implantação Docker Compose completa
+com:
 
-- **LearnHouse app** container (Next.js + FastAPI)
-- **PostgreSQL** database (with optional pgvector for AI)
-- **Redis** cache
-- **Caddy** or **Nginx** reverse proxy (with optional auto-SSL)
+- Contêiner da **aplicação Notoriun** (Next.js + FastAPI)
+- Banco de dados **PostgreSQL** (com pgvector opcional para IA)
+- Cache **Redis**
+- Proxy reverso **Caddy** ou **Nginx** (com auto-SSL opcional)
 
-Each deployment gets a unique ID, allowing multiple instances on the same machine.
+Cada implantação recebe um ID único, permitindo múltiplas instâncias na mesma máquina.
 
-### Local Development
+### Desenvolvimento Local
 
-The [`dev` command](/cli/dev-mode) starts infrastructure in Docker and runs the API, web, and collaboration servers locally with hot reload.
+O [comando `dev`](/cli/dev-mode) inicia a infraestrutura no Docker e executa os servidores de
+API, web, e colaboração localmente com hot reload.
 
-## Quick Reference
+## Referência Rápida
 
-| Command | Description |
+| Comando | Descrição |
 | --- | --- |
-| `npx learnhouse setup` | Interactive setup wizard |
-| `npx learnhouse start` | Start all services |
-| `npx learnhouse stop` | Stop all services |
-| `npx learnhouse update` | Update to latest or a specific version |
-| `npx learnhouse status` | Show service status |
-| `npx learnhouse health` | Run health checks |
-| `npx learnhouse logs` | Stream container logs |
-| `npx learnhouse config` | Show installation info |
-| `npx learnhouse env` | Edit environment variables |
-| `npx learnhouse backup` | Backup database |
-| `npx learnhouse restore <archive>` | Restore database from backup |
-| `npx learnhouse doctor` | Run diagnostics |
-| `npx learnhouse deployments` | Manage deployments & resource limits |
-| `npx learnhouse shell` | Open shell in a container |
-| `npx learnhouse dev` | Start dev environment |
+| `npx learnhouse setup` | Assistente de instalação interativo |
+| `npx learnhouse start` | Inicia todos os serviços |
+| `npx learnhouse stop` | Para todos os serviços |
+| `npx learnhouse update` | Atualiza para a versão mais recente ou uma específica |
+| `npx learnhouse status` | Mostra o status dos serviços |
+| `npx learnhouse health` | Executa verificações de saúde |
+| `npx learnhouse logs` | Acompanha os logs dos contêineres |
+| `npx learnhouse config` | Mostra informações da instalação |
+| `npx learnhouse env` | Edita variáveis de ambiente |
+| `npx learnhouse backup` | Faz backup do banco de dados |
+| `npx learnhouse restore <archive>` | Restaura o banco de dados a partir de um backup |
+| `npx learnhouse doctor` | Executa diagnósticos |
+| `npx learnhouse deployments` | Gerencia implantações e limites de recursos |
+| `npx learnhouse shell` | Abre um shell em um contêiner |
+| `npx learnhouse dev` | Inicia o ambiente de desenvolvimento |
 
 <Callout type="info">
-See [Commands](/cli/commands) for the full reference including all flags.
+Veja [Comandos](/cli/commands) para a referência completa, incluindo todas as flags.
 </Callout>

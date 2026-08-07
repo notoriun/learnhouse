@@ -2,67 +2,82 @@ import { Callout } from 'nextra/components'
 
 # Backups
 
-Regular backups are essential for protecting your LearnHouse data. The LearnHouse CLI provides built-in backup and restore commands for the PostgreSQL database.
+Backups regulares são essenciais para proteger os dados do seu Notoriun. A CLI do Notoriun
+fornece comandos integrados de backup e restauração para o banco de dados PostgreSQL.
 
 <Callout type="warning">
-The built-in backup only covers the database and your `.env` file. Uploaded content (images, videos, documents) stored on the filesystem is **not** included. See [Filesystem Content](#filesystem-content) below for recommendations.
+O backup integrado cobre apenas o banco de dados e seu arquivo `.env`. O conteúdo enviado
+(imagens, vídeos, documentos) armazenado no filesystem **não** está incluído. Veja
+[Conteúdo no Filesystem](#conteúdo-no-filesystem) abaixo para recomendações.
 </Callout>
 
-## Creating a Backup
+## Criando um Backup
 
-Create a backup with a single command:
+Crie um backup com um único comando:
 
 ```bash
 learnhouse backup
 ```
 
-This creates a timestamped archive containing:
+Isso cria um arquivo com timestamp contendo:
 
-- **`database.sql`** — a `pg_dump` of the LearnHouse PostgreSQL database
-- **`.env`** — a copy of your instance's environment file (if present)
+- **`database.sql`** — um `pg_dump` do banco de dados PostgreSQL do Notoriun
+- **`.env`** — uma cópia do arquivo de ambiente da sua instância (se presente)
 
-Backups are written to `<installDir>/backups/learnhouse-backup-<timestamp>.tar.gz`. The CLI prints the absolute path when the backup completes.
+Os backups são gravados em `<installDir>/backups/learnhouse-backup-<timestamp>.tar.gz`. A CLI
+exibe o caminho absoluto quando o backup é concluído.
 
 <Callout type="info">
-`learnhouse backup` only works when PostgreSQL runs in a local Docker container managed by the CLI. If you use an external managed database, use that provider's native backup tools instead.
+`learnhouse backup` só funciona quando o PostgreSQL roda em um contêiner Docker local gerenciado
+pela CLI. Se você usa um banco de dados externo gerenciado, use as ferramentas de backup nativas
+desse provedor.
 </Callout>
 
-## Restoring from a Backup
+## Restaurando a Partir de um Backup
 
-To restore from a backup file:
+Para restaurar a partir de um arquivo de backup:
 
 ```bash
 learnhouse restore <installDir>/backups/learnhouse-backup-<timestamp>.tar.gz
 ```
 
-The restore command replays `database.sql` into the running database container. It does **not** stop or restart services — restart them yourself if needed.
+O comando restore reaplica o `database.sql` no contêiner de banco de dados em execução. Ele
+**não** para ou reinicia os serviços — reinicie-os você mesmo se necessário.
 
 <Callout type="warning">
-Restoring a backup overwrites the database. Make sure you are restoring to the correct instance.
+Restaurar um backup sobrescreve o banco de dados. Certifique-se de que está restaurando na
+instância correta.
 </Callout>
 
-## Automating Backups
+## Automatizando Backups
 
-It is recommended to set up automated backups using a cron job. For example, to create a daily backup at 2:00 AM:
+É recomendado configurar backups automatizados usando um cron job. Por exemplo, para criar um
+backup diário às 2h da manhã:
 
 ```bash
-# Edit your crontab
+# Edite seu crontab
 crontab -e
 
-# Add this line for daily backups at 2 AM
+# Adicione esta linha para backups diários às 2h
 0 2 * * * /usr/local/bin/learnhouse backup
 ```
 
-## Backup Retention
+## Retenção de Backups
 
-Backup files accumulate over time and can consume significant disk space. Implement a retention policy to remove old backups. For example, keep the last 7 daily backups:
+Arquivos de backup se acumulam ao longo do tempo e podem consumir espaço em disco significativo.
+Implemente uma política de retenção para remover backups antigos. Por exemplo, mantenha os
+últimos 7 backups diários:
 
 ```bash
 find <installDir>/backups -name "learnhouse-backup-*.tar.gz" -mtime +7 -delete
 ```
 
-## Filesystem Content
+## Conteúdo no Filesystem
 
-When `LEARNHOUSE_CONTENT_DELIVERY_TYPE=filesystem`, uploaded files live on the host (or in a Docker volume) and are **not** captured by `learnhouse backup`. You are responsible for backing up this directory separately — for example with `rsync`, a volume snapshot, or a scheduled `tar` job.
+Quando `LEARNHOUSE_CONTENT_DELIVERY_TYPE=filesystem`, os arquivos enviados residem no host (ou em
+um volume Docker) e **não** são capturados pelo `learnhouse backup`. Você é responsável por fazer
+backup desse diretório separadamente — por exemplo com `rsync`, um snapshot de volume, ou um job
+`tar` agendado.
 
-When using `s3api` storage, rely on your S3 provider's versioning, lifecycle, or cross-region replication features to protect uploaded content.
+Ao usar armazenamento `s3api`, confie nos recursos de versionamento, lifecycle ou replicação
+entre regiões do seu provedor S3 para proteger o conteúdo enviado.

@@ -2,26 +2,26 @@ import { Callout } from 'nextra/components'
 
 # Podcasts
 
-Podcasts let you create and manage audio content within your organization. You can organize audio material into podcasts with individual episodes, providing an alternative content format alongside courses.
+Podcasts permitem criar e gerenciar conteúdo em áudio dentro da sua organização. Você pode organizar material de áudio em podcasts com episódios individuais, oferecendo um formato de conteúdo alternativo aos cursos.
 
 <Callout>
-Podcasts must be enabled in your [Organization Settings](/platform/organizations/settings) to be available.
+Podcasts precisam estar habilitados nas [Configurações da Organização](/platform/organizations/settings) para ficarem disponíveis.
 </Callout>
 
-## How Podcasts Work
+## Como Podcasts Funcionam
 
-Each podcast acts as a container for related episodes. You create a podcast, add metadata like a name, description, and thumbnail, then populate it with episodes. Episodes are streamed to users with optimized audio delivery.
+Cada podcast atua como um contêiner para episódios relacionados. Você cria um podcast, adiciona metadados como nome, descrição e miniatura, depois o preenche com episódios. Episódios são transmitidos aos usuários com entrega de áudio otimizada.
 
-## Key Features
+## Principais Recursos
 
-- **Episode management** — Add, edit, reorder, and remove episodes within a podcast.
-- **Audio streaming** — Episodes are streamed with HTTP Range request support for efficient playback and seeking.
-- **RSS feed** — Every podcast exposes a standard RSS feed at `/podcast/{shortUuid}/feed` that you can submit manually to Apple Podcasts Connect, Spotify for Podcasters, and other directories. LearnHouse does not publish to these services on your behalf.
-- **Metadata & discovery** — Each podcast and episode supports names, descriptions, and tags for easy browsing.
-- **Thumbnails** — Upload custom artwork for podcasts and episodes.
+- **Gestão de episódios** — Adicione, edite, reordene e remova episódios dentro de um podcast.
+- **Streaming de áudio** — Episódios são transmitidos com suporte a requisições HTTP Range, para reprodução e navegação eficientes.
+- **Feed RSS** — Todo podcast expõe um feed RSS padrão em `/podcast/{shortUuid}/feed`, que você pode enviar manualmente ao Apple Podcasts Connect, Spotify for Podcasters e outros diretórios. O Notoriun não publica nesses serviços em seu nome.
+- **Metadados e descoberta** — Cada podcast e episódio suporta nomes, descrições e etiquetas para facilitar a navegação.
+- **Miniaturas** — Envie artes personalizadas para podcasts e episódios.
 
-## Use Cases
+## Casos de Uso
 
-- **Lecture recordings** — Provide audio versions of lectures for on-the-go learning.
-- **Supplementary material** — Share interviews, discussions, or expert commentary alongside course content.
-- **Audio courses** — Build entire courses around audio content for topics that suit a listening format.
+- **Gravações de aula** — Ofereça versões em áudio de aulas para aprendizado em qualquer lugar.
+- **Material suplementar** — Compartilhe entrevistas, discussões ou comentários de especialistas junto ao conteúdo do curso.
+- **Cursos em áudio** — Construa cursos inteiros em torno de conteúdo em áudio para tópicos que se encaixam em um formato de escuta.
