@@ -91,7 +91,10 @@ async function orgDestination(request: NextRequest, orgSlug: unknown): Promise<U
   }
   // Já estamos no host da organização? Prefixar de novo daria `slug.slug.dom`.
   const slugPrefix = `${orgSlug.toLowerCase()}.`
-  if (!origin.hostname.toLowerCase().startsWith(slugPrefix)) {
+  const topDomain = (getConfig('NEXT_PUBLIC_LEARNHOUSE_TOP_DOMAIN') || '').toLowerCase()
+  if (topDomain) {
+    origin.hostname = `${orgSlug}.${topDomain}`
+  } else if (!origin.hostname.toLowerCase().startsWith(slugPrefix)) {
     origin.hostname = `${orgSlug}.${origin.hostname}`
   }
   return new URL('/', origin)
