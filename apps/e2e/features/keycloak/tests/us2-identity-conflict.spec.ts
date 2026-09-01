@@ -1,20 +1,25 @@
 /**
- * US2 — e-mail coincidente não vincula automaticamente identidade externa.
+ * US2 — coincidência de e-mail não é prova de identidade.
  *
- * A regra que isto protege é a mais perigosa de errar em federação: tratar
- * coincidência de e-mail como prova de identidade. Se a plataforma vinculasse
- * por e-mail sem política explícita, qualquer pessoa capaz de registrar um
- * endereço no provedor assumiria a conta local correspondente.
+ * A regra que isto protege é a mais perigosa de errar em federação: se a
+ * plataforma tratasse e-mail coincidente como prova, quem conseguisse registrar
+ * um endereço no provedor assumiria a conta local correspondente.
  *
- * O ambiente local tem uma organização, então o cenário "e-mail em outra
- * organização" não é montável aqui. O que é montável, e é o mesmo princípio: uma
- * identidade nova no provedor cujo e-mail **não** tem conta local não entra — a
- * coincidência de e-mail não é criada nem inferida.
+ * **Reescrita pela feature 009.** Antes, esta jornada comprovava a regra pelo
+ * caso "identidade sem conta local não recebe sessão" — o que deixou de ser
+ * verdade de propósito: no provedor da plataforma o primeiro acesso agora cria a
+ * conta. Continuar afirmando aquilo seria fixar a política antiga.
+ *
+ * O caso montável que preserva o princípio é a **tentativa de tomada de conta**:
+ * uma identidade DIFERENTE (outro `sub`) chega com o e-mail de uma conta que já
+ * está vinculada a outra identidade. Isso não pode virar acesso — nem por
+ * vínculo, nem por criação.
  */
 import { test, expect } from '../../../core/fixtures'
 import { LoginPage } from '../pages/login'
 import { ProviderPage } from '../pages/provider'
-import { newProviderIdentity, cleanupProviderIdentities } from '../fixtures'
+import { newProviderIdentity, cleanupProviderIdentities, ephemeralEmail } from '../fixtures'
+import { updateIdentityEmail } from '../provider'
 import { platformSessionCookies } from '../verify'
 import { title } from '../coverage'
 
@@ -22,30 +27,53 @@ test.afterAll(async () => {
   await cleanupProviderIdentities()
 })
 
-test(title('us2-identity-conflict'), async ({ page, context }) => {
+async function entrar(page: any, email: string, senha: string) {
   const login = new LoginPage(page)
   const provider = new ProviderPage(page)
+  await login.goto()
+  await login.expectSsoOptionVisible()
+  await login.clickSsoLogin()
+  await page.waitForURL(/\/realms\//, { timeout: 30_000 })
+  await provider.authenticate(email, senha)
+  await page.waitForURL((url: URL) => !url.pathname.includes('/realms/'), { timeout: 30_000 })
+  return login
+}
 
-  // Identidade que existe no provedor com e-mail já verificado, mas sem conta
-  // local correspondente. É o caso em que um vínculo automático seria o defeito.
-  const identidade = await newProviderIdentity('conflito', { emailVerified: true })
+test(title('us2-identity-conflict'), async ({ page, context }) => {
+  // Dona legítima: primeiro acesso cria a conta, vinculada ao seu `sub`.
+  const dona = await newProviderIdentity('conflito-dona', { emailVerified: true })
+  const emailDisputado = dona.email
 
-  await test.step('a identidade autentica no provedor', async () => {
-    await login.goto()
-    await login.expectSsoOptionVisible()
-    await login.clickSsoLogin()
-    await page.waitForURL(/\/realms\//, { timeout: 30_000 })
-    await provider.authenticate(identidade.email, identidade.password)
-    await page.waitForURL((url) => !url.pathname.includes('/realms/'), { timeout: 30_000 })
+  await test.step('a dona legítima entra e a conta passa a existir', async () => {
+    const login = await entrar(page, dona.email, dona.password)
+    expect(login.currentError(), 'o primeiro acesso da dona foi recusado').toBeNull()
+    const cookies = await platformSessionCookies(context)
+    expect(cookies.length, 'a dona legítima deveria receber sessão').toBeGreaterThan(0)
   })
 
-  await test.step('a plataforma não cria nem vincula conta por conta própria', async () => {
+  await test.step('o endereço é liberado no provedor e outra identidade o assume', async () => {
+    // A dona troca de e-mail no provedor — a conta local CONTINUA com o
+    // endereço antigo, porque a identidade é chaveada por (issuer, sub) e não
+    // por e-mail. Isso libera o endereço para outra pessoa no provedor.
+    await updateIdentityEmail(dona.providerId, ephemeralEmail('conflito-dona-novo'))
+  })
+
+  await test.step('a identidade intrusa NÃO assume a conta pelo e-mail', async () => {
+    await context.clearCookies()
+    // Mesmo e-mail da conta local, `sub` diferente: é a tentativa de tomada.
+    const intrusa = await newProviderIdentity('conflito-intrusa', { emailVerified: true })
+    await updateIdentityEmail(intrusa.providerId, emailDisputado)
+
+    const login = await entrar(page, emailDisputado, intrusa.password)
+
     const cookies = await platformSessionCookies(context)
     expect(
       cookies,
-      'identidade sem conta local correspondente não pode receber sessão — ' +
-        `emitiu: ${cookies.join(', ')}`,
+      'uma identidade diferente assumiu a conta por coincidência de e-mail — '
+        + `emitiu: ${cookies.join(', ')}`,
     ).toHaveLength(0)
+    // A recusa é comunicada, não silenciosa: a pessoa precisa saber o motivo.
+    expect(login.currentError(), 'a recusa não foi comunicada na tela de entrada').not.toBeNull()
   })
 })
 

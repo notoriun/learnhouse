@@ -147,30 +147,16 @@ def _get_jwks_client(jwks_uri: str) -> PyJWKClient:
         return client
 
 
-def sanitize_redirect(path: Optional[str]) -> str:
-    """Aceita somente caminho relativo interno; qualquer outro valor vira ``/``.
-
-    Rejeita ``//host`` (protocol-relative), esquemas (``https:``,
-    ``javascript:`` etc.) e controle de host — FR-008 / edge case open redirect.
-    Valor inválido não é erro: o destino é sempre substituído por ``/``.
-    """
-    if not path or not isinstance(path, str):
-        return "/"
-    if not path.startswith("/") or path.startswith("//"):
-        return "/"
-    # Um ":" antes do primeiro "/" (depois do inicial) indicaria esquema; com o
-    # prefixo "/" garantido, basta vetar retornos com backslash e caracteres de
-    # controle que alguns navegadores normalizam para "//".
-    if "\\" in path or any(ord(c) < 0x20 for c in path):
-        return "/"
-    return path
-
-
-def create_flow(org_slug: str, redirect_to: Optional[str]) -> dict[str, str]:
+def create_flow(org_slug: str) -> dict[str, str]:
     """Cria o fluxo de login: state/nonce/code_verifier de uso único no Redis.
 
     Sem Redis → ``ProviderUnavailableError`` (fail closed: um fluxo que não
     pode garantir uso único não pode existir).
+
+    O fluxo NÃO carrega destino de retorno (feature 009): o destino pós-acesso é
+    derivado da organização — o BFF o compõe a partir do ``org_slug`` devolvido
+    pelo callback. Sem entrada do usuário no cálculo do destino, o vetor de open
+    redirect deixa de existir por construção, em vez de depender de sanitização.
     """
     r = _redis()
     if r is None:
@@ -191,7 +177,6 @@ def create_flow(org_slug: str, redirect_to: Optional[str]) -> dict[str, str]:
             "nonce": nonce,
             "code_verifier": code_verifier,
             "org_slug": org_slug,
-            "redirect_to": sanitize_redirect(redirect_to),
             "created_at": int(time.time()),
         }
     )
@@ -228,8 +213,6 @@ def consume_flow(state: str) -> Optional[dict[str, Any]]:
     except (ValueError, UnicodeDecodeError):
         logger.warning("Keycloak: registro de fluxo ilegível ao consumir state")
         return None
-    # Re-sanitização no consumo (defesa em profundidade — contrato §2).
-    flow["redirect_to"] = sanitize_redirect(flow.get("redirect_to"))
     return flow
 
 

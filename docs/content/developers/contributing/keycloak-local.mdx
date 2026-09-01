@@ -70,23 +70,130 @@ ao criar o administrador. Use um domínio `.com`.
 Lembre-se de habilitar o método **SSO** nos métodos de entrada da organização
 (Segurança da organização) para o botão aparecer na tela de login.
 
-## Conta local para o vínculo por e-mail
+## Primeiro acesso não precisa de conta local
 
-<Callout type="warning">
-Entrar com `teste@example.com` recusa com `conta_nao_encontrada` até existir uma **conta local
-com esse mesmo e-mail**. Isso é comportamento correto, não defeito: sem configuração OIDC por
-organização, só o **vínculo por e-mail** está ativo, e ele precisa de uma conta preexistente para
-vincular. O auto-provisionamento depende de configuração por organização, que a proteção
-anti-SSRF recusa para issuer em `localhost`.
+<Callout type="info">
+Não é preciso criar conta nenhuma antes de entrar. No primeiro acesso pela identidade
+corporativa, a conta do LearnHouse é **criada automaticamente** e fica vinculada àquela
+identidade; nos acessos seguintes a mesma identidade cai sempre na mesma conta.
+
+Isso vale porque o ambiente local aponta o Keycloak por variáveis de ambiente
+(`LEARNHOUSE_KEYCLOAK_*`), ou seja, o **provedor da própria plataforma** — e ali a criação
+automática é ligada por padrão. Um provedor de identidade **de terceiro**, configurado por
+organização, continua exigindo que a administração habilite a criação automática: uma
+organização não passa a admitir gente nova sem ter pedido.
 </Callout>
 
+O que continua sendo exigido para a conta ser criada:
+
+- **E-mail verificado no provedor.** `nao-verificado@example.com` é recusado de propósito.
+- **Domínio de e-mail permitido**, quando a organização configurou uma lista.
+- **Método SSO habilitado** nos métodos de entrada da organização.
+
+A conta criada recebe o papel de **menor privilégio** na organização do fluxo — a criação
+automática nunca concede administração.
+
+<Callout type="warning">
+Se o acesso for recusado com `conta_nao_encontrada` mesmo com e-mail verificado, o método SSO
+provavelmente está desligado nos métodos de entrada da organização, ou existe uma configuração
+OIDC por organização (que passa a reger a política em vez do padrão da plataforma).
+</Callout>
+
+### Criar uma identidade para testar o primeiro acesso
+
+As credenciais fixas do realm não servem para testar criação: `teste@example.com` já tem conta
+local (o fluxo dele é *vínculo*, não criação). Crie uma identidade nova, com e-mail verificado:
+
 ```bash
-curl -s -X POST http://localhost/api/v1/users/1 -H "Content-Type: application/json" \
-  -d '{"username":"teste","email":"teste@example.com","password":"Senha!123",
-       "first_name":"Teste","last_name":"Local"}'
+TOKEN=$(curl -s -X POST http://localhost:8080/realms/master/protocol/openid-connect/token \
+  -d "client_id=admin-cli&username=admin&password=admin&grant_type=password" | jq -r .access_token)
+
+curl -s -X POST http://localhost:8080/admin/realms/dev/users \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"username":"maria.teste@example.com","email":"maria.teste@example.com",
+       "emailVerified":true,"enabled":true,"firstName":"Maria","lastName":"Teste",
+       "credentials":[{"type":"password","value":"teste123","temporary":false}]}'
 ```
 
-A conta nasce com `email_verified: true`, que é o que o vínculo por e-mail exige.
+Depois entre em `http://localhost/login?org=default` pelo botão corporativo. O destino esperado
+é `http://localhost/` — a área da organização com o menu —, **não** `/home`, que é o seletor de
+organizações.
+
+## Como a conta fica no banco
+
+Consultas para conferir o que o fluxo gravou. Úteis para distinguir uma conta que **nasceu** do
+SSO de uma que **já existia** e foi vinculada — a pergunta que mais aparece em suporte.
+
+### A conta
+
+```bash
+docker exec learnhouse-db-local psql -U learnhouse -d learnhouse -x -c \
+  "select id, username, email, signup_method, password, email_verified, is_superadmin
+     from \"user\" where lower(email)='maria.teste@example.com';"
+```
+
+| Campo | Conta criada pelo SSO | Conta pré-existente vinculada |
+|---|---|---|
+| `signup_method` | `sso` | preservado (`email`, `google`, …) |
+| `password` | vazio | hash preservado |
+
+O `username` sai da parte antes do `@`; em colisão com outra conta, recebe sufixo.
+
+### O vínculo
+
+```bash
+docker exec learnhouse-db-local psql -U learnhouse -d learnhouse -x -c \
+  "select user_id, organization_id, issuer, subject, provider, email_at_link_time, last_login_at
+     from externalidentity order by id desc limit 3;"
+```
+
+A chave é `(issuer, subject)`, com UNIQUE no banco — é ela que garante uma conta por identidade
+e resolve a corrida de acessos concorrentes. `email_at_link_time` é **só auditoria**: trocar o
+e-mail no Keycloak não cria conta nova nem move dados.
+
+### Membresia e papel
+
+```bash
+docker exec learnhouse-db-local psql -U learnhouse -d learnhouse -c \
+  "select uo.user_id, uo.org_id, uo.role_id, r.name from userorganization uo
+     left join role r on r.id=uo.role_id order by uo.user_id desc limit 3;"
+```
+
+Esperado `role_id = 4` (`User`) — o papel de menor privilégio.
+
+### Desfecho na auditoria
+
+```bash
+docker exec learnhouse-db-local psql -U learnhouse -d learnhouse -c \
+  "select id, event_type, user_id, org_id, audit_metadata
+     from user_audit_event order by id desc limit 5;"
+```
+
+`sso_provisioned` = conta criada agora; `sso_linked` = vinculada a conta existente; `login` com
+`method=sso` = identidade já conhecida; `sso_login_denied` / `sso_conflict` para recusa e
+conflito. Nenhum token aparece no metadata.
+
+### Sessão no provedor
+
+```bash
+docker exec learnhouse-db-local psql -U learnhouse -d learnhouse -c \
+  "select user_id, status, sid, revocation_reason,
+          (upstream_refresh_encrypted is not null) as refresh_cifrado
+     from upstream_session order by id desc limit 3;"
+```
+
+Uma linha por acesso, com o *refresh* e o *ID token* do provedor cifrados — é a base do logout
+coordenado. Sessões encerradas guardam o motivo (`user_logout`, `backchannel`).
+
+<Callout type="info">
+Para repetir o teste de primeiro acesso com o mesmo endereço, apague a conta local — o vínculo
+cai junto por `ON DELETE CASCADE`:
+
+```bash
+docker exec learnhouse-db-local psql -U learnhouse -d learnhouse -c \
+  "delete from \"user\" where lower(email)='maria.teste@example.com';"
+```
+</Callout>
 
 ## Realm `dev` (importado de `docker/keycloak/realm-dev.json`)
 

@@ -29,6 +29,96 @@ Para provisionar o realm e os clients do zero, veja
 [Keycloak (Self-Hosting)](/self-hosting/configuration/keycloak); para desenvolvimento local
 com Keycloak pronto no compose, [Keycloak no Ambiente Local](/developers/contributing/keycloak-local).
 
+## Primeiro acesso e destino
+
+Com o **provedor da plataforma**, o primeiro acesso de alguém que ainda não tem conta cria a
+conta automaticamente: ela nasce vinculada à identidade corporativa e, nos acessos seguintes,
+a mesma identidade cai sempre na mesma conta. Não é preciso cadastrar a pessoa antes.
+
+O vínculo é feito pela identidade estável do provedor, **nunca pelo e-mail** — trocar o e-mail
+no provedor não cria conta nova nem transfere dados.
+
+As guardas de admissão continuam valendo em todos os casos:
+
+| Guarda | Efeito quando não atendida |
+|---|---|
+| E-mail verificado no provedor | Acesso recusado, nenhuma conta criada |
+| Domínio de e-mail permitido pela organização | Acesso recusado, nenhuma conta criada |
+| Método SSO habilitado na organização | Login corporativo indisponível |
+| Conta bloqueada | Acesso recusado |
+
+A conta criada recebe o papel de **menor privilégio** da organização do fluxo; a criação
+automática nunca concede administração. E-mail que coincide com uma conta já existente na
+mesma organização resulta em **vínculo**, não em conta duplicada; se a conta pertencer a outra
+organização, o caso é registrado como conflito para revisão administrativa.
+
+Concluído o acesso — conta recém-criada, recém-vinculada ou já conhecida — a pessoa é levada à
+**área principal da organização**, a tela com o menu de navegação.
+
+## Como a conta federada fica registrada
+
+Cinco registros descrevem uma conta que entra por identidade corporativa. Saber onde cada
+informação vive é o que permite responder, em suporte, se uma conta *nasceu* pelo SSO ou se
+*já existia* e foi vinculada depois.
+
+| Registro | O que guarda |
+|---|---|
+| Conta do usuário | Perfil, credencial e **método de origem** da conta |
+| Identidade externa | O vínculo durável com a identidade do provedor |
+| Membresia | Organização e papel dentro dela |
+| Eventos de auditoria | O desfecho de cada acesso, distinguível por tipo |
+| Sessão no provedor | O que permite encerrar a sessão no provedor junto com a local |
+
+### Criada pelo SSO ou vinculada depois?
+
+A distinção está em dois campos da conta:
+
+| | Conta criada pelo SSO | Conta que já existia e foi vinculada |
+|---|---|---|
+| Método de origem | `sso` | preservado (`email`, `google`, …) |
+| Senha | **vazia** — sem credencial local utilizável | hash preservado |
+
+Uma conta criada pelo SSO não nasce com senha e não passa a aceitar entrada por senha. A conta
+pré-existente mantém a credencial que já tinha; ganhar um vínculo corporativo não a remove.
+
+O nome de usuário é derivado da parte antes do `@` do endereço (ou do identificador que o
+provedor envia). Se esse nome já estiver em uso por **outra** conta, um sufixo é acrescentado —
+o acesso conclui normalmente em vez de falhar.
+
+### O vínculo é por identidade, não por e-mail
+
+A identidade externa é registrada pela combinação **emissor + identificador estável** do
+provedor (`iss` + `sub` do token), com unicidade garantida no banco. É essa constraint que
+assegura uma única conta por identidade, inclusive quando dois acessos simultâneos disputam a
+criação.
+
+O e-mail observado no momento do vínculo é guardado **apenas para auditoria** — nunca é usado
+para localizar a identidade. Consequência prática: trocar o e-mail no provedor não cria conta
+nova, não transfere dados e não faz a pessoa perder o histórico.
+
+### Desfechos na auditoria
+
+Cada acesso registra um evento distinguível, sem nenhum token no conteúdo:
+
+| Evento | Significado |
+|---|---|
+| `sso_provisioned` | A conta foi criada agora, no primeiro acesso |
+| `sso_linked` | A identidade foi vinculada a uma conta que já existia |
+| `login` (com método `sso`) | Identidade já conhecida entrou |
+| `sso_login_denied` | Admissão recusada, com o motivo |
+| `sso_conflict` | Conflito de identidade, para revisão administrativa |
+
+O evento de conflito é registrado **sem usuário associado**: um conflito nunca é atribuído à
+conta alheia envolvida.
+
+### Sessão no provedor
+
+Cada acesso cria também um registro de sessão no provedor, guardando de forma **cifrada** o
+*refresh token* e o *ID token* recebidos. É o que permite o
+[logout coordenado](#encerramento-de-sessão): ao sair da plataforma, a sessão no provedor é
+encerrada também, e uma revogação vinda do provedor derruba a sessão local. Sessões encerradas
+mantêm o motivo da revogação.
+
 ## Configuração por organização
 
 Administradores podem configurar um provedor OIDC próprio para a organização pelo painel
@@ -36,7 +126,9 @@ Administradores podem configurar um provedor OIDC próprio para a organização 
 políticas de admissão:
 
 - **Auto-provisionamento** — cria a conta no primeiro login corporativo (com papel padrão de
-  menor privilégio obrigatório).
+  menor privilégio obrigatório). Para IdP de terceiro esta opção nasce **desligada**: a
+  organização precisa habilitá-la explicitamente. O padrão de criação automática descrito em
+  [Primeiro acesso e destino](#primeiro-acesso-e-destino) vale só para o provedor da plataforma.
 - **Domínios de e-mail permitidos** — restringe quem pode entrar/ser provisionado.
 - **Vínculo por e-mail** — liga a identidade corporativa a uma conta local pré-existente com
   o mesmo e-mail verificado, quando permitido pela política.

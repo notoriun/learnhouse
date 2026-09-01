@@ -84,6 +84,29 @@ def audit_mock(monkeypatch):
 
 
 @pytest.fixture
+def create_user_sem_efeitos(monkeypatch):
+    """Neutraliza o que `create_user` faz fora do banco.
+
+    Mesmo padrão de `tests/services/test_provisioning.py`: o provisionamento é
+    sistêmico (sem usuário atuante), então o rbac_check não se aplica, e limites
+    de plano/telemetria/webhooks não têm o que fazer numa base de teste. Sem
+    isto, o caminho de criação da feature 009 falha por ausência de plano, não
+    pelo comportamento sob teste.
+    """
+    async def _ok(*a, **k):
+        return True
+
+    monkeypatch.setattr("src.services.users.users.rbac_check", _ok)
+    for alvo in (
+        "src.services.users.users.check_limits_with_usage",
+        "src.services.users.users.increase_feature_usage",
+        "src.services.users.users.track",
+        "src.services.users.users.dispatch_webhooks",
+    ):
+        monkeypatch.setattr(alvo, _ok, raising=False)
+
+
+@pytest.fixture
 def app(db):
     app = FastAPI()
     app.include_router(keycloak_router, prefix="/api/v1/auth/keycloak")
@@ -138,12 +161,17 @@ PROVIDER_CLAIMS = {
 }
 
 
-async def _start_flow(client, fake_redis, org_slug="test-org", redirect_to="/dash/cursos"):
-    """Executa o authorize e devolve (state, resposta)."""
-    response = await client.post(
-        "/api/v1/auth/keycloak/authorize",
-        json={"org_slug": org_slug, "redirect_to": redirect_to},
-    )
+async def _start_flow(client, fake_redis, org_slug="test-org", extra=None):
+    """Executa o authorize e devolve (state, resposta).
+
+    ``extra`` injeta campos adicionais no corpo — usado para provar que campos
+    desconhecidos (ex.: o ``redirect_to`` removido na feature 009) são ignorados
+    sem erro.
+    """
+    body = {"org_slug": org_slug}
+    if extra:
+        body.update(extra)
+    response = await client.post("/api/v1/auth/keycloak/authorize", json=body)
     assert response.status_code == 200, response.text
     return response.json()["state"], response.json()
 
@@ -199,7 +227,7 @@ class TestRegistroFederado:
     ):
         response = await client.post(
             "/api/v1/auth/keycloak/authorize",
-            json={"org_slug": "test-org", "redirect_to": "/home", "action": "register"},
+            json={"org_slug": "test-org", "action": "register"},
         )
 
         assert response.status_code == 200, response.text
@@ -366,7 +394,7 @@ class TestVazamentos:
 
         r_auth = await client.post(
             "/api/v1/auth/keycloak/authorize",
-            json={"org_slug": "test-org", "redirect_to": "/"},
+            json={"org_slug": "test-org"},
         )
         r_cb = await client.post(
             "/api/v1/auth/keycloak/callback",
@@ -454,7 +482,7 @@ class TestFluxosNegativos:
 
         response = await client.post(
             "/api/v1/auth/keycloak/authorize",
-            json={"org_slug": "test-org", "redirect_to": "/"},
+            json={"org_slug": "test-org"},
         )
 
         assert response.status_code == 404
@@ -500,10 +528,52 @@ class TestFluxosNegativos:
         assert response.status_code == 403
         assert response.json()["detail"]["code"] == "CONTA_NAO_ENCONTRADA"
 
-    async def test_usuario_inexistente_e_403_sem_sessao(
-        self, client, org, keycloak_enabled, fake_redis, sem_sessao, monkeypatch
+    async def test_identidade_nova_no_provedor_da_plataforma_cria_conta_e_entra(
+        self, client, org, user_role, keycloak_enabled, fake_redis, audit_mock,
+        create_user_sem_efeitos, monkeypatch,
     ):
-        claims = dict(PROVIDER_CLAIMS, email="ninguem@acme.dev")
+        """Feature 009: era 403 CONTA_NAO_ENCONTRADA; agora a conta é criada.
+
+        Este teste substitui ``test_usuario_inexistente_e_403_sem_sessao``, que
+        fixava o comportamento anterior. O caminho exercitado é o do fallback
+        global — provedor da própria plataforma —, onde a criação automática
+        passou a ser ligada por padrão. Sem config de organização (feature 004),
+        `config_row is None`, que é exatamente o caso do ambiente self-hosted e
+        do ambiente local.
+        """
+        claims = dict(PROVIDER_CLAIMS, sub="sub-novo-909", email="ninguem@acme.dev")
+        monkeypatch.setattr(
+            keycloak_oidc, "exchange_code", lambda code, verifier, config=None: {"id_token": "x"}
+        )
+        monkeypatch.setattr(
+            keycloak_oidc, "validate_id_token", lambda id_token, nonce, config=None: claims
+        )
+        state, _ = await _start_flow(client, fake_redis)
+
+        response = await client.post(
+            "/api/v1/auth/keycloak/callback", json={"code": "c", "state": state}
+        )
+
+        assert response.status_code == 200, response.text
+        body = response.json()
+        assert body["user"]["email"] == "ninguem@acme.dev"
+        assert body["tokens"]["access_token"]
+        assert body["org_slug"] == "test-org"
+        # Desfecho de criação, distinguível na auditoria (FR-013).
+        assert audit_mock.await_args.kwargs["event_type"] == UserAuditEventType.SSO_PROVISIONED
+
+    async def test_email_nao_verificado_de_identidade_nova_segue_403(
+        self, client, org, user_role, keycloak_enabled, fake_redis, sem_sessao, monkeypatch
+    ):
+        """A criação automática NÃO relaxou a guarda de e-mail verificado.
+
+        Contraste necessário do teste acima: se a admissão tivesse ficado aberta
+        demais, este caso passaria a entrar também.
+        """
+        claims = dict(
+            PROVIDER_CLAIMS, sub="sub-novo-910", email="ninguem2@acme.dev",
+            email_verified=False,
+        )
         monkeypatch.setattr(
             keycloak_oidc, "exchange_code", lambda code, verifier, config=None: {"id_token": "x"}
         )
@@ -519,9 +589,17 @@ class TestFluxosNegativos:
         assert response.status_code == 403
         assert response.json()["detail"]["code"] == "CONTA_NAO_ENCONTRADA"
 
-    async def test_redirect_malicioso_no_authorize_vira_raiz_no_callback(
+    async def test_destino_nao_vem_de_entrada_do_usuario(
         self, client, org, sso_user, keycloak_enabled, fake_redis, audit_mock, monkeypatch
     ):
+        """Feature 009: o destino é derivado da organização, não sanitizado.
+
+        Antes, um ``redirect_to`` malicioso era neutralizado e virava ``/``.
+        Agora o campo não existe no contrato: o authorize o ignora e o callback
+        não devolve destino nenhum — devolve ``org_slug``, e quem compõe a URL é
+        o BFF. Afirmação mais forte do que a sanitização anterior, porque não há
+        entrada do usuário no cálculo do destino.
+        """
         monkeypatch.setattr(
             keycloak_oidc, "exchange_code", lambda code, verifier, config=None: {"id_token": "x"}
         )
@@ -529,7 +607,7 @@ class TestFluxosNegativos:
             keycloak_oidc, "validate_id_token", lambda id_token, nonce, config=None: dict(PROVIDER_CLAIMS)
         )
         state, _ = await _start_flow(
-            client, fake_redis, redirect_to="//evil.com/phish"
+            client, fake_redis, extra={"redirect_to": "//evil.com/phish"}
         )
 
         response = await client.post(
@@ -537,7 +615,53 @@ class TestFluxosNegativos:
         )
 
         assert response.status_code == 200
-        assert response.json()["redirect_to"] == "/"
+        body = response.json()
+        assert "redirect_to" not in body
+        assert body["org_slug"] == "test-org"
+        # Nem o valor malicioso, nem qualquer eco dele, sobrevive em lugar algum.
+        assert "evil.com" not in response.text
+
+    async def test_org_slug_vem_do_fluxo_e_nao_do_cliente(
+        self, client, org, other_org, sso_user, keycloak_enabled, fake_redis,
+        audit_mock, monkeypatch,
+    ):
+        """Princípio IV: a organização do desfecho é a do fluxo, resolvida no
+        servidor a partir do state — não algo que o cliente possa pedir.
+
+        Duas afirmações: (a) um ``org_slug`` injetado no corpo do callback é
+        ignorado; (b) o slug devolvido acompanha o fluxo, então um fluxo de outra
+        organização devolve a outra organização — não um valor fixo nem o default.
+        """
+        monkeypatch.setattr(
+            keycloak_oidc, "exchange_code", lambda code, verifier, config=None: {"id_token": "x"}
+        )
+        monkeypatch.setattr(
+            keycloak_oidc, "validate_id_token", lambda id_token, nonce, config=None: dict(PROVIDER_CLAIMS)
+        )
+
+        # (a) fluxo de test-org; o cliente tenta pedir other-org no callback.
+        state, _ = await _start_flow(client, fake_redis, org_slug="test-org")
+        response = await client.post(
+            "/api/v1/auth/keycloak/callback",
+            json={"code": "c", "state": state, "org_slug": "other-org"},
+        )
+        assert response.status_code == 200, response.text
+        assert response.json()["org_slug"] == "test-org"
+
+        # (b) fluxo de other-org devolve other-org. Sem conta vinculada nem
+        # membresia ali, o desfecho é recusa — mas o ponto verificado é que a
+        # organização do fluxo é a que rege a decisão, e não a do fluxo anterior.
+        state_outra, _ = await _start_flow(client, fake_redis, org_slug="other-org")
+        r_outra = await client.post(
+            "/api/v1/auth/keycloak/callback", json={"code": "c", "state": state_outra}
+        )
+        if r_outra.status_code == 200:
+            assert r_outra.json()["org_slug"] == "other-org"
+        else:
+            # Recusa é o desfecho esperado: a conta de aluno@acme.dev é membro de
+            # test-org, não de other-org — cruzar organizações é proibido.
+            assert r_outra.status_code == 403
+            assert r_outra.json()["detail"]["code"] == "CONTA_NAO_ENCONTRADA"
 
 
 class TestCallbackFluxoFeliz:
@@ -563,7 +687,9 @@ class TestCallbackFluxoFeliz:
         assert body["user"]["email"] == "aluno@acme.dev"
         assert body["tokens"]["access_token"]
         assert body["tokens"]["refresh_token"]
-        assert body["redirect_to"] == "/dash/cursos"
+        # Feature 009: a resposta traz a organização do fluxo, não um destino.
+        assert body["org_slug"] == "test-org"
+        assert "redirect_to" not in body
         # State consumido — uso único
         assert f"oidc_flow:{state}" not in fake_redis.store
         # Auditoria durável do desfecho federado (provisionamento), sem tokens

@@ -38,14 +38,20 @@ export interface AuthorizeResponse {
   state: string
 }
 
-/** Cria o fluxo OIDC e devolve a URL de autorização do provedor. */
+/**
+ * Cria o fluxo OIDC e devolve a URL de autorização do provedor.
+ *
+ * `extra` injeta campos arbitrários no corpo. Existe para as jornadas que
+ * comprovam que campos fora do contrato — como o `redirect_to` removido na
+ * feature 009 — são ignorados sem erro e sem efeito no destino.
+ */
 export function authorize(
-  opts: { org?: string; action?: 'login' | 'register'; redirectTo?: string } = {},
+  opts: { org?: string; action?: 'login' | 'register'; extra?: Record<string, unknown> } = {},
 ): Promise<AuthorizeResponse> {
   return req<AuthorizeResponse>('POST', '/auth/keycloak/authorize', null, {
     org_slug: opts.org ?? ORG_SLUG,
     action: opts.action ?? 'login',
-    ...(opts.redirectTo ? { redirect_to: opts.redirectTo } : {}),
+    ...(opts.extra ?? {}),
   })
 }
 

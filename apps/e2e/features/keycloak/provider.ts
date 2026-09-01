@@ -176,6 +176,30 @@ export async function createEphemeralIdentity(
   return { providerId: user.id, email, password }
 }
 
+/**
+ * Troca o e-mail de uma identidade no provedor, preservando o identificador
+ * estável (`sub`).
+ *
+ * Existe para montar o cenário de tentativa de tomada de conta: liberar um
+ * endereço no provedor para que uma identidade DIFERENTE o assuma, enquanto a
+ * conta local continua com aquele e-mail. É o caso em que vincular por
+ * coincidência de e-mail seria o defeito.
+ */
+export async function updateIdentityEmail(
+  providerId: string,
+  novoEmail: string,
+): Promise<void> {
+  const token = await adminToken()
+  const res = await fetch(`${PROVIDER_URL}/admin/realms/${REALM}/users/${providerId}`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: novoEmail, email: novoEmail, emailVerified: true }),
+  })
+  if (!res.ok) {
+    throw new Error(`troca de e-mail no provedor -> ${res.status}: ${await res.text()}`)
+  }
+}
+
 /** Remove a identidade efêmera. Silencioso quando já não existe. */
 export async function deleteIdentity(providerId: string): Promise<void> {
   const token = await adminToken()
