@@ -1,0 +1,84 @@
+# Documentação Notoriun
+
+> Documentação oficial do Notoriun, um sistema de gestão de aprendizado (LMS) self-hosted derivado do projeto open-source LearnHouse.
+
+O Notoriun é uma plataforma open-source para criar e entregar conteúdo educacional moderno. Ele conta com um editor WYSIWYG no estilo Notion, assistentes de IA integrados, suporte multi-organizacional, colaboração em tempo real, e rastreamento de progresso.
+
+## Docs
+
+- [Primeiros Passos](https://notoriun.github.io/learnhouse/getting-started): Configure sua primeira organização e curso
+  - [Início Rápido](https://notoriun.github.io/learnhouse/getting-started/quickstart): Coloque tudo no ar em minutos
+  - [Conceitos-chave](https://notoriun.github.io/learnhouse/getting-started/key-concepts): Organizações, cursos, capítulos, atividades e trilhas
+
+- [Plataforma](https://notoriun.github.io/learnhouse/platform): Guia completo dos recursos do Notoriun
+  - [Cursos](https://notoriun.github.io/learnhouse/platform/courses): Criação e gestão de cursos
+    - [Capítulos e Atividades](https://notoriun.github.io/learnhouse/platform/courses/chapters-and-activities): Estruturando o conteúdo do curso
+    - [Coleções](https://notoriun.github.io/learnhouse/platform/courses/collections): Agrupando cursos
+    - [Trilhas](https://notoriun.github.io/learnhouse/platform/courses/trails): Rastreamento de progressão do aluno
+  - [Editor](https://notoriun.github.io/learnhouse/platform/editor): Editor de conteúdo WYSIWYG baseado em blocos
+    - [Blocos](https://notoriun.github.io/learnhouse/platform/editor/blocks): Tipos de bloco disponíveis no editor
+  - [Recursos de IA](https://notoriun.github.io/learnhouse/platform/ai): Assistente de IA integrado
+    - [Para Alunos](https://notoriun.github.io/learnhouse/platform/ai/for-students): Chat de IA, explicações, quizzes
+    - [Para Professores](https://notoriun.github.io/learnhouse/platform/ai/for-teachers): Ferramentas de geração de conteúdo por IA
+  - [Usuários](https://notoriun.github.io/learnhouse/platform/users): Gestão de usuários
+    - [Papéis e Permissões](https://notoriun.github.io/learnhouse/platform/users/roles-and-permissions): Papéis de admin, professor, aluno
+    - [Autenticação](https://notoriun.github.io/learnhouse/platform/users/authentication): Métodos de login e OAuth
+  - [Organizações](https://notoriun.github.io/learnhouse/platform/organizations): Gestão multi-organizacional
+    - [Configurações](https://notoriun.github.io/learnhouse/platform/organizations/settings): Configuração da organização
+    - [Multi-Tenancy](https://notoriun.github.io/learnhouse/platform/organizations/multi-tenancy): Executando múltiplas organizações
+  - [Discussões](https://notoriun.github.io/learnhouse/platform/discussions): Fóruns de discussão
+    - [Comentários](https://notoriun.github.io/learnhouse/platform/discussions/comments): Sistema de comentários
+  - [Tarefas](https://notoriun.github.io/learnhouse/platform/assignments): Tarefas de aluno
+    - [Correção](https://notoriun.github.io/learnhouse/platform/assignments/grading): Sistema de correção
+  - [Automações](https://notoriun.github.io/learnhouse/platform/automations): Webhooks, Zapier e catálogo de eventos
+  - [Pagamentos](https://notoriun.github.io/learnhouse/platform/payments): Ofertas, pacotes e checkout via Stripe
+  - [Playgrounds](https://notoriun.github.io/learnhouse/platform/playgrounds): Playgrounds de código interativos
+  - [Quadros](https://notoriun.github.io/learnhouse/platform/boards): Quadros estilo Kanban
+  - [Analytics](https://notoriun.github.io/learnhouse/platform/analytics): Analytics de uso
+  - [Certificações](https://notoriun.github.io/learnhouse/platform/certifications): Certificações de curso
+  - [Busca](https://notoriun.github.io/learnhouse/platform/search): Busca de texto completo
+  - [Podcasts](https://notoriun.github.io/learnhouse/platform/podcasts): Suporte a podcast
+  - [Execução de Código](https://notoriun.github.io/learnhouse/platform/code-execution): Execução de código em sandbox
+
+- [Self Hosting](https://notoriun.github.io/learnhouse/self-hosting): Implante na sua própria infraestrutura
+  - [Instalação](https://notoriun.github.io/learnhouse/self-hosting/installation): Instale via a CLI do Notoriun
+    - [Requisitos](https://notoriun.github.io/learnhouse/self-hosting/installation/requirements): Requisitos de sistema
+    - [Instalação Rápida](https://notoriun.github.io/learnhouse/self-hosting/installation/quick-install): Guia de instalação passo a passo
+    - [Referência da CLI](https://notoriun.github.io/learnhouse/self-hosting/installation/cli-reference): Todos os comandos da CLI
+  - [Configuração](https://notoriun.github.io/learnhouse/self-hosting/configuration): Configure sua instância
+    - [Variáveis de Ambiente](https://notoriun.github.io/learnhouse/self-hosting/configuration/environment-variables): Todas as env vars
+    - [SSL](https://notoriun.github.io/learnhouse/self-hosting/configuration/ssl): Configuração de HTTPS e SSL
+    - [Configuração de IA](https://notoriun.github.io/learnhouse/self-hosting/configuration/ai-setup): Configure provedores de IA
+    - [E-mail](https://notoriun.github.io/learnhouse/self-hosting/configuration/email): Configuração de entrega de e-mail
+    - [Armazenamento](https://notoriun.github.io/learnhouse/self-hosting/configuration/storage): Armazenamento em S3 e filesystem
+  - [Manutenção](https://notoriun.github.io/learnhouse/self-hosting/maintenance): Mantenha sua instância saudável
+    - [Backups](https://notoriun.github.io/learnhouse/self-hosting/maintenance/backups): Backups de banco de dados
+    - [Atualizações](https://notoriun.github.io/learnhouse/self-hosting/maintenance/updates): Atualizando o Notoriun
+    - [Monitoramento](https://notoriun.github.io/learnhouse/self-hosting/maintenance/monitoring): Verificações de saúde e monitoramento
+    - [Solução de Problemas](https://notoriun.github.io/learnhouse/self-hosting/maintenance/troubleshooting): Problemas comuns
+
+- [Desenvolvedores](https://notoriun.github.io/learnhouse/developers): Arquitetura, API e contribuição
+  - [Arquitetura](https://notoriun.github.io/learnhouse/developers/architecture): Arquitetura do sistema
+    - [Backend](https://notoriun.github.io/learnhouse/developers/architecture/backend): Backend FastAPI
+    - [Frontend](https://notoriun.github.io/learnhouse/developers/architecture/frontend): Frontend Next.js
+    - [Serviços](https://notoriun.github.io/learnhouse/developers/architecture/services): Serviços de apoio
+  - [API](https://notoriun.github.io/learnhouse/developers/api): Referência da API REST
+    - [Autenticação](https://notoriun.github.io/learnhouse/developers/api/authentication): JWT e tokens de API
+    - [Endpoints](https://notoriun.github.io/learnhouse/developers/api/endpoints): Referência de endpoints
+    - [Tarefas Headless](https://notoriun.github.io/learnhouse/developers/api/headless-assignments): Tarefas via API sem UI
+  - [Migração](https://notoriun.github.io/learnhouse/developers/migration): Migração programática e assistida por IA de conteúdo
+  - [Contribuindo](https://notoriun.github.io/learnhouse/developers/contributing): Como contribuir
+    - [Ambiente de Dev](https://notoriun.github.io/learnhouse/developers/contributing/dev-environment): Configuração de desenvolvimento
+    - [Diretrizes](https://notoriun.github.io/learnhouse/developers/contributing/guidelines): Diretrizes de contribuição
+
+- [Guias](https://notoriun.github.io/learnhouse/guides): Guias práticos de ponta a ponta
+  - [Construir uma Plataforma de Aprendizado](https://notoriun.github.io/learnhouse/guides/build-learning-platform): Plataforma headless com Next.js
+  - [Recursos Customizados e Webhooks](https://notoriun.github.io/learnhouse/guides/custom-features): Tokens de API e webhooks
+
+- [CLI](https://notoriun.github.io/learnhouse/cli): Referência completa da CLI do Notoriun
+
+- [Edição Enterprise](https://notoriun.github.io/learnhouse/enterprise): SSO, logs de auditoria e SCORM
+
+## Opcional
+
+- [Conteúdo completo da documentação](https://notoriun.github.io/learnhouse/llms-full.txt): Texto completo de todas as páginas de documentação

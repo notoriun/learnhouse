@@ -1,0 +1,8 @@
+:HL["/learnhouse/_next/static/chunks/19hoowcssv0w1.css","style"]
+:HL["/learnhouse/_next/static/chunks/1-k6gp8ew_rp1.css","style"]
+:HL["/learnhouse/_next/static/chunks/3yt8l47uuhxk5.css","style"]
+:HL["https://fonts.googleapis.com/css2?family=Wix+Madefor+Text:ital,wght@0,400..700;1,400..700&display=swap","style"]
+:HL["https://fonts.googleapis.com/css2?family=Wix+Madefor+Display:wght@600;700;800;900&display=swap","style"]
+:HL["https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap","style"]
+:HL["https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;600;700&display=swap","style"]
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"reference","param":null,"prefetchHints":0,"slots":{"children":{"name":"group","param":{"type":"d","key":"media","siblings":null},"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}}}},"staleTime":300,"buildId":"slM95mZTNCar81ak0jIuq"}
