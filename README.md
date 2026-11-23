@@ -46,6 +46,17 @@ administrativa e recursos opcionais.
 > O nome do pacote CLI (`learnhouse`) é um identificador técnico herdado do
 > projeto de origem; sua renomeação é gradual e não afeta a operação.
 
+## Como publicar
+
+A imagem da comunidade (`build-community.yaml`) só é publicada em push na `main` **quando a versão subiu**.
+
+1. Suba `version` em `apps/web/package.json` (mantenha `apps/collab` e `apps/api/pyproject.toml` alinhados). A comparação é semver contra a maior tag de versão existente (`1.3.4`/`v1.3.4`; tags `cli-*` são ignoradas).
+2. Mescle na `main`. Se subiu, publica `main`/`main-<sha>` e cria a tag `vX.Y.Z`; senão termina com sucesso sem publicar. Push em `dev` não publica mais.
+3. Forçar ou publicar a partir da `dev`: Actions → *Build Community Images* → *Run workflow* com `ambiente` (producao/desenvolvimento), `ref` (ex. `dev`) e `forcar=true` para ignorar a comparação. Pré-lançamento (`-rc.1`) só com `forcar`.
+4. Release oficial por tag numérica (`release.yaml`, padrão `[0-9]*`) continua como antes; a tag `vX.Y.Z` do fluxo acima não a dispara.
+
+Teste: `node --test .github/scripts/versao.test.mjs`.
+
 ## 📁 Estrutura do projeto
 
 | App | Caminho | Descrição |
