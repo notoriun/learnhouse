@@ -3,7 +3,7 @@ import { Send, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import type { MagicBlockMessage } from './types'
-import lrnaiIcon from 'public/lrnai_icon.png'
+import aiIcon from '@components/Objects/aiIcon'
 import { useTranslation } from 'react-i18next'
 
 interface MagicBlockChatProps {
@@ -77,7 +77,7 @@ function MagicBlockChat({
           <Image
             className="outline outline-1 outline-neutral-200/20 rounded-lg"
             width={20}
-            src={lrnaiIcon}
+            src={aiIcon}
             alt="Magic Chat"
           />
           <span className="font-semibold text-sm text-white/70">{t('editor.blocks.magic_block_content.magic_chat')}</span>

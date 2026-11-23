@@ -1,10 +1,10 @@
 {
-  "index": "Overview",
+  "index": "Visão Geral",
   "reference": {
-    "title": "Full API Reference ↗",
+    "title": "Referência Completa da API ↗",
     "href": "/reference"
   },
-  "authentication": "Authentication",
+  "authentication": "Autenticação",
   "endpoints": "Endpoints",
-  "headless-assignments": "Headless Assignments"
+  "headless-assignments": "Tarefas Headless"
 }

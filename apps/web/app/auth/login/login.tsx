@@ -30,6 +30,13 @@ const LoginClient = (props: LoginClientProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [ssoEnabled, setSsoEnabled] = useState(false)
   const [ssoLoading, setSsoLoading] = useState(false)
+  // Login corporativo via Keycloak (OSS). Quando habilitado tem precedência
+  // sobre o SSO Enterprise: apenas um botão de identidade corporativa aparece
+  // (Assumptions da spec 001; fronteira OSS/Enterprise no plan.md).
+  const [keycloakEnabled, setKeycloakEnabled] = useState(false)
+  // Registro federado (feature 007): true somente quando o provedor efetivo é
+  // o da plataforma — IdP de terceiro nunca recebe o caminho de registro.
+  const [keycloakPlatform, setKeycloakPlatform] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const turnstileRef = React.useRef<TurnstileWidgetHandle>(null)
   const turnstileRequired = useTurnstileRequired()
@@ -47,8 +54,9 @@ const LoginClient = (props: LoginClientProps) => {
   const magicLoginAllowed = allowedMethods.has('magic_login')
   const googleAllowed = allowedMethods.has('google')
   const ssoAllowed = allowedMethods.has('sso')
-  // SSO counts only once it is actually configured for the org (ssoEnabled).
-  const hasAlternativeMethods = googleAllowed || magicLoginAllowed || (ssoAllowed && ssoEnabled)
+  // SSO counts only once it is actually configured for the org (ssoEnabled
+  // for the Enterprise flow, keycloakEnabled for the OSS Keycloak flow).
+  const hasAlternativeMethods = googleAllowed || magicLoginAllowed || (ssoAllowed && (ssoEnabled || keycloakEnabled))
 
   // A signed-in user has nothing to do on /login → bounce to the hub. The proxy
   // does this best-effort, but pages must self-handle it too (mirrors signup.tsx).
@@ -124,6 +132,45 @@ const LoginClient = (props: LoginClientProps) => {
     const token = params.get('mfa_token')
     if (token) setMfaToken(token)
   }, [])
+
+  // Erros do login corporativo (Keycloak) chegam por ?error= com código
+  // genérico por categoria (FR-009) — o detalhe fica na auditoria do backend.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const ssoError = params.get('error')
+    if (!ssoError) return
+    const mensagens: Record<string, string> = {
+      acesso_nao_concluido: t('auth.sso_erro_acesso_nao_concluido', {
+        defaultValue: 'O acesso não foi concluído no provedor corporativo. Tente novamente.',
+      }),
+      sessao_expirada: t('auth.sso_erro_sessao_expirada', {
+        defaultValue: 'A sessão de login expirou ou já foi utilizada. Inicie o login novamente.',
+      }),
+      login_invalido: t('auth.sso_erro_login_invalido', {
+        defaultValue: 'Não foi possível validar seu login corporativo. Tente novamente.',
+      }),
+      conta_nao_encontrada: t('auth.sso_erro_conta_nao_encontrada', {
+        defaultValue:
+          'Sua identidade corporativa foi validada, mas não há uma conta correspondente nesta plataforma. Contate a administração da sua organização.',
+      }),
+      sso_nao_disponivel: t('auth.sso_erro_nao_disponivel', {
+        defaultValue: 'O login corporativo não está disponível para esta organização.',
+      }),
+      sso_indisponivel: t('auth.sso_erro_indisponivel', {
+        defaultValue:
+          'O login corporativo está temporariamente indisponível. Tente novamente em instantes.',
+      }),
+    }
+    if (mensagens[ssoError]) {
+      setError(mensagens[ssoError])
+      // `showErrorModal` é o que de fato renderiza a barra de erro (o bloco
+      // inteiro é `{showErrorModal && (...)}`). Sem esta linha, a mensagem ficava
+      // apenas no estado e nunca aparecia na tela: a pessoa era recusada no
+      // login corporativo e não recebia explicação alguma. Os caminhos de login
+      // nativo já ligavam este sinal; o de SSO tinha sido esquecido.
+      setShowErrorModal(true)
+    }
+  }, []) // eslint-disable-line
 
   // Honor a post-login redirect via ?next / ?redirect, sanitized to an
   // internal same-origin path (no open-redirect), defaulting to /home.
@@ -250,6 +297,52 @@ const LoginClient = (props: LoginClientProps) => {
     }
     checkSSO()
   }, [props.org?.slug, props.org?.config?.config?.plan, props.org?.config?.config?.cloud?.plan, ssoAllowed]) // eslint-disable-line
+
+  // Disponibilidade do login corporativo Keycloak para a org (GET /status via
+  // proxy BFF). Org desconhecida ou config desligada respondem enabled=false.
+  useEffect(() => {
+    const checkKeycloak = async () => {
+      if (!ssoAllowed || !props.org?.slug) {
+        setKeycloakEnabled(false)
+        setKeycloakPlatform(false)
+        return
+      }
+      try {
+        const res = await fetch(
+          `/api/auth/keycloak/status?org=${encodeURIComponent(props.org.slug)}`
+        )
+        const data = await res.json()
+        setKeycloakEnabled(Boolean(data?.enabled))
+        setKeycloakPlatform(Boolean(data?.platform))
+      } catch {
+        setKeycloakEnabled(false)
+        setKeycloakPlatform(false)
+      }
+    }
+    checkKeycloak()
+  }, [props.org?.slug, ssoAllowed])
+
+  const handleKeycloakLogin = () => {
+    track(AnalyticsEvent.LoginSsoClicked)
+    setSsoLoading(true)
+    // Navegação de topo: o BFF redireciona ao Keycloak e o callback grava os
+    // cookies httpOnly — nenhum token transita pelo JavaScript (US2).
+    // Sem `redirect`: o destino é derivado da organização pelo callback (a área
+    // com menu). Antes mandávamos `/home`, que é o seletor de organizações —
+    // quem entrava por SSO nunca chegava ao menu da org (feature 009).
+    window.location.assign(
+      `/api/auth/keycloak/authorize?org=${encodeURIComponent(props.org.slug)}`
+    )
+  }
+
+  const handleKeycloakRegister = () => {
+    setSsoLoading(true)
+    // Mesmo BFF do login; action=register leva à tela de registro do provedor
+    // da plataforma e o retorno cai no callback/JIT existentes (feature 007).
+    window.location.assign(
+      `/api/auth/keycloak/authorize?org=${encodeURIComponent(props.org.slug)}&action=register`
+    )
+  }
 
   const handleSSOLogin = async () => {
     track(AnalyticsEvent.LoginSsoClicked)
@@ -439,7 +532,7 @@ const LoginClient = (props: LoginClientProps) => {
     <AuthLayout
       org={props.org}
       welcomeText={t('auth.login_to')}
-      title={t('auth.image_title_login', { defaultValue: 'Welcome back to LearnHouse.' })}
+      title={t('auth.image_title_login', { defaultValue: 'Welcome back to {{brand}}.' })}
       subtitle={t('auth.image_subtitle_login', {
         defaultValue: 'Pick up where you left off — your courses, students, and tools are waiting.',
       })}
@@ -831,7 +924,27 @@ const LoginClient = (props: LoginClientProps) => {
                 </button>
                 )}
 
-                {ssoEnabled && (
+                {keycloakEnabled && (
+                  <button
+                    onClick={handleKeycloakLogin}
+                    disabled={ssoLoading}
+                    className="flex justify-center items-center w-full bg-white hover:bg-neutral-50 text-black space-x-3 font-medium p-3 rounded-lg border border-neutral-200 transition-all text-sm disabled:opacity-50"
+                  >
+                    <Shield size={16} />
+                    <span>{ssoLoading ? t('common.loading') : t('auth.keycloak_sso_button', { defaultValue: 'Entrar com identidade corporativa' })}</span>
+                  </button>
+                )}
+                {keycloakEnabled && keycloakPlatform && (
+                  <button
+                    onClick={handleKeycloakRegister}
+                    disabled={ssoLoading}
+                    className="flex justify-center items-center w-full bg-white hover:bg-neutral-50 text-black space-x-3 font-medium p-3 rounded-lg border border-neutral-200 transition-all text-sm disabled:opacity-50"
+                  >
+                    <Shield size={16} />
+                    <span>{ssoLoading ? t('common.loading') : t('auth.keycloak_register_button', { defaultValue: 'Criar conta pela identidade corporativa' })}</span>
+                  </button>
+                )}
+                {!keycloakEnabled && ssoEnabled && (
                   <button
                     onClick={handleSSOLogin}
                     disabled={ssoLoading}

@@ -72,6 +72,37 @@ class TestInstanceRouter:
         assert body["multi_org_enabled"] is True
         mock_set_cache.assert_called_once()
 
+    async def test_get_instance_info_reports_version(self, client, db, org):
+        """Feature 006/FR-005: a instância declara a versão em execução, igual
+        à de pyproject.toml — correlação release ↔ instância para a oferta de
+        código-fonte AGPL."""
+        import tomllib
+        from pathlib import Path
+
+        pyproject = Path(__file__).resolve().parents[3] / "pyproject.toml"
+        expected = tomllib.loads(pyproject.read_text(encoding="utf-8"))["project"]["version"]
+
+        config = SimpleNamespace(
+            hosting_config=SimpleNamespace(
+                frontend_domain="localhost:3000", tenancy="single"
+            )
+        )
+        with patch(
+            "src.routers.instance.get_cached_instance_info", return_value=None
+        ), patch(
+            "src.routers.instance.get_learnhouse_config", return_value=config
+        ), patch(
+            "src.routers.instance.get_deployment_mode", return_value="oss"
+        ), patch(
+            "src.routers.instance.is_multi_org_allowed", return_value=False
+        ), patch(
+            "src.routers.instance.set_cached_instance_info"
+        ):
+            response = await client.get("/api/v1/instance/info")
+
+        assert response.status_code == 200
+        assert response.json()["version"] == expected
+
     async def test_get_instance_info_single_tenancy(self, client, db, org):
         # In single tenancy, multi_org_enabled (deprecated alias) must be
         # False even if EE/SaaS would otherwise allow it.

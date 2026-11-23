@@ -2,7 +2,7 @@
 import { useLHSession } from '@components/Contexts/LHSessionContext'
 import { useOrg } from '@components/Contexts/OrgContext'
 import useAdminStatus from '@components/Hooks/useAdminStatus'
-import LearnHouseSpinner from '@components/Objects/Loaders/LearnHouseSpinner'
+import BrandSpinner from '@components/Objects/Loaders/BrandSpinner'
 import ConfirmationModal from '@components/Objects/StyledElements/ConfirmationModal/ConfirmationModal'
 import Toast from '@components/Objects/StyledElements/Toast/Toast'
 import UserAvatar from '@components/Objects/UserAvatar'
@@ -504,7 +504,7 @@ function OrgUsers() {
                 <div className="relative">
                 {isPageTransitioning && (
                   <div className="absolute inset-0 bg-white/60 z-10 flex items-center justify-center rounded-lg">
-                    <LearnHouseSpinner size={28} />
+                    <BrandSpinner size={28} />
                   </div>
                 )}
                 <table className="w-full">

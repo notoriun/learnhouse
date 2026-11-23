@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
 import type { CoursePlanningMessage, Attachment } from '@services/ai/courseplanning'
-import lrnaiIcon from 'public/lrnai_icon.png'
+import aiIcon from '@components/Objects/aiIcon'
 
 interface AICourseChatProps {
   messages: CoursePlanningMessage[]
@@ -170,7 +170,7 @@ function AICourseChat({
               <Image
                 className="outline outline-1 outline-neutral-200/20 rounded-lg"
                 width={28}
-                src={lrnaiIcon}
+                src={aiIcon}
                 alt="AI"
               />
             </div>

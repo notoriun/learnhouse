@@ -4,6 +4,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import en from '../locales/en.json';
+import { getBrand } from '@services/config/brand';
 
 const LOCALE_LOADERS: Record<string, () => Promise<{ default: any }>> = {
   fr: () => import('../locales/fr.json'),
@@ -57,6 +58,12 @@ i18n
     defaultNS: 'common',
     interpolation: {
       escapeValue: false, // react already safes from xss
+      // Marca resolvida globalmente (feature 005): toda string de locale com
+      // {{brand}}/{{legalName}} interpola daqui — zero mudança por call site.
+      defaultVariables: {
+        brand: getBrand().name,
+        legalName: getBrand().legalName,
+      },
     },
     detection: {
       order: ['localStorage', 'cookie', 'querystring', 'navigator', 'path', 'subdomain'],

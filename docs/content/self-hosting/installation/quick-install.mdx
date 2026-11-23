@@ -1,79 +1,79 @@
 import { Callout } from 'nextra/components'
 
-# Quick Install
+# Instalação Rápida
 
-Follow these steps to install and start a self-hosted LearnHouse instance using the LearnHouse CLI.
+Siga estes passos para instalar e iniciar uma instância self-hosted do Notoriun usando a CLI do Notoriun.
 
-## Step 1: Run the Setup Wizard
+## Passo 1: Execute o Assistente de Instalação
 
-The quickest way to get started is to run the setup wizard directly using `npx`. No global installation is needed.
+A forma mais rápida de começar é executar o assistente diretamente via `npx`. Nenhuma instalação global é necessária.
 
 ```bash
 npx learnhouse@latest setup
 ```
 
 <Callout type="info">
-You can also use the one-line installer scripts if you prefer:
+Você também pode usar os scripts de instalação em uma linha, se preferir:
 
 **macOS / Linux:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/learnhouse/learnhouse/main/apps/cli/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/notoriun/learnhouse/main/apps/cli/install.sh | bash
 ```
 
 **Windows (PowerShell):**
 ```powershell
-irm https://raw.githubusercontent.com/learnhouse/learnhouse/main/apps/cli/install.ps1 | iex
+irm https://raw.githubusercontent.com/notoriun/learnhouse/main/apps/cli/install.ps1 | iex
 ```
 </Callout>
 
-The wizard will prompt you for:
+O assistente vai perguntar sobre:
 
-- **Domain configuration** -- your domain name or localhost for local development
-- **Database settings** -- PostgreSQL configuration (defaults are provided)
-- **Admin credentials** -- email and password for the initial admin account
-- **Optional features** -- AI features, email delivery, and more
+- **Configuração de domínio** -- seu nome de domínio ou localhost para desenvolvimento local
+- **Definições do banco de dados** -- configuração do PostgreSQL (padrões são fornecidos)
+- **Credenciais de administrador** -- e-mail e senha para a conta de administrador inicial
+- **Recursos opcionais** -- recursos de IA, entrega de e-mail e mais
 
-The wizard generates `docker-compose.yml`, `.env`, `learnhouse.config.json`, and an nginx or Caddy configuration based on your choices. Sensible defaults are provided for most options -- you can press Enter to accept them and adjust settings later.
+O assistente gera `docker-compose.yml`, `.env`, `learnhouse.config.json` e uma configuração de nginx ou Caddy com base nas suas escolhas. Padrões sensatos são fornecidos para a maioria das opções -- você pode pressionar Enter para aceitá-los e ajustar as configurações depois.
 
-## Step 2: Start LearnHouse
+## Passo 2: Inicie o Notoriun
 
-Once setup is complete, start all services:
+Com a instalação concluída, inicie todos os serviços:
 
 ```bash
 npx learnhouse start
 ```
 
-The CLI will pull the required Docker images (on first run), create the containers, and start all services. This typically takes one to two minutes on first launch.
+A CLI vai baixar as imagens Docker necessárias (na primeira execução), criar os contêineres e iniciar todos os serviços. Isso normalmente leva um a dois minutos na primeira inicialização.
 
-## Step 3: Access LearnHouse
+## Passo 3: Acesse o Notoriun
 
-Once all services are running, access LearnHouse at your configured domain or:
+Com todos os serviços rodando, acesse o Notoriun no seu domínio configurado ou em:
 
-- **http://localhost** (if using the default local configuration)
+- **http://localhost** (se estiver usando a configuração local padrão)
 
-Log in with the admin credentials you provided during setup.
+Entre com as credenciais de administrador fornecidas durante a instalação.
 
 <Callout type="warning">
-Change the default admin password after your first login. The initial credentials are intended only for the first setup. Navigate to your account settings to update your password.
+Troque a senha padrão de administrador após o primeiro login. As credenciais iniciais são destinadas apenas à primeira configuração. Vá até as configurações da sua conta para atualizar sua senha.
 </Callout>
 
-## Verifying the Installation
+## Verificando a Instalação
 
-Run the built-in diagnostics to check that everything is working:
+Execute o diagnóstico integrado para verificar se tudo está funcionando:
 
 ```bash
 learnhouse doctor
 ```
 
-This command checks Docker, container health, port availability, DNS resolution, and disk space, then reports any issues it finds.
+Este comando verifica o Docker, a saúde dos contêineres, disponibilidade de porta, resolução de DNS e espaço em disco, depois reporta qualquer problema encontrado.
 
-You can also verify the health endpoint directly:
+Você também pode verificar o endpoint de saúde diretamente:
 
 ```bash
 curl http://localhost/api/v1/health
 ```
 
-## Next Steps
+## Próximos Passos
 
-- [CLI Reference](/self-hosting/installation/cli-reference) -- Learn all available CLI commands.
-- [Configuration](/self-hosting/configuration) -- Customize your instance with environment variables, AI, email, and more.
+- [Referência da CLI](/self-hosting/installation/cli-reference) -- Aprenda todos os comandos disponíveis da CLI.
+- [Configuração](/self-hosting/configuration) -- Personalize sua instância com variáveis de ambiente, IA, e-mail e mais.

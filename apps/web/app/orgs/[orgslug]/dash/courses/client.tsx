@@ -5,7 +5,7 @@ import CourseCreationTypeSelector from '@components/Objects/Modals/Course/Create
 import AICourseCreationModal from '@components/Objects/Modals/Course/Create/AICourse/AICourseCreationModal'
 import { BookCopy, Search, X, Trash2, Users, Info } from 'lucide-react'
 import ScormCourseImport from '../../../../../ee/components/Modals/ScormCourseImport'
-import { ImportTypeSelector, LearnHouseCourseImport } from '@components/Objects/Modals/Course/Import'
+import { ImportTypeSelector, PlatformCourseImport } from '@components/Objects/Modals/Course/Import'
 import CourseThumbnail, { removeCoursePrefix } from '@components/Objects/Thumbnails/CourseThumbnail'
 import AuthenticatedClientElement from '@components/Security/AuthenticatedClientElement'
 import NewCourseButton from '@components/Objects/StyledElements/Buttons/NewCourseButton'
@@ -270,7 +270,7 @@ function CoursesHome(params: CourseProps) {
         )
       case 'learnhouse':
         return (
-          <LearnHouseCourseImport
+          <PlatformCourseImport
             orgId={orgId!}
             orgslug={orgslug}
             closeModal={closeImportCourseModal}

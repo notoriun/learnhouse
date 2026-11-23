@@ -1,24 +1,29 @@
 import 'server-only'
 import { send } from './resend'
+import { getBrand } from '@services/config/brand'
+import { getPlatformUrl } from '@services/config/config'
 
 // Non-billing transactional emails (welcome, contact). Same never-throw contract
 // as the billing mails: fire-and-forget, no-op without RESEND_API_KEY.
 
 export async function sendWelcomeAccountMail(args: { email: string; username?: string }): Promise<void> {
   const { email, username } = args
-  await send(email, 'Welcome to LearnHouse 👋', {
+  const brand = getBrand()
+  // E-mails precisam de URL absoluta — sem platform URL configurada, sem CTA.
+  const homeUrl = getPlatformUrl('/home')
+  await send(email, `Boas-vindas ao ${brand.name} 👋`, {
     accentColor: '#171717',
-    heading: 'Welcome to LearnHouse!',
+    heading: `Boas-vindas ao ${brand.name}!`,
     subtitle: username
-      ? `Hey ${username}, we're thrilled to have you on board.`
-      : "We're thrilled to have you on board.",
-    body: "You're ready to build and share courses. Here's how to get the most out of it:",
+      ? `Olá ${username}, que bom ter você por aqui.`
+      : 'Que bom ter você por aqui.',
+    body: 'Você já pode criar e compartilhar cursos. Para aproveitar ao máximo:',
     bulletPoints: [
-      'Create your first course and add content in minutes.',
-      'Invite learners and track their progress.',
-      'Brand your school and share it with the world.',
+      'Crie seu primeiro curso e adicione conteúdo em minutos.',
+      'Convide alunos e acompanhe o progresso deles.',
+      'Personalize sua escola e compartilhe com o mundo.',
     ],
-    cta: { label: 'Get started', href: 'https://www.learnhouse.io/home' },
+    ...(homeUrl ? { cta: { label: 'Começar agora', href: homeUrl } } : {}),
   })
 }
 
@@ -29,10 +34,10 @@ export async function sendContactMail(args: {
   to?: string
 }): Promise<void> {
   const { fromEmail, name, message, to } = args
-  await send(to || 'hello@learnhouse.app', `New contact form message from ${name || fromEmail}`, {
+  await send(to || getBrand().contactEmail, `Nova mensagem de contato de ${name || fromEmail}`, {
     accentColor: '#171717',
-    heading: 'New contact message',
-    subtitle: `From ${name ? `${name} · ` : ''}${fromEmail}`,
+    heading: 'Nova mensagem de contato',
+    subtitle: `De ${name ? `${name} · ` : ''}${fromEmail}`,
     body: message,
   })
 }

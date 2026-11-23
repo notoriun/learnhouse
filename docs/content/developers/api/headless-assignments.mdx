@@ -1,38 +1,49 @@
 import { Callout } from 'nextra/components'
 
-# Headless Assignments
+# Tarefas Headless
 
-LearnHouse assignments can be driven entirely from your own frontend. With an API token you can author assignments and tasks, store an arbitrary custom data object on each task, read submissions and grades, submit answers on behalf of your learners, and grade them — all over the standard REST API, no LearnHouse UI required.
+As tarefas do Notoriun podem ser inteiramente conduzidas a partir do seu próprio frontend. Com um
+token de API você pode criar tarefas e atividades, armazenar um objeto de dados customizado
+arbitrário em cada atividade, ler envios e notas, enviar respostas em nome dos seus alunos, e
+corrigi-las — tudo pela API REST padrão, sem precisar da interface do Notoriun.
 
 <Callout type="info">
-API tokens are available on the **Pro plan**. Create one under **Organization Settings → API Access** and grant it the **Assignments** permission. Tokens are prefixed with `lh_` and are scoped to a single organization.
+Tokens de API estão disponíveis no **plano Pro**. Crie um em **Configurações da Organização →
+Acesso à API** e conceda a ele a permissão **Assignments**. Tokens têm o prefixo `lh_` e são
+restritos a uma única organização.
 </Callout>
 
-## Permissions
+## Permissões
 
-Assignment access is controlled by a single `assignments` rights bucket on the token. The four actions map to capabilities like this:
+O acesso a tarefas é controlado por um único bucket de permissões `assignments` no token. As
+quatro ações mapeiam para capacidades assim:
 
-| Action | What it allows |
+| Ação | O que permite |
 | --- | --- |
-| `create` | Create assignments and tasks (including the custom `contents` data object), upload reference files, and submit answers on behalf of learners |
-| `read` | Read assignments, tasks, submissions, and computed grades |
-| `update` | Update assignments and tasks, and grade submissions (set the grade, feedback, and status) |
-| `delete` | Delete assignments and tasks |
+| `create` | Criar tarefas e atividades (incluindo o objeto de dados customizado `contents`), enviar arquivos de referência, e enviar respostas em nome dos alunos |
+| `read` | Ler tarefas, atividades, envios e notas calculadas |
+| `update` | Atualizar tarefas e atividades, e corrigir envios (definir nota, feedback e status) |
+| `delete` | Excluir tarefas e atividades |
 
-Grant only what your integration needs — a read-only dashboard wants `read`; a grading bot wants `read` + `update`; a fully custom assignment frontend wants `create` + `read` + `update`.
+Conceda apenas o que sua integração precisa — um painel somente leitura quer `read`; um bot de
+correção quer `read` + `update`; um frontend de tarefas totalmente customizado quer `create` +
+`read` + `update`.
 
-All requests are scoped to the token's organization: trying to touch an assignment in another org returns `403`.
+Todas as requisições são restritas à organização do token: tentar acessar uma tarefa em outra
+organização retorna `403`.
 
 ```bash
 curl http://localhost:1338/api/v1/assignments/{assignment_uuid} \
   -H "Authorization: Bearer lh_your_api_token_here"
 ```
 
-## Authoring
+## Criação
 
-These endpoints create and manage assignments and their tasks. An assignment is attached to a course activity, so you provide `org_id`, `course_id`, `chapter_id`, and `activity_id` when creating one.
+Estes endpoints criam e gerenciam tarefas e suas atividades. Uma tarefa é vinculada a uma
+atividade de curso, então você fornece `org_id`, `course_id`, `chapter_id`, e `activity_id` ao
+criar uma.
 
-| Method | Endpoint | Action |
+| Método | Endpoint | Ação |
 | --- | --- | --- |
 | `POST` | `/api/v1/assignments/` | `create` |
 | `GET` | `/api/v1/assignments/{assignment_uuid}` | `read` |
@@ -63,9 +74,13 @@ curl -X POST http://localhost:1338/api/v1/assignments/ \
       }'
 ```
 
-## Custom tasks — bring your own data object
+## Atividades customizadas — traga seu próprio objeto de dados
 
-Each task has an `assignment_type` and a free-form `contents` JSON object. For a fully custom assignment, use the `CUSTOM` type: LearnHouse stores your `contents` (the task definition) and the learner's `task_submission` (their answer) as an arbitrary, caller-owned JSON object. The server never interprets or auto-grades it — it's yours to render and grade however you like.
+Cada atividade tem um `assignment_type` e um objeto JSON livre `contents`. Para uma tarefa
+totalmente customizada, use o tipo `CUSTOM`: o Notoriun armazena seu `contents` (a definição da
+atividade) e a resposta do aluno `task_submission` como um objeto JSON arbitrário, de propriedade
+de quem chama a API. O servidor nunca o interpreta ou corrige automaticamente — é seu para
+renderizar e corrigir como quiser.
 
 ```bash
 curl -X POST http://localhost:1338/api/v1/assignments/{assignment_uuid}/tasks \
@@ -84,50 +99,58 @@ curl -X POST http://localhost:1338/api/v1/assignments/{assignment_uuid}/tasks \
       }'
 ```
 
-The `contents` you send back out of `GET /assignments/task/{uuid}` is byte-for-byte what you stored.
+O `contents` que você recebe de volta em `GET /assignments/task/{uuid}` é byte a byte o que você
+armazenou.
 
 <Callout type="info">
-The built-in task types — `QUIZ`, `FORM`, `CODE`, `SHORT_ANSWER`, `NUMBER_ANSWER` — are auto-graded by LearnHouse against their `contents` schema. `CUSTOM` (and `FILE_SUBMISSION`) are **not** auto-graded and are graded manually.
+Os tipos de atividade integrados — `QUIZ`, `FORM`, `CODE`, `SHORT_ANSWER`, `NUMBER_ANSWER` — são
+corrigidos automaticamente pelo Notoriun com base no esquema do `contents`. `CUSTOM` (e
+`FILE_SUBMISSION`) **não** são corrigidos automaticamente e são corrigidos manualmente.
 </Callout>
 
-## Submissions and grading
+## Envios e correção
 
-Learners are referenced by their existing LearnHouse `user_id`. These endpoints let you read submissions, write a learner's answer on their behalf, and finalize grades.
+Os alunos são referenciados pelo `user_id` existente no Notoriun. Estes endpoints permitem ler
+envios, escrever a resposta de um aluno em seu nome, e finalizar notas.
 
-| Method | Endpoint | Action |
+| Método | Endpoint | Ação |
 | --- | --- | --- |
 | `GET` | `/api/v1/assignments/{assignment_uuid}/submissions` | `read` |
 | `GET` | `/api/v1/assignments/{assignment_uuid}/submissions/{user_id}` | `read` |
 | `GET` | `/api/v1/assignments/{assignment_uuid}/tasks/{assignment_task_uuid}/submissions` | `read` |
 | `GET` | `/api/v1/assignments/{assignment_uuid}/tasks/{assignment_task_uuid}/submissions/user/{user_id}` | `read` |
-| `PUT` | `/api/v1/assignments/{assignment_uuid}/tasks/{assignment_task_uuid}/submissions` | `create` (submit on behalf) |
-| `POST` | `/api/v1/assignments/{assignment_uuid}/submissions` | `create` (submit on behalf) |
+| `PUT` | `/api/v1/assignments/{assignment_uuid}/tasks/{assignment_task_uuid}/submissions` | `create` (envio em nome de) |
+| `POST` | `/api/v1/assignments/{assignment_uuid}/submissions` | `create` (envio em nome de) |
 | `GET` | `/api/v1/assignments/{assignment_uuid}/submissions/{user_id}/grade` | `read` |
 | `POST` | `/api/v1/assignments/{assignment_uuid}/submissions/{user_id}/grade` | `update` |
 | `PUT` | `/api/v1/assignments/{assignment_uuid}/submissions/{user_id}` | `update` |
 
-### Submitting on behalf of a learner
+### Enviando em nome de um aluno
 
-To write a learner's answer, pass their LearnHouse id as `on_behalf_of_user_id`. The learner must already be a member of the token's organization.
+Para escrever a resposta de um aluno, passe o id dele no Notoriun como `on_behalf_of_user_id`. O
+aluno já deve ser membro da organização do token.
 
 ```bash
-# Save a learner's answer for a task
+# Salva a resposta de um aluno para uma atividade
 curl -X PUT "http://localhost:1338/api/v1/assignments/{assignment_uuid}/tasks/{task_uuid}/submissions?on_behalf_of_user_id=42" \
   -H "Authorization: Bearer lh_your_api_token_here" \
   -H "Content-Type: application/json" \
   -d '{ "task_submission": { "answer": "my custom answer" } }'
 
-# Mark the assignment as submitted for that learner
+# Marca a tarefa como enviada para esse aluno
 curl -X POST "http://localhost:1338/api/v1/assignments/{assignment_uuid}/submissions?on_behalf_of_user_id=42" \
   -H "Authorization: Bearer lh_your_api_token_here"
 ```
 
-### Grading
+### Correção
 
-Two ways to grade, both gated by `update`:
+Duas formas de corrigir, ambas restritas por `update`:
 
-- `POST .../submissions/{user_id}/grade` recomputes the grade from the task submissions (auto-gradable types are re-verified server-side) and accepts an optional `overall_feedback` in the body.
-- `PUT .../submissions/{user_id}` sets the grade, status, and feedback directly — useful for custom tasks you scored yourself.
+- `POST .../submissions/{user_id}/grade` recalcula a nota a partir dos envios de atividade
+  (tipos auto-corrigíveis são re-verificados no servidor) e aceita um `overall_feedback` opcional
+  no corpo.
+- `PUT .../submissions/{user_id}` define a nota, status e feedback diretamente — útil para
+  atividades customizadas que você mesmo corrigiu.
 
 ```bash
 curl -X POST http://localhost:1338/api/v1/assignments/{assignment_uuid}/submissions/42/grade \
@@ -137,17 +160,23 @@ curl -X POST http://localhost:1338/api/v1/assignments/{assignment_uuid}/submissi
 ```
 
 <Callout type="info">
-Some submission endpoints are **session-only** and cannot be called with a token: the learner-facing "my own submission" reads (`.../submissions/me`), the retry endpoint, and the "mark activity done" endpoint. A token always acts on an explicit `user_id` instead of an implicit "me".
+Alguns endpoints de envio são **exclusivos de sessão** e não podem ser chamados com um token: as
+leituras "meu próprio envio" voltadas ao aluno (`.../submissions/me`), o endpoint de retry, e o
+endpoint "marcar atividade como concluída". Um token sempre age sobre um `user_id` explícito, em
+vez de um "eu" implícito.
 </Callout>
 
-## End-to-end example
+## Exemplo de ponta a ponta
 
-A custom frontend can run the whole lifecycle with one token (`create` + `read` + `update`):
+Um frontend customizado pode executar todo o ciclo de vida com um único token (`create` + `read`
++ `update`):
 
-1. `POST /assignments/` — create the assignment on a course activity.
-2. `POST /assignments/{uuid}/tasks` — add a `CUSTOM` task with your data object.
-3. `PUT  /assignments/{uuid}/tasks/{task}/submissions?on_behalf_of_user_id=42` — store a learner's answer.
-4. `POST /assignments/{uuid}/submissions?on_behalf_of_user_id=42` — mark it submitted.
-5. `PUT  /assignments/{uuid}/submissions/42` — set the grade and feedback.
+1. `POST /assignments/` — cria a tarefa em uma atividade de curso.
+2. `POST /assignments/{uuid}/tasks` — adiciona uma atividade `CUSTOM` com seu objeto de dados.
+3. `PUT  /assignments/{uuid}/tasks/{task}/submissions?on_behalf_of_user_id=42` — armazena a
+   resposta de um aluno.
+4. `POST /assignments/{uuid}/submissions?on_behalf_of_user_id=42` — marca como enviada.
+5. `PUT  /assignments/{uuid}/submissions/42` — define a nota e o feedback.
 
-See [Authentication](/developers/api/authentication) for how to create and use API tokens, and the [Assignments platform guide](/platform/assignments) for the in-app workflow.
+Veja [Autenticação](/developers/api/authentication) para saber como criar e usar tokens de API, e
+o [guia de tarefas da plataforma](/platform/assignments) para o fluxo dentro do app.

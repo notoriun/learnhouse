@@ -54,6 +54,7 @@ import AdminAuthorization from '@components/Security/AdminAuthorization'
 import { useLHSession } from '@components/Contexts/LHSessionContext'
 import { getUriWithOrg, getAPIUrl, getMainDomainUri, isMultiOrgModeEnabled } from '@services/config/config'
 import { useTranslation } from 'react-i18next'
+import { getBrand } from '@services/config/brand'
 import { changeLanguage } from '@/lib/i18n'
 import {
   Tooltip,
@@ -260,8 +261,8 @@ function DashLeftMenu() {
             />
           ) : (
             <img
-              src="/lrn-dash.svg"
-              alt="Learnhouse logo"
+              src={getBrand().logos.symbolDark}
+              alt={getBrand().name}
               className="h-8 w-8"
             />
           )}

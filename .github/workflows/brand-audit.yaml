@@ -1,0 +1,36 @@
+name: Brand Audit
+# Auditoria de marca residual (feature 005 — FR-010/SC-001): nenhuma
+# superfície visível ao usuário pode conter a marca original. Falha o PR
+# quando a varredura encontra >= 1 FAIL fora da allowlist declarativa.
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - "apps/web/**"
+      - "apps/api/src/services/email/**"
+      - "scripts/brand-audit*"
+      - "README.md"
+  pull_request:
+    paths:
+      - "apps/web/**"
+      - "apps/api/src/services/email/**"
+      - "scripts/brand-audit*"
+      - "README.md"
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  brand-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Auditoria de marca
+        run: node scripts/brand-audit.mjs --json

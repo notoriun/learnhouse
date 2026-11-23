@@ -30,7 +30,7 @@ import { invoiceSubscriptionId } from "./activeUserBillingUtils";
 // Resolve the Stripe secret key. Prefer the billing-specific STRIPE_SECRET_KEY,
 // but fall back to LEARNHOUSE_STRIPE_SECRET_KEY (the platform Stripe account's
 // secret key — the same account the SaaS subscription prices live in) so
-// deployments that only set the LEARNHOUSE_-prefixed var still work. Shared by
+// deployments that only set the legacy-prefixed var still work. Shared by
 // the lazy Stripe client here, the webhook route, and the billing guard.
 export function getStripeSecretKey(): string | undefined {
   return process.env.STRIPE_SECRET_KEY || process.env.LEARNHOUSE_STRIPE_SECRET_KEY;
@@ -41,8 +41,10 @@ export function getStripeSecretKey(): string | undefined {
 // collection evaluates this module) and any non-SaaS deployment that imports it
 // without a Stripe key. The Proxy instantiates the real client on first
 // property access (request time, after the SaaS/key guard has run).
+// Exported so the webhook route shares this one client instead of building a
+// second identical proxy of its own.
 let _stripeClient: any = null;
-const stripe: any = new Proxy(
+export const stripeClient: any = new Proxy(
   {},
   {
     get(_t, prop) {
@@ -55,6 +57,9 @@ const stripe: any = new Proxy(
     },
   },
 );
+
+// Local alias so the 28 call sites below stay unchanged.
+const stripe: any = stripeClient;
 
 // APP_URL is computed per-call: apps/web reads runtime config lazily, so a
 // module-load constant could capture an empty domain before config is hydrated.
@@ -81,7 +86,7 @@ function getPeriodStart(subscription: any): number | undefined {
 
 // ── Customer resolution ──────────────────────────────────────────────────────
 // A single email can map to MULTIPLE Stripe customers. Duplicates arise because
-// other LearnHouse products share this Stripe account and create their own
+// other sibling products share this Stripe account and create their own
 // customer per email. `customers.list({ email, limit: 1 })` returns an arbitrary
 // (most-recently created) customer, which may not be the one holding this org's
 // subscription — that made getActiveSubscription return null and wrongly route
@@ -189,9 +194,13 @@ export async function createCheckoutSession(
   const cancelUrl = orgSlug
     ? `${APP_URL}/billing?org=${orgSlug}&checkout=cancelled`
     : `${APP_URL}/new?checkout=cancelled`;
+  // Always return to /billing on success, even without an org slug: it is the
+  // only page that runs the post-checkout fulfillment fallback. /home ignores
+  // both `checkout` and `session_id`, so landing there left the upgrade
+  // depending on webhook delivery alone, with no confirmation to the customer.
   const successUrl = orgSlug
     ? `${APP_URL}/billing?org=${orgSlug}&checkout=success&session_id={CHECKOUT_SESSION_ID}`
-    : `${APP_URL}/home?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
+    : `${APP_URL}/billing?orgId=${orgId}&checkout=success&session_id={CHECKOUT_SESSION_ID}`;
 
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
@@ -547,7 +556,7 @@ export async function getUpcomingInvoice(
  *
  * Invoices carry no org metadata, so they are matched by the subscriptions they
  * belong to — the org's plan subscription plus its packs. Invoices belonging to
- * another org (or another LearnHouse product) on the same shared customer are
+ * another org (or another sibling product) on the same shared customer are
  * therefore excluded.
  */
 export async function listInvoices(

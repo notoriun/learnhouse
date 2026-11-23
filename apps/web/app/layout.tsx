@@ -2,6 +2,8 @@ import '../styles/globals.css'
 import React from 'react'
 import Providers from '@components/Providers'
 import { Wix_Madefor_Text } from 'next/font/google'
+import { getBrand } from '@services/config/brand'
+import type { Metadata } from 'next'
 
 const wixMadeforText = Wix_Madefor_Text({
   subsets: ['latin'],
@@ -9,13 +11,25 @@ const wixMadeforText = Wix_Madefor_Text({
   variable: '--font-default',
 })
 
+const brand = getBrand()
+
+export const metadata: Metadata = {
+  title: {
+    default: brand.name,
+    template: `%s — ${brand.name}`,
+  },
+  description: brand.tagline,
+  icons: { icon: brand.logos.favicon },
+  openGraph: { images: [brand.logos.ogImage] },
+}
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   return (
-    <html className={wixMadeforText.variable} lang="en" suppressHydrationWarning>
+    <html className={wixMadeforText.variable} lang="pt-BR" suppressHydrationWarning>
       <head>
         {/* Synchronous script — blocks parsing to guarantee window.__RUNTIME_CONFIG__ exists before any JS runs.
             Next.js <Script strategy="beforeInteractive"> is not truly blocking in all browsers (Safari). */}

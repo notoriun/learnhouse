@@ -12,7 +12,7 @@ const ToolbarButtons = dynamic(
 import { motion } from 'motion/react'
 import Image from 'next/image'
 import { DividerVerticalIcon, SlashIcon } from '@radix-ui/react-icons'
-import learnhouseAI_icon from 'public/learnhouse_ai_simple.png'
+import aiIcon from '@components/Objects/aiIcon'
 import {
   AIEditorStateTypes,
   useAIEditor,
@@ -54,6 +54,7 @@ import AIStreamingMark from './Extensions/AIStreaming/AIStreamingMark'
 import AISelectionHighlight from './Extensions/AISelectionHighlight/AISelectionHighlight'
 import useGetAIFeatures from '@components/Hooks/useGetAIFeatures'
 import { getUriWithOrg } from '@services/config/config'
+import { getBrand } from '@services/config/brand'
 import EmbedObjects from './Extensions/EmbedObjects/EmbedObjects'
 import Badges from './Extensions/Badges/Badges'
 import Buttons from './Extensions/Buttons/Buttons'
@@ -464,7 +465,7 @@ function Editor(props: EditorProps) {
             <div className="activity-editor-doc-section">
               <div className="activity-editor-info-wrapper">
                 <Link href="/">
-                  <EditorLearnHouseLogo />
+                  <EditorBrandLogo />
                 </Link>
                 <Link target="_blank" href={`/course/${course_uuid}`}>
                   <img
@@ -512,7 +513,7 @@ function Editor(props: EditorProps) {
                         <Image
                           className=""
                           width={20}
-                          src={learnhouseAI_icon}
+                          src={aiIcon}
                           alt=""
                         />
                       </i>{' '}
@@ -527,7 +528,7 @@ function Editor(props: EditorProps) {
                         <Image
                           className="opacity-50 grayscale"
                           width={20}
-                          src={learnhouseAI_icon}
+                          src={aiIcon}
                           alt=""
                         />
                       </i>
@@ -704,7 +705,7 @@ const logoAnimations = [
   },
 ]
 
-const EditorLearnHouseLogo = () => {
+const EditorBrandLogo = () => {
   const [animation] = React.useState(
     () => logoAnimations[Math.floor(Math.random() * logoAnimations.length)]
   )
@@ -717,11 +718,11 @@ const EditorLearnHouseLogo = () => {
         transition={animation.transition}
       >
         <Image
-          src="/lrn.svg"
-          alt="LearnHouse"
+          unoptimized
+          src={getBrand().logos.symbolDark}
+          alt={getBrand().name}
           width={14}
           height={14}
-          className="invert"
         />
       </motion.div>
     </div>

@@ -1,14 +1,14 @@
 import { Callout } from 'nextra/components'
 
-# CLI Reference
+# Referência da CLI
 
-Complete reference for all LearnHouse CLI commands. The CLI is published as `learnhouse` on npm and is typically run via `npx learnhouse@latest`.
+Referência completa de todos os comandos da CLI do Notoriun. A CLI é publicada como `learnhouse` no npm e normalmente é executada via `npx learnhouse@latest`.
 
-## Setup and Configuration
+## Instalação e Configuração
 
 ### `learnhouse setup`
 
-Run the interactive setup wizard. This command generates `docker-compose.yml`, `.env`, `learnhouse.config.json`, and nginx or Caddy configuration files based on your choices.
+Executa o assistente interativo de instalação. Este comando gera `docker-compose.yml`, `.env`, `learnhouse.config.json` e arquivos de configuração de nginx ou Caddy com base nas suas escolhas.
 
 ```bash
 learnhouse setup
@@ -16,11 +16,11 @@ learnhouse setup
 
 Flags: `--ci`, `--name`, `--domain`, `--port`, `--admin-email`, `--admin-password`, `--channel <stable|dev>`, `--no-start`.
 
-You can re-run this command at any time to reconfigure your instance. Existing configuration will be preserved as defaults in the prompts.
+Você pode reexecutar este comando em qualquer momento para reconfigurar sua instância. A configuração existente será preservada como padrão nas perguntas.
 
 ### `learnhouse config`
 
-View the current configuration.
+Exibe a configuração atual.
 
 ```bash
 learnhouse config
@@ -28,21 +28,21 @@ learnhouse config
 
 ### `learnhouse env`
 
-Interactively edit environment variables in your `.env` file (Domain & Hosting, Database & Redis, Security, AI, Email (Resend), S3 Storage, OAuth).
+Edita interativamente as variáveis de ambiente no seu arquivo `.env` (Domínio e Hospedagem, Banco de Dados e Redis, Segurança, IA, E-mail (Resend), Armazenamento S3, OAuth).
 
 ```bash
 learnhouse env
 ```
 
 <Callout type="info">
-The `env` command edits a curated set of variables only. SMTP credentials (`LEARNHOUSE_SMTP_*`) are not editable through this command — edit `.env` directly if you need them.
+O comando `env` edita apenas um conjunto selecionado de variáveis. Credenciais SMTP (`LEARNHOUSE_SMTP_*`) não são editáveis por este comando — edite o `.env` diretamente se precisar delas.
 </Callout>
 
-## Service Management
+## Gestão de Serviços
 
 ### `learnhouse start`
 
-Start all LearnHouse services. On first run, this pulls the required Docker images before starting containers.
+Inicia todos os serviços do Notoriun. Na primeira execução, baixa as imagens Docker necessárias antes de iniciar os contêineres.
 
 ```bash
 learnhouse start
@@ -50,7 +50,7 @@ learnhouse start
 
 ### `learnhouse stop`
 
-Stop all running LearnHouse services. Data is preserved in Docker volumes.
+Para todos os serviços do Notoriun em execução. Os dados são preservados em volumes do Docker.
 
 ```bash
 learnhouse stop
@@ -58,7 +58,7 @@ learnhouse stop
 
 ### `learnhouse status`
 
-Show the status of each LearnHouse service.
+Mostra o status de cada serviço do Notoriun.
 
 ```bash
 learnhouse status
@@ -66,7 +66,7 @@ learnhouse status
 
 ### `learnhouse logs`
 
-Stream container logs for all services.
+Acompanha os logs dos contêineres de todos os serviços.
 
 ```bash
 learnhouse logs
@@ -74,28 +74,28 @@ learnhouse logs
 
 ### `learnhouse update`
 
-Update LearnHouse to the latest release or a specific version. Pulls the target image, rewrites `docker-compose.yml`, restarts services, and prompts for database migrations.
+Atualiza o Notoriun para a versão mais recente ou uma versão específica. Baixa a imagem de destino, reescreve o `docker-compose.yml`, reinicia os serviços e pergunta sobre migrações de banco de dados.
 
 ```bash
 learnhouse update
 learnhouse update --version 1.4.2
-learnhouse update --migrate       # auto-apply migrations
-learnhouse update --no-migrate    # skip migrations
+learnhouse update --migrate       # aplica migrações automaticamente
+learnhouse update --no-migrate    # pula migrações
 ```
 
 ### `learnhouse dev`
 
-Start a full development environment (PostgreSQL + Redis in Docker, API + web + collab run locally).
+Inicia um ambiente de desenvolvimento completo (PostgreSQL + Redis em Docker, API + web + collab rodando localmente).
 
 ```bash
 learnhouse dev
 ```
 
-## Diagnostics
+## Diagnósticos
 
 ### `learnhouse doctor`
 
-Run diagnostics on your LearnHouse installation. Checks Docker availability, container health, port conflicts, DNS resolution, and disk space.
+Executa diagnósticos na sua instalação do Notoriun. Verifica disponibilidade do Docker, saúde dos contêineres, conflitos de porta, resolução de DNS e espaço em disco.
 
 ```bash
 learnhouse doctor
@@ -103,7 +103,7 @@ learnhouse doctor
 
 ### `learnhouse health`
 
-Run the CLI's health checks (PostgreSQL connection, Redis ping, HTTP health endpoint, disk, resources).
+Executa as verificações de saúde da CLI (conexão PostgreSQL, ping do Redis, endpoint HTTP de saúde, disco, recursos).
 
 ```bash
 learnhouse health
@@ -111,27 +111,27 @@ learnhouse health
 
 ### `learnhouse shell`
 
-Open an interactive shell inside a running container for debugging.
+Abre um shell interativo dentro de um contêiner em execução, para depuração.
 
 ```bash
 learnhouse shell
 ```
 
-## Infrastructure
+## Infraestrutura
 
 ### `learnhouse deployments`
 
-Manage deployments and scale memory limits for your LearnHouse containers.
+Gerencia implantações e ajusta os limites de memória dos seus contêineres do Notoriun.
 
 ```bash
 learnhouse deployments
 ```
 
-## Backup and Restore
+## Backup e Restauração
 
 ### `learnhouse backup`
 
-Create a PostgreSQL dump archive of your instance's database (plus a copy of `.env`). Archives are written to `<installDir>/backups/`.
+Cria um arquivo de dump PostgreSQL do banco de dados da sua instância (mais uma cópia do `.env`). Os arquivos são gravados em `<installDir>/backups/`.
 
 ```bash
 learnhouse backup
@@ -139,28 +139,28 @@ learnhouse backup
 
 ### `learnhouse restore`
 
-Restore a database from a backup archive.
+Restaura um banco de dados a partir de um arquivo de backup.
 
 ```bash
 learnhouse restore <path/to/learnhouse-backup-<timestamp>.tar.gz>
 ```
 
-## Command Summary
+## Resumo de Comandos
 
-| Command | Description |
+| Comando | Descrição |
 |---|---|
-| `learnhouse setup` | Interactive setup wizard, generates docker-compose.yml, .env, and config files |
-| `learnhouse start` | Start all services |
-| `learnhouse stop` | Stop all services |
-| `learnhouse update` | Update to latest or a specific version |
-| `learnhouse status` | Show service status |
-| `learnhouse health` | Run health checks |
-| `learnhouse logs` | Stream container logs |
-| `learnhouse config` | View current configuration |
-| `learnhouse env` | Edit environment variables |
-| `learnhouse backup` | Create a database backup archive |
-| `learnhouse restore` | Restore the database from an archive |
-| `learnhouse doctor` | Diagnose Docker, containers, ports, DNS, and disk |
-| `learnhouse shell` | Open a shell in a running container |
-| `learnhouse deployments` | Manage deployments and memory limits |
-| `learnhouse dev` | Start full development environment |
+| `learnhouse setup` | Assistente interativo de instalação; gera docker-compose.yml, .env e arquivos de configuração |
+| `learnhouse start` | Inicia todos os serviços |
+| `learnhouse stop` | Para todos os serviços |
+| `learnhouse update` | Atualiza para a versão mais recente ou uma versão específica |
+| `learnhouse status` | Mostra o status dos serviços |
+| `learnhouse health` | Executa verificações de saúde |
+| `learnhouse logs` | Acompanha os logs dos contêineres |
+| `learnhouse config` | Exibe a configuração atual |
+| `learnhouse env` | Edita variáveis de ambiente |
+| `learnhouse backup` | Cria um arquivo de backup do banco de dados |
+| `learnhouse restore` | Restaura o banco de dados a partir de um arquivo |
+| `learnhouse doctor` | Diagnostica Docker, contêineres, portas, DNS e disco |
+| `learnhouse shell` | Abre um shell em um contêiner em execução |
+| `learnhouse deployments` | Gerencia implantações e limites de memória |
+| `learnhouse dev` | Inicia o ambiente de desenvolvimento completo |

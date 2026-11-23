@@ -7,24 +7,25 @@ import { Analytics } from '@vercel/analytics/react'
 import CustomNavbar from '../components/Navbar/Navbar'
 import CustomFooter from '../components/Footer/Footer'
 import PostHogProvider from '../components/Analytics/PostHogProvider'
+import { SITE_URL, REPO_URL, asset } from '../lib/site'
 
 export const metadata = {
   title: {
-    default: 'LearnHouse Docs',
-    template: '%s – LearnHouse Docs',
+    default: 'Documentação Notoriun',
+    template: '%s – Documentação Notoriun',
   },
   description:
-    'Official documentation for LearnHouse, the open-source learning management system (LMS). Guides for self-hosting, course creation, AI features, API reference, and more.',
+    'Documentação oficial do Notoriun, a plataforma de aprendizagem de código aberto. Guias para self-hosting, criação de cursos, recursos de IA, referência de API e muito mais.',
   keywords: [
-    'LearnHouse',
-    'open source LMS',
-    'learning management system',
-    'self-hosted LMS',
-    'course creation',
-    'LearnHouse documentation',
-    'LearnHouse docs',
+    'Notoriun',
+    'LMS de código aberto',
+    'plataforma de aprendizagem',
+    'LMS self-hosted',
+    'criação de cursos',
+    'documentação Notoriun',
+    'docs Notoriun',
   ],
-  metadataBase: new URL('https://docs.learnhouse.app'),
+  metadataBase: new URL(SITE_URL),
   robots: {
     index: true,
     follow: true,
@@ -38,38 +39,25 @@ export const metadata = {
   },
   openGraph: {
     type: 'website',
-    locale: 'en_US',
-    url: 'https://docs.learnhouse.app',
-    siteName: 'LearnHouse Docs',
+    locale: 'pt_BR',
+    url: SITE_URL,
+    siteName: 'Documentação Notoriun',
     description:
-      'Official documentation for LearnHouse, the open-source learning management system (LMS). Guides for self-hosting, course creation, AI features, API reference, and more.',
-    images: [
-      {
-        url: 'https://docs.learnhouse.app/img/pages/learnhouse-github.png',
-        alt: 'LearnHouse Docs',
-        width: 2051,
-        height: 1016,
-      },
-    ],
-  },
-  twitter: {
-    creator: '@getlearnhouse',
-    site: '@getlearnhouse',
-    card: 'summary_large_image',
+      'Documentação oficial do Notoriun, a plataforma de aprendizagem de código aberto. Guias para self-hosting, criação de cursos, recursos de IA, referência de API e muito mais.',
   },
   icons: {
     icon: [
-      { url: '/favicons/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/favicons/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: asset('/favicons/favicon-32x32.png'), sizes: '32x32', type: 'image/png' },
+      { url: asset('/favicons/favicon-16x16.png'), sizes: '16x16', type: 'image/png' },
     ],
-    apple: '/favicons/apple-touch-icon.png',
+    apple: asset('/favicons/apple-touch-icon.png'),
   },
-  manifest: '/favicons/site.webmanifest',
+  manifest: asset('/favicons/site.webmanifest'),
 }
 
 export default async function RootLayout({ children }) {
   return (
-    <html lang="en" dir="ltr" suppressHydrationWarning>
+    <html lang="pt-BR" dir="ltr" suppressHydrationWarning>
       <Head faviconGlyph="">
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -83,9 +71,9 @@ export default async function RootLayout({ children }) {
           <CustomNavbar />
           <Layout
             pageMap={await getPageMap()}
-            docsRepositoryBase="https://github.com/learnhouse/learnhouse/tree/dev/docs"
+            docsRepositoryBase={`${REPO_URL}/tree/dev/docs`}
             sidebar={{ defaultMenuCollapseLevel: 2 }}
-            editLink="Edit this page on GitHub"
+            editLink="Editar esta página no GitHub"
             footer={<></>}
             navbar={<></>}
             nextThemes={{ forcedTheme: 'light', defaultTheme: 'light' }}

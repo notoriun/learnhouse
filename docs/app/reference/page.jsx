@@ -12,19 +12,19 @@ import SchemaFields from '../../components/reference/SchemaFields'
 export const revalidate = 3600
 
 export const metadata = {
-  title: 'API Reference',
+  title: 'Referência de API',
   description:
-    'Complete reference for the LearnHouse REST API — endpoints, request and response schemas, code examples and a live playground.',
+    'Referência completa da API REST do Notoriun — endpoints, esquemas de requisição e resposta, exemplos de código e um playground ao vivo.',
   alternates: { canonical: '/reference' },
 }
 
 const ERROR_STATUSES = [
-  ['401', 'Missing or invalid credentials.'],
-  ['403', 'Authenticated, but not allowed to perform this action.'],
-  ['404', 'The requested resource does not exist.'],
-  ['409', 'The request conflicts with existing state (e.g. duplicate resource).'],
-  ['422', 'Request validation failed — see the error format below.'],
-  ['429', 'Rate limit exceeded — retry later.'],
+  ['401', 'Credenciais ausentes ou inválidas.'],
+  ['403', 'Autenticado, mas sem permissão para executar esta ação.'],
+  ['404', 'O recurso solicitado não existe.'],
+  ['409', 'A requisição conflita com o estado existente (ex.: recurso duplicado).'],
+  ['422', 'A validação da requisição falhou — veja o formato de erro abaixo.'],
+  ['429', 'Limite de requisições excedido — tente novamente mais tarde.'],
 ]
 
 export default async function ReferenceOverviewPage() {
@@ -47,22 +47,23 @@ export default async function ReferenceOverviewPage() {
   return (
     <div className="lh-ref-overview">
       <header className="lh-ref-overview-head">
-        <p className="lh-ref-overview-kicker">API Reference</p>
-        <h1 className="lh-ref-overview-title">The LearnHouse API</h1>
+        <p className="lh-ref-overview-kicker">Referência de API</p>
+        <h1 className="lh-ref-overview-title">A API do Notoriun</h1>
         <p className="lh-ref-overview-lede">
-          A REST API for driving LearnHouse programmatically — {totalOps} documented endpoints
-          across courses, learners, assignments, payments and more. This reference is generated
-          directly from the live OpenAPI specification, so it is always in sync with the API.
+          Uma API REST para operar o Notoriun de forma programática — {totalOps} endpoints
+          documentados entre cursos, alunos, tarefas, pagamentos e muito mais. Esta referência é
+          gerada diretamente a partir da especificação OpenAPI em produção, então está sempre
+          sincronizada com a API.
         </p>
       </header>
 
       <div className="lh-ref-op-grid">
         <div className="lh-ref-op-prose">
           <section className="lh-ref-section">
-            <h2 className="lh-ref-overview-h2">Base URL</h2>
+            <h2 className="lh-ref-overview-h2">URL Base</h2>
             <p className="lh-ref-op-desc">
-              All endpoints live under <code>/api/v1</code>. Self-hosted instances substitute
-              their own domain.
+              Todos os endpoints vivem sob <code>/api/v1</code>. Instâncias self-hosted usam o
+              próprio domínio.
             </p>
             <pre className="lh-ref-baseurl">
               {API_BASE_URL}/api/v1
@@ -70,28 +71,29 @@ export default async function ReferenceOverviewPage() {
           </section>
 
           <section className="lh-ref-section">
-            <h2 className="lh-ref-overview-h2">Authentication</h2>
+            <h2 className="lh-ref-overview-h2">Autenticação</h2>
             <p className="lh-ref-op-desc">
-              Programmatic access uses organization API tokens, prefixed <code>lh_</code>. Create
-              them in your dashboard under <strong>Developers → API Access</strong> (Pro plan) —
-              the full token is shown once, at creation, and can be scoped to least-privilege
-              rights. Send it as a bearer token on every request:
+              O acesso programático usa tokens de API da organização, com prefixo <code>lh_</code>.
+              Crie-os no seu painel em <strong>Desenvolvedores → Acesso à API</strong> (plano Pro) —
+              o token completo é exibido uma única vez, na criação, e pode ser restrito ao menor
+              privilégio necessário. Envie-o como bearer token em cada requisição:
             </p>
             <pre className="lh-ref-baseurl">Authorization: Bearer lh_…</pre>
             <p className="lh-ref-op-desc">
-              User-context flows can instead use the JWT returned by{' '}
-              <Link href="/reference/auth">the login endpoint</Link> (form-encoded, not JSON) as
-              the bearer token. See the{' '}
-              <Link href="/developers/api/authentication">authentication guide</Link> for details.
+              Fluxos no contexto do usuário podem usar em vez disso o JWT devolvido pelo{' '}
+              <Link href="/reference/auth">endpoint de login</Link> (form-encoded, não JSON) como
+              bearer token. Veja o{' '}
+              <Link href="/developers/api/authentication">guia de autenticação</Link> para
+              detalhes.
             </p>
           </section>
 
           <section className="lh-ref-section">
-            <h2 className="lh-ref-overview-h2">Errors</h2>
+            <h2 className="lh-ref-overview-h2">Erros</h2>
             <p className="lh-ref-op-desc">
-              Errors return conventional HTTP status codes with a JSON body of the form{' '}
-              <code>{'{ "detail": "…" }'}</code>. Validation failures return <code>422</code>{' '}
-              with the structure below.
+              Erros retornam códigos de status HTTP convencionais com um corpo JSON no formato{' '}
+              <code>{'{ "detail": "…" }'}</code>. Falhas de validação retornam <code>422</code>{' '}
+              com a estrutura abaixo.
             </p>
             <div className="lh-ref-statustable">
               {ERROR_STATUSES.map(([status, description]) => (
@@ -103,34 +105,34 @@ export default async function ReferenceOverviewPage() {
             </div>
             {errorFields.length > 0 && (
               <details className="lh-ref-errors">
-                <summary>422 validation error format</summary>
+                <summary>Formato do erro de validação 422</summary>
                 <SchemaFields fields={errorFields} />
               </details>
             )}
           </section>
 
           <section className="lh-ref-section">
-            <h2 className="lh-ref-overview-h2">Pagination</h2>
+            <h2 className="lh-ref-overview-h2">Paginação</h2>
             <p className="lh-ref-op-desc">
-              List endpoints paginate with <code>page</code> and <code>limit</code> parameters —
-              as query parameters or path segments (e.g.{' '}
-              <code>/courses/org_slug/{'{org_slug}'}/page/1/limit/20</code>), depending on the
-              endpoint. Page numbering starts at 1.
+              Endpoints de listagem paginam com os parâmetros <code>page</code> e{' '}
+              <code>limit</code> — como parâmetros de query ou segmentos de caminho (ex.:{' '}
+              <code>/courses/org_slug/{'{org_slug}'}/page/1/limit/20</code>), dependendo do
+              endpoint. A numeração de página começa em 1.
             </p>
           </section>
         </div>
 
         <div className="lh-ref-op-code">
           <div className="lh-ref-overview-token">
-            <p className="lh-ref-overview-token-title">Your API token</p>
+            <p className="lh-ref-overview-token-title">Seu token de API</p>
             <TokenWidget />
           </div>
-          <CodePanel snippets={exampleSnippets} title="Your first request" />
+          <CodePanel snippets={exampleSnippets} title="Sua primeira requisição" />
         </div>
       </div>
 
       <section className="lh-ref-section">
-        <h2 className="lh-ref-overview-h2">Browse the API</h2>
+        <h2 className="lh-ref-overview-h2">Explore a API</h2>
         <div className="lh-ref-directory">
           {directory.map((group) => (
             <Link key={group.slug} href={`/reference/${group.slug}`} className="lh-ref-card">

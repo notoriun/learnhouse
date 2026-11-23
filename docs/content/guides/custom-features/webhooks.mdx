@@ -1,6 +1,6 @@
 ---
 title: Webhooks
-description: Subscribe to LearnHouse events, verify HMAC-SHA256 signatures, and react to learning activity in real time with a Next.js webhook receiver.
+description: Inscreva-se em eventos do Notoriun, verifique assinaturas HMAC-SHA256, e reaja à atividade de aprendizado em tempo real com um receptor de webhook em Next.js.
 ---
 
 import { Callout } from 'nextra/components'
@@ -8,55 +8,64 @@ import WebhookFlowDiagram from '../../../components/diagrams/WebhookFlowDiagram'
 
 # Webhooks
 
-Webhooks let LearnHouse **push events to your application** the moment they happen — a learner enrolls, completes a course, submits an assignment, signs up — so you can react without polling. Use them to sync a CRM, send custom emails, update a dashboard, or kick off any workflow.
+Webhooks permitem que o Notoriun **envie eventos para sua aplicação** no momento em que
+acontecem — um aluno se matricula, conclui um curso, envia uma tarefa, se cadastra — para que
+você possa reagir sem fazer polling. Use-os para sincronizar um CRM, enviar e-mails
+customizados, atualizar um dashboard, ou disparar qualquer fluxo de trabalho.
 
 <WebhookFlowDiagram />
 
 <Callout type="info">
-Webhooks are a **Pro** feature. They're managed by an authenticated user under organization settings or the webhook API below.
+Webhooks são um recurso **Pro**. Eles são gerenciados por um usuário autenticado nas
+configurações da organização ou na API de webhook abaixo.
 </Callout>
 
-## How it works
+## Como funciona
 
-1. You register an **endpoint** (a public HTTPS URL) and choose which events to subscribe to.
-2. When a subscribed event fires, LearnHouse sends a `POST` to your URL with a JSON body, **signed** with a per-endpoint secret.
-3. Your receiver **verifies the signature**, then handles the event.
-4. If your endpoint doesn't return a `2xx`, LearnHouse **retries** — up to 3 attempts, waiting 1s then 4s between them — and logs every delivery.
+1. Você registra um **endpoint** (uma URL HTTPS pública) e escolhe quais eventos assinar.
+2. Quando um evento assinado dispara, o Notoriun envia um `POST` para sua URL com um corpo JSON,
+   **assinado** com um segredo por endpoint.
+3. Seu receptor **verifica a assinatura**, depois trata o evento.
+4. Se seu endpoint não retornar um `2xx`, o Notoriun **tenta novamente** — até 3 tentativas,
+   esperando 1s depois 4s entre elas — e registra toda entrega.
 
-## Managing endpoints
+## Gerenciando endpoints
 
-All webhook endpoints live under `/api/v1/orgs/{org_id}/webhooks`.
+Todos os endpoints de webhook vivem sob `/api/v1/orgs/{org_id}/webhooks`.
 
-| Method | Path | Purpose |
+| Método | Caminho | Propósito |
 | --- | --- | --- |
-| `GET` | `/orgs/{org_id}/webhooks/events` | List every event type and its payload schema |
-| `POST` | `/orgs/{org_id}/webhooks` | Create an endpoint |
-| `GET` | `/orgs/{org_id}/webhooks` | List your endpoints |
-| `GET` | `/orgs/{org_id}/webhooks/{webhook_uuid}` | Get one endpoint |
-| `PUT` | `/orgs/{org_id}/webhooks/{webhook_uuid}` | Update URL / events / active state |
-| `DELETE` | `/orgs/{org_id}/webhooks/{webhook_uuid}` | Delete an endpoint |
-| `POST` | `/orgs/{org_id}/webhooks/{webhook_uuid}/regenerate-secret` | Rotate the signing secret |
-| `POST` | `/orgs/{org_id}/webhooks/{webhook_uuid}/test` | Send a `ping` test event |
-| `GET` | `/orgs/{org_id}/webhooks/{webhook_uuid}/deliveries` | Recent delivery logs |
+| `GET` | `/orgs/{org_id}/webhooks/events` | Lista todo tipo de evento e seu esquema de payload |
+| `POST` | `/orgs/{org_id}/webhooks` | Cria um endpoint |
+| `GET` | `/orgs/{org_id}/webhooks` | Lista seus endpoints |
+| `GET` | `/orgs/{org_id}/webhooks/{webhook_uuid}` | Obtém um endpoint |
+| `PUT` | `/orgs/{org_id}/webhooks/{webhook_uuid}` | Atualiza URL / eventos / estado ativo |
+| `DELETE` | `/orgs/{org_id}/webhooks/{webhook_uuid}` | Exclui um endpoint |
+| `POST` | `/orgs/{org_id}/webhooks/{webhook_uuid}/regenerate-secret` | Rotaciona o segredo de assinatura |
+| `POST` | `/orgs/{org_id}/webhooks/{webhook_uuid}/test` | Envia um evento de teste `ping` |
+| `GET` | `/orgs/{org_id}/webhooks/{webhook_uuid}/deliveries` | Logs de entrega recentes |
 
-### Create an endpoint
+### Crie um endpoint
 
 ```bash
 curl -X POST "http://localhost:1338/api/v1/orgs/1/webhooks" \
   -H "Authorization: Bearer <user_jwt>" \
   -H "Content-Type: application/json" \
   -d '{
-    "url": "https://your-app.com/api/webhooks/learnhouse",
+    "url": "https://your-app.com/api/webhooks/notoriun",
     "events": ["course_completed", "course_enrolled", "user_signed_up"]
   }'
 ```
 
-The response contains the **signing secret exactly once** (prefixed `whsec_`). Store it — you'll need it to verify signatures, and it can't be retrieved again (only rotated). It also returns the usual metadata (`created_by_user_id`, `creation_date`, …):
+A resposta contém o **segredo de assinatura exatamente uma vez** (com o prefixo `whsec_`).
+Armazene-o — você vai precisar dele para verificar assinaturas, e ele não pode ser recuperado
+novamente (só rotacionado). Ela também retorna os metadados usuais (`created_by_user_id`,
+`creation_date`, …):
 
 ```json
 {
   "webhook_uuid": "webhook_…",
-  "url": "https://your-app.com/api/webhooks/learnhouse",
+  "url": "https://your-app.com/api/webhooks/notoriun",
   "events": ["course_completed", "course_enrolled", "user_signed_up"],
   "secret": "whsec_…store me…",
   "is_active": true
@@ -64,12 +73,13 @@ The response contains the **signing secret exactly once** (prefixed `whsec_`). S
 ```
 
 <Callout type="info">
-Use `POST …/test` to send yourself a `ping` event while building your receiver, and `GET …/deliveries` to inspect what was sent and how your endpoint responded.
+Use `POST …/test` para enviar a si mesmo um evento `ping` enquanto constrói seu receptor, e
+`GET …/deliveries` para inspecionar o que foi enviado e como seu endpoint respondeu.
 </Callout>
 
-## The payload
+## O payload
 
-Every delivery is a JSON envelope. The `data` field is event-specific:
+Toda entrega é um envelope JSON. O campo `data` é específico do evento:
 
 ```json
 {
@@ -84,33 +94,35 @@ Every delivery is a JSON envelope. The `data` field is event-specific:
 }
 ```
 
-Each request also carries these headers:
+Cada requisição também carrega estes headers:
 
-| Header | Value |
+| Header | Valor |
 | --- | --- |
-| `X-Webhook-Event` | The event name, e.g. `course_completed` |
-| `X-Webhook-Delivery` | Unique delivery id, e.g. `dlv_…` (use it for idempotency) |
-| `X-Webhook-Signature` | `sha256=<hmac-hex>` — HMAC-SHA256 of the **raw request body** |
+| `X-Webhook-Event` | O nome do evento, ex.: `course_completed` |
+| `X-Webhook-Delivery` | Id de entrega único, ex.: `dlv_…` (use para idempotência) |
+| `X-Webhook-Signature` | `sha256=<hmac-hex>` — HMAC-SHA256 do **corpo bruto da requisição** |
 | `User-Agent` | `LearnHouse-Webhooks/1.0` |
 
-## Verifying the signature
+## Verificando a assinatura
 
-The signature is `sha256=` followed by the hex HMAC-SHA256 of the **exact raw body bytes**, keyed by your endpoint secret. You must compute the HMAC over the **unparsed** body — re-serializing the JSON will change the bytes and break verification.
+A assinatura é `sha256=` seguido do HMAC-SHA256 hex do **corpo bruto exato em bytes**, chaveado
+pelo segredo do seu endpoint. Você deve calcular o HMAC sobre o corpo **não analisado** —
+re-serializar o JSON vai mudar os bytes e quebrar a verificação.
 
-Here's a complete receiver as a Next.js Route Handler:
+Aqui está um receptor completo como um Route Handler do Next.js:
 
-```ts filename="src/app/api/webhooks/learnhouse/route.ts"
+```ts filename="src/app/api/webhooks/notoriun/route.ts"
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'node:crypto'
 
-const SECRET = process.env.LEARNHOUSE_WEBHOOK_SECRET! // the whsec_… value
+const SECRET = process.env.LEARNHOUSE_WEBHOOK_SECRET! // o valor whsec_…
 
 export async function POST(req: NextRequest) {
-  // 1. Read the RAW body — do not use req.json() first.
+  // 1. Leia o corpo BRUTO — não use req.json() primeiro.
   const raw = await req.text()
   const signature = req.headers.get('x-webhook-signature') ?? ''
 
-  // 2. Recompute the HMAC and compare in constant time.
+  // 2. Recalcule o HMAC e compare em tempo constante.
   const expected =
     'sha256=' + crypto.createHmac('sha256', SECRET).update(raw).digest('hex')
 
@@ -122,24 +134,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'invalid signature' }, { status: 401 })
   }
 
-  // 3. Now it's safe to parse and handle.
+  // 3. Agora é seguro analisar e tratar.
   const payload = JSON.parse(raw)
   switch (payload.event) {
     case 'course_completed':
       console.log(`${payload.data.user.email} finished ${payload.data.course.name}`)
-      // …send a certificate email, update your CRM, etc.
+      // …envie um e-mail de certificado, atualize seu CRM, etc.
       break
     case 'user_signed_up':
-      // …add to your mailing list
+      // …adicione à sua lista de e-mail
       break
   }
 
-  // 4. Return 2xx quickly so LearnHouse marks the delivery successful.
+  // 4. Retorne 2xx rapidamente para que o Notoriun marque a entrega como bem-sucedida.
   return NextResponse.json({ received: true })
 }
 ```
 
-The same check in raw Node.js / Express:
+A mesma verificação em Node.js / Express puro:
 
 ```js
 const crypto = require('node:crypto')
@@ -148,40 +160,50 @@ function verify(rawBody, signatureHeader, secret) {
   const expected = 'sha256=' + crypto.createHmac('sha256', secret).update(rawBody).digest('hex')
   const a = Buffer.from(signatureHeader ?? '')
   const b = Buffer.from(expected)
-  // timingSafeEqual throws if lengths differ, so guard first.
+  // timingSafeEqual lança erro se os tamanhos diferem, então proteja primeiro.
   return a.length === b.length && crypto.timingSafeEqual(a, b)
 }
 ```
 
 <Callout type="warning">
-**Always verify before trusting a payload**, and treat deliveries as **at-least-once** — the same `delivery_id` can arrive more than once after a retry. Make your handler idempotent (e.g. record processed `delivery_id`s).
+**Sempre verifique antes de confiar em um payload**, e trate as entregas como **pelo menos uma
+vez** — o mesmo `delivery_id` pode chegar mais de uma vez depois de uma nova tentativa. Torne seu
+handler idempotente (ex.: registre os `delivery_id`s já processados).
 </Callout>
 
-## Event catalogue
+## Catálogo de eventos
 
-A webhook can subscribe to any of these events. The shape of each event's `data` field is returned live by `GET /api/v1/orgs/{org_id}/webhooks/events`, so your tooling never has to hardcode it.
+Um webhook pode se inscrever em qualquer um destes eventos. O formato do campo `data` de cada
+evento é retornado em tempo real por `GET /api/v1/orgs/{org_id}/webhooks/events`, então sua
+ferramenta nunca precisa fixá-lo no código.
 
-| Category | Events |
+| Categoria | Eventos |
 | --- | --- |
-| **System** | `ping` |
-| **Learning Progress** | `course_completed`, `course_enrolled`, `activity_completed`, `assignment_submitted`, `assignment_graded`, `certificate_claimed` |
-| **User & Access** | `user_signed_up`, `user_email_verified`, `user_role_changed`, `user_invited_to_org`, `user_removed_from_org` |
-| **Course Lifecycle** | `course_created`, `course_published`, `course_deleted`, `course_update_published` |
-| **Content Management** | `activity_version_created`, `activity_version_restored`, `course_contributor_added`, `course_contributor_removed`, `collection_created`, `podcast_episode_created` |
-| **Collaboration** | `board_created`, `board_member_added`, `playground_created` |
-| **Community** | `discussion_posted`, `comment_created`, `discussion_pinned`, `discussion_locked`, `discussion_vote_cast` |
-| **Groups** | `usergroup_created`, `usergroup_deleted`, `usergroup_users_added`, `usergroup_resources_added` |
-| **Subscriptions** | `pack_activated`, `pack_deactivated` |
-| **Organization** | `org_signup_method_changed`, `org_ai_config_changed`, `org_payments_config_changed` |
+| **Sistema** | `ping` |
+| **Progresso de Aprendizado** | `course_completed`, `course_enrolled`, `activity_completed`, `assignment_submitted`, `assignment_graded`, `certificate_claimed` |
+| **Usuário e Acesso** | `user_signed_up`, `user_email_verified`, `user_role_changed`, `user_invited_to_org`, `user_removed_from_org` |
+| **Ciclo de Vida do Curso** | `course_created`, `course_published`, `course_deleted`, `course_update_published` |
+| **Gestão de Conteúdo** | `activity_version_created`, `activity_version_restored`, `course_contributor_added`, `course_contributor_removed`, `collection_created`, `podcast_episode_created` |
+| **Colaboração** | `board_created`, `board_member_added`, `playground_created` |
+| **Comunidade** | `discussion_posted`, `comment_created`, `discussion_pinned`, `discussion_locked`, `discussion_vote_cast` |
+| **Grupos** | `usergroup_created`, `usergroup_deleted`, `usergroup_users_added`, `usergroup_resources_added` |
+| **Assinaturas** | `pack_activated`, `pack_deactivated` |
+| **Organização** | `org_signup_method_changed`, `org_ai_config_changed`, `org_payments_config_changed` |
 
-## Security notes
+## Notas de segurança
 
-- **Secrets** are stored encrypted at rest and are shown to you only at creation and on rotation.
-- **Signatures** use HMAC-SHA256 over the raw body — the same convention as GitHub and Stripe.
-- **Outbound requests are SSRF-protected**: LearnHouse validates the target URL and the resolved IP before every delivery, so endpoints must be publicly reachable — `localhost` and private/reserved IP ranges are always rejected (in every environment).
+- **Segredos** são armazenados criptografados em repouso e mostrados a você só na criação e na
+  rotação.
+- **Assinaturas** usam HMAC-SHA256 sobre o corpo bruto — a mesma convenção do GitHub e do
+  Stripe.
+- **Requisições de saída são protegidas contra SSRF**: o Notoriun valida a URL de destino e o IP
+  resolvido antes de toda entrega, então os endpoints precisam ser publicamente alcançáveis —
+  `localhost` e faixas de IP privadas/reservadas são sempre rejeitados (em todo ambiente).
 
-## See also
+## Veja também
 
-- [Custom features overview](/guides/custom-features) — API tokens and programmatic content.
-- [Build a learning platform](/guides/build-learning-platform) — the frontend side of the API.
-- [API Reference](/developers/api) — every endpoint and schema.
+- [Visão geral de recursos customizados](/guides/custom-features) — Tokens de API e conteúdo
+  programático.
+- [Construir uma plataforma de aprendizado](/guides/build-learning-platform) — o lado frontend
+  da API.
+- [Referência da API](/developers/api) — todo endpoint e esquema.

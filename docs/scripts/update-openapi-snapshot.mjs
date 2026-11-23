@@ -6,7 +6,7 @@ import { writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
-const base = (process.argv[2] || process.env.LEARNHOUSE_API_URL || 'https://api.learnhouse.io')
+const base = (process.argv[2] || process.env.LEARNHOUSE_API_URL || 'http://localhost:1338')
   .replace(/\/$/, '')
 const url = `${base}/openapi.json`
 const dest = path.join(

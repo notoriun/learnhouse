@@ -3,7 +3,7 @@ import { useOrg } from '@components/Contexts/OrgContext'
 import { getAPIUrl } from '@services/config/config'
 import { linkUsersToUserGroup, unlinkUsersFromUserGroup } from '@services/usergroups/usergroups'
 import { apiFetch } from '@services/utils/ts/requests'
-import LearnHouseSpinner from '@components/Objects/Loaders/LearnHouseSpinner'
+import BrandSpinner from '@components/Objects/Loaders/BrandSpinner'
 import { Search, Check, Plus, Minus, ChevronLeft, ChevronRight, Users } from 'lucide-react'
 import React, { useState, useMemo, useEffect, useCallback } from 'react'
 import toast from 'react-hot-toast'
@@ -323,7 +323,7 @@ function ManageUsers(props: ManageUsersProps) {
           <>
           {isPageTransitioning && (
             <div className="absolute inset-0 bg-white/60 z-10 flex items-center justify-center rounded-lg">
-              <LearnHouseSpinner size={24} />
+              <BrandSpinner size={24} />
             </div>
           )}
           {orgUsers.map((user: any) => {

@@ -52,10 +52,9 @@ from src.services.users.email_verification import (
 )
 from src.services.auth.session import issue_session_or_challenge
 from src.security.session_context import (
-    AMR_CLAIM,
     AUTH_METHOD_GOOGLE,
     AUTH_METHOD_PASSWORD,
-    SORG_CLAIM,
+    carry_session_claims,
     session_claims,
 )
 from src.db.organizations import Organization
@@ -217,6 +216,117 @@ def unset_auth_cookies(response: Response, request: Request = None):
 
 
 _refresh_logger = logging.getLogger("learnhouse.auth.refresh")
+_upstream_logger = logging.getLogger("learnhouse.auth.upstream")
+
+
+def _log_upstream_outcome(outcome: str, *, user_id: int | None = None) -> None:
+    """Uma linha estruturada por tentativa de refresh federado. Outcomes fechados:
+    ``upstream_ok``, ``upstream_transient``, ``upstream_denied``,
+    ``upstream_revoked``, ``ttl_exceeded``. Nunca levanta exceção."""
+    try:
+        _upstream_logger.info(
+            "auth.upstream outcome=%s user_id=%s",
+            outcome,
+            user_id if user_id is not None else "-",
+            extra={"event": "auth.upstream", "outcome": outcome, "user_id": user_id},
+        )
+    except Exception:  # pragma: no cover
+        pass
+
+
+def _oidc_session_max_hours() -> int:
+    """TTL máximo absoluto da sessão federada (research R6). Padrão 24 h;
+    override por env (config por org quando a feature 004 evoluir)."""
+    import os
+
+    raw = os.environ.get("LEARNHOUSE_OIDC_SESSION_MAX_HOURS")
+    if raw:
+        try:
+            return max(int(raw), 1)
+        except (TypeError, ValueError):
+            pass
+    return 24
+
+
+async def _refresh_federated_upstream(db_session, usid, user_id, jti):
+    """Ramo federado do refresh (research R4). Retorna uma HTTPException para
+    interromper (401 definitiva/TTL/revogada, 503 transitória) ou ``None`` para
+    prosseguir com a rotação local.
+
+    Ordem: TTL máximo → validar sessão upstream → refresh upstream primeiro →
+    persistir refresh rotacionado. Definitiva encerra; transitória preserva."""
+    from datetime import datetime, timezone
+
+    from src.db.upstream_sessions import REASON_POLICY_TTL, REASON_UPSTREAM_DENIED, STATUS_ACTIVE
+    from src.security.auth import _unmark_refresh_jti_used
+    from src.services.auth import keycloak_oidc as oidc
+    from src.services.auth import upstream_session as upstream
+    from src.services.auth.oidc_config import config_for_upstream_session
+    from src.services.audit.audit import record_audit_event
+    from src.db.user_audit_events import UserAuditEventType
+
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    row = await upstream.get_by_uuid(db_session, usid)
+    if row is None or row.status != STATUS_ACTIVE:
+        _log_upstream_outcome("upstream_revoked", user_id=user_id)
+        return credentials_exception
+
+    # TTL máximo absoluto (research R6): teto mesmo sem sinal do provedor.
+    created = row.created_at
+    if created is not None:
+        if created.tzinfo is None:
+            created = created.replace(tzinfo=timezone.utc)
+        idade_h = (datetime.now(timezone.utc) - created).total_seconds() / 3600
+        if idade_h >= _oidc_session_max_hours():
+            await upstream.expire(db_session, row, REASON_POLICY_TTL)
+            await record_audit_event(
+                event_type=UserAuditEventType.SESSION_REVOKED, user_id=user_id,
+                org_id=row.org_id, metadata={"origin": "policy_ttl", "session_uuid": usid},
+            )
+            _log_upstream_outcome("ttl_exceeded", user_id=user_id)
+            return credentials_exception
+
+    upstream_refresh = upstream.decrypt(row.upstream_refresh_encrypted)
+    if not upstream_refresh:
+        # Sem refresh upstream armazenado: não há como validar — trata como
+        # definitiva (sessão não renovável).
+        await upstream.revoke(db_session, row, REASON_UPSTREAM_DENIED)
+        _log_upstream_outcome("upstream_denied", user_id=user_id)
+        return credentials_exception
+
+    try:
+        config = await config_for_upstream_session(db_session, row)
+        tokens = oidc.refresh_upstream(upstream_refresh, config)
+    except oidc.CodeExchangeError:
+        # invalid_grant = rejeição DEFINITIVA → encerra a sessão local.
+        await upstream.revoke(db_session, row, REASON_UPSTREAM_DENIED)
+        await record_audit_event(
+            event_type=UserAuditEventType.SESSION_REVOKED, user_id=user_id,
+            org_id=row.org_id, metadata={"origin": "upstream_denied", "session_uuid": usid},
+        )
+        _log_upstream_outcome("upstream_denied", user_id=user_id)
+        return credentials_exception
+    except oidc.ProviderUnavailableError:
+        # Transitória: desfaz o consumo do jti, NADA rotaciona, sessão preservada
+        # (o BFF já preserva sessão em status != 401/403).
+        _unmark_refresh_jti_used(user_id, jti)
+        _log_upstream_outcome("upstream_transient", user_id=user_id)
+        return HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"code": "UPSTREAM_UNAVAILABLE",
+                    "message": "O provedor de identidade está temporariamente indisponível."},
+        )
+
+    # Sucesso: persiste o refresh upstream rotacionado (quando houver) e segue.
+    if tokens.get("refresh_token"):
+        await upstream.update_upstream_refresh(db_session, row, tokens["refresh_token"])
+    _log_upstream_outcome("upstream_ok", user_id=user_id)
+    return None
 
 
 def _token_age_seconds(payload: dict | None) -> int | None:
@@ -375,6 +485,17 @@ async def refresh(
         )
         raise credentials_exception
 
+    # Sessão federada (feature 003): rejeita imediatamente se a sessão upstream
+    # foi revogada (back-channel, logout, revogação definitiva). Custo zero para
+    # sessões nativas — só corre quando o claim usid existe.
+    from src.security.session_context import USID_CLAIM
+    usid = payload.get(USID_CLAIM)
+    if usid:
+        from src.services.auth.upstream_session import is_revoked_in_redis
+        if is_revoked_in_redis(usid):
+            _log_upstream_outcome("upstream_revoked", user_id=user.id)
+            raise credentials_exception
+
     # One-time-use rotation with replay detection and a benign-replay grace
     # window. Atomically mark this refresh token's jti as consumed. The FIRST
     # presentation succeeds and caches the rotated pair for a few seconds.
@@ -417,10 +538,24 @@ async def refresh(
         new_access_token = reused_pair["access_token"]
         new_refresh_token = reused_pair["refresh_token"]
     else:
+        # Sessão federada (feature 003): SOMENTE o vencedor do gate NX chama o
+        # upstream. Abas concorrentes (grace) já saíram acima com o par cacheado,
+        # sem chamada upstream duplicada. Ordem: upstream primeiro, rotação local
+        # só depois do sucesso (FR-005).
+        if usid and jti:
+            upstream_outcome = await _refresh_federated_upstream(
+                db_session, usid, user.id, jti
+            )
+            if upstream_outcome is not None:
+                # 401 (definitiva/TTL/revogada) ou 503 (transitória) — o helper
+                # já auditou/registrou e desfez o consumo do jti quando preciso.
+                raise upstream_outcome
+
         # Carry the session's provenance across rotation. Without this a refresh
         # would silently launder a method-bound/org-bound session into a
         # claim-less one that bypasses the org auth-method / sharing policy.
-        carried = session_claims(payload.get(AMR_CLAIM), payload.get(SORG_CLAIM))
+        # A session that records no method also picks up its grace deadline here.
+        carried = carry_session_claims(payload)
         new_access_token = create_access_token(
             data={"sub": email, **carried},
             expires_delta=JWT_ACCESS_TOKEN_EXPIRES,
@@ -1125,7 +1260,23 @@ async def api_verify_email(
     # through the same second-factor gate. A brand-new user cannot have MFA yet,
     # but an existing user re-verifying their address can — and without this the
     # verification link would be a way around their own second factor.
-    issue = await issue_session_or_challenge(db_session, user)
+    #
+    # Stamp the provenance like every other sign-in path. Minting a claim-less
+    # session here meant a freshly-verified member could not be matched against
+    # the org's allowed-method policy at all.
+    from src.security.session_context import AUTH_METHOD_MAGIC_LOGIN
+
+    verified_org = (
+        await db_session.execute(
+            select(Organization).where(Organization.org_uuid == body.org_uuid)
+        )
+    ).scalars().first()
+    issue = await issue_session_or_challenge(
+        db_session,
+        user,
+        amr=AUTH_METHOD_MAGIC_LOGIN,
+        org_id=verified_org.id if verified_org else None,
+    )
     if issue.mfa_required:  # pragma: no cover - same 2FA branch as /login, exercised there
         return {
             "message": message,

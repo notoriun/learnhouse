@@ -1,61 +1,69 @@
 import { Callout } from 'nextra/components'
 
-# Monitoring
+# Monitoramento
 
-Monitoring your self-hosted LearnHouse instance helps you catch issues early and ensure a reliable experience for your users.
+Monitorar sua instância self-hosted do Notoriun ajuda você a identificar problemas cedo e a
+garantir uma experiência confiável para seus usuários.
 
-## Service Health Checks
+## Verificações de Saúde do Serviço
 
-The CLI offers three complementary commands:
+A CLI oferece três comandos complementares:
 
 ```bash
-learnhouse status    # quick container status for each service
-learnhouse health    # PostgreSQL, Redis, HTTP health endpoint, disk, resources
-learnhouse doctor    # deep diagnostics (Docker, ports, DNS, env validation, logs)
+learnhouse status    # status rápido de contêiner para cada serviço
+learnhouse health     # PostgreSQL, Redis, endpoint HTTP de saúde, disco, recursos
+learnhouse doctor     # diagnósticos profundos (Docker, portas, DNS, validação de ambiente, logs)
 ```
 
-You can also verify the application health endpoint directly:
+Você também pode verificar o endpoint de saúde da aplicação diretamente:
 
 ```bash
 curl http://localhost/api/v1/health
 ```
 
-## Viewing Logs
+## Visualizando Logs
 
-Stream logs from all containers:
+Acompanhe os logs de todos os contêineres:
 
 ```bash
 learnhouse logs
 ```
 
-## What to Monitor
+## O Que Monitorar
 
-### Application Health
+### Saúde da Aplicação
 
-- Run `learnhouse doctor` regularly to verify all services are running and healthy
-- Watch for container restarts, which may indicate memory issues or application errors
+- Execute `learnhouse doctor` regularmente para verificar se todos os serviços estão em execução
+  e saudáveis
+- Fique atento a reinícios de contêiner, que podem indicar problemas de memória ou erros de
+  aplicação
 
-### Disk Usage
+### Uso de Disco
 
-- Monitor disk space, especially if using filesystem storage for uploaded content
-- Database size grows over time as more content is created
-- Docker images and logs also consume disk space
+- Monitore o espaço em disco, especialmente se estiver usando armazenamento em filesystem para
+  conteúdo enviado
+- O tamanho do banco de dados cresce ao longo do tempo conforme mais conteúdo é criado
+- Imagens e logs do Docker também consomem espaço em disco
 
-### Memory Usage
+### Uso de Memória
 
-- LearnHouse requires at least 2 GB of RAM
-- Monitor memory consumption to ensure the server is not swapping, which degrades performance
+- O Notoriun requer pelo menos 2 GB de RAM
+- Monitore o consumo de memória para garantir que o servidor não está fazendo swap, o que degrada
+  o desempenho
 
-### Database Performance
+### Desempenho do Banco de Dados
 
-- Watch for slow queries in the application logs
-- Monitor PostgreSQL connection counts
+- Fique atento a consultas lentas nos logs da aplicação
+- Monitore a contagem de conexões do PostgreSQL
 
-## Monitoring Recommendations
+## Recomendações de Monitoramento
 
-For production deployments, consider setting up:
+Para implantações de produção, considere configurar:
 
-- **Uptime monitoring** -- use an external service to check that your LearnHouse instance is accessible (e.g., monitor `http://your-domain/api/v1/health`)
-- **Disk space alerts** -- get notified before disk space runs out
-- **Log aggregation** -- ship logs to a centralized logging system for easier analysis
-- **Container monitoring** -- tools like Docker's built-in stats, cAdvisor, or Prometheus with node-exporter can track resource usage over time
+- **Monitoramento de uptime** -- use um serviço externo para verificar se sua instância do
+  Notoriun está acessível (ex.: monitore `http://seu-dominio/api/v1/health`)
+- **Alertas de espaço em disco** -- seja notificado antes que o espaço em disco se esgote
+- **Agregação de logs** -- envie logs para um sistema de logging centralizado para facilitar a
+  análise
+- **Monitoramento de contêiner** -- ferramentas como as estatísticas integradas do Docker,
+  cAdvisor, ou Prometheus com node-exporter podem rastrear o uso de recursos ao longo do tempo

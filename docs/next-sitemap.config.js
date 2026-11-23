@@ -1,6 +1,7 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-  siteUrl: 'https://docs.learnhouse.app',
+  siteUrl: process.env.NEXT_PUBLIC_DOCS_SITE_URL || 'https://notoriun.github.io/learnhouse',
+  outDir: process.env.DOCS_STATIC_EXPORT === '1' ? 'out' : 'public',
   generateRobotsTxt: true,
   sitemapSize: 5000,
   exclude: ['/404', '/500'],

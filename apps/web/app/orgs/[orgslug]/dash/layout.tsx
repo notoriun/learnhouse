@@ -3,7 +3,8 @@ import React from 'react'
 import ClientAdminLayout from './ClientAdminLayout'
 
 export const metadata: Metadata = {
-  title: 'LearnHouse Dashboard',
+  // O template do layout raiz anexa o nome da marca ("Painel — {marca}").
+  title: 'Painel',
 }
 
 async function DashboardLayout(

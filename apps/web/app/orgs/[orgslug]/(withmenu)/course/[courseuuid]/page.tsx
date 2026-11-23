@@ -5,6 +5,7 @@ import { getOrganizationContextInfo } from '@services/organizations/orgs'
 import { Metadata } from 'next'
 import { getCourseThumbnailMediaDirectory, getOrgOgImageMediaDirectory } from '@services/media/media'
 import { getServerSession } from '@/lib/auth/server'
+import { getBrand } from '@services/config/brand'
 import { getOrgSeoConfig, buildPageTitle } from '@/lib/seo/utils'
 import { getServerCanonicalUrl } from '@/lib/seo/utils.server'
 
@@ -36,8 +37,9 @@ export async function generateMetadata(props: MetadataProps): Promise<Metadata> 
 
   if (!courseResult) {
     return {
-      title: `Course — ${org?.name || 'LearnHouse'}`,
-      description: 'View this course on LearnHouse',
+      // `absolute` evita que o template do layout raiz duplique o sufixo da marca.
+      title: { absolute: `Curso — ${org?.name || getBrand().name}` },
+      description: `Veja este curso em ${org?.name || getBrand().name}`,
     }
   }
   const course_meta = courseResult
@@ -63,7 +65,8 @@ export async function generateMetadata(props: MetadataProps): Promise<Metadata> 
   const shouldFollow = !seo.robots_nofollow
 
   return {
-    title: seo.title || defaultTitle,
+    // `absolute`: o título SEO já traz o nome da org — sem sufixo da marca da plataforma.
+    title: { absolute: seo.title || defaultTitle },
     description: seo.description || defaultDescription,
     keywords: seo.keywords || course_meta.learnings,
     robots: {

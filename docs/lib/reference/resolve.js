@@ -2,7 +2,7 @@
  * OpenAPI 3.1 schema utilities: $ref resolution, allOf merging, anyOf-null
  * simplification, example generation and flattened field rows for display.
  *
- * The LearnHouse spec is fully self-contained (no external $refs), so a small
+ * The spec is fully self-contained (no external $refs), so a small
  * hand-rolled resolver is sufficient — no parser dependency needed.
  */
 

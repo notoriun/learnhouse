@@ -71,7 +71,7 @@ def _is_allowed_base_url(url: str) -> bool:
         except re.error:
             pass
 
-    # Check against LEARNHOUSE_PLATFORM_URL (the main platform, e.g. https://www.learnhouse.app)
+    # Check against LEARNHOUSE_PLATFORM_URL (the main platform URL)
     platform_url = os.environ.get("LEARNHOUSE_PLATFORM_URL", "").rstrip("/")
     if platform_url:
         parsed_url = urlparse(url_stripped)
@@ -143,8 +143,8 @@ def get_media_base_url(request: Request) -> str:
 
     1. An explicit backend override (``LEARNHOUSE_MEDIA_URL`` /
        ``LEARNHOUSE_BACKEND_URL``) — set this if the media host isn't ``api.``.
-    2. The SaaS convention ``{scheme}://api.{domain}`` (e.g. api.learnhouse.io)
-       when a real domain is configured.
+    2. The SaaS convention ``{scheme}://api.{domain}`` when a real domain is
+       configured.
     3. The request's own host as a last resort (correct for single-tenant /
        self-hosted where API and content share the request origin).
     """
@@ -169,7 +169,7 @@ def get_org_logo_url(org, request: Request) -> Optional[str]:
 
     Mirrors the frontend's ``getOrgLogoMediaDirectory`` path shape
     (``content/orgs/{uuid}/logos/{file}``). Returns None so callers fall back
-    to the default LearnHouse mark.
+    to the default platform mark.
     """
     logo_image = getattr(org, "logo_image", None)
     org_uuid = getattr(org, "org_uuid", None)
@@ -266,12 +266,29 @@ def get_base_url_from_request(request: Request) -> str:
     return f"{request.url.scheme}://{request.url.netloc}"
 
 
+def resolve_platform_name(text: str) -> str:
+    """Resolve o placeholder ``{platform_name}`` com o ``site_name`` da config.
+
+    Ponto único de marca nos e-mails (feature 005): os templates em
+    ``translations.py`` carregam o placeholder; a marca vem de
+    ``LEARNHOUSE_SITE_NAME``/config.yaml — a env var é preservada (FR-009),
+    só o valor muda na troca de marca.
+    """
+    if "{platform_name}" in text:
+        return text.replace(
+            "{platform_name}", get_learnhouse_config().site_name
+        )
+    return text
+
+
 def send_email(to: EmailStr, subject: str, body: str):
     from fastapi import HTTPException
 
     lh_config = get_learnhouse_config()
     mailing = lh_config.mailing_config
-    sender = f"LearnHouse <{mailing.system_email_address}>"
+    sender = f"{lh_config.site_name} <{mailing.system_email_address}>"
+    subject = resolve_platform_name(subject)
+    body = resolve_platform_name(body)
 
     # Resend (and most providers) require a plain `email@example.com` string.
     # Pydantic's EmailStr is a str subclass, but third-party JSON serializers

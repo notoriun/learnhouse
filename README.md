@@ -1,45 +1,38 @@
-<p align="center">
-  <a href="https://learnhouse.app">
-    <img src=".github/images/learnhouse-github.png" alt="LearnHouse" width="600" />
-  </a>
-</p>
+<h1 align="center">Notoriun</h1>
 
-<h3 align="center">The next-gen open-source platform for world-class educational content.</h3>
+<h3 align="center">Plataforma aberta de aprendizagem — cursos, conteúdo interativo e colaboração em tempo real.</h3>
 
 <p align="center">
-  <a href="https://github.com/learnhouse/learnhouse/blob/main/LICENSE"><img src="https://img.shields.io/github/license/learnhouse/learnhouse?style=flat&color=blue" alt="License" /></a>
-  <a href="https://github.com/learnhouse/learnhouse/stargazers"><img src="https://img.shields.io/github/stars/learnhouse/learnhouse?style=flat" alt="Stars" /></a>
-  <a href="https://www.npmjs.com/package/learnhouse"><img src="https://img.shields.io/npm/v/learnhouse?style=flat&label=cli" alt="CLI Version" /></a>
-  <a href="https://app.codecov.io/gh/learnhouse/learnhouse"><img src="https://img.shields.io/codecov/c/github/learnhouse/learnhouse?flag=api&label=api%20coverage" alt="API Coverage" /></a>
-  <a href="https://github.com/learnhouse/learnhouse/commits"><img src="https://img.shields.io/github/last-commit/learnhouse/learnhouse?style=flat&label=last%20commit" alt="Last Commit" /></a>
-  <a href="https://github.com/learnhouse/learnhouse/issues"><img src="https://img.shields.io/github/issues/learnhouse/learnhouse?style=flat" alt="Issues" /></a>
-  <a href="https://github.com/learnhouse/learnhouse/pulls"><img src="https://img.shields.io/github/issues-pr/learnhouse/learnhouse?style=flat&label=PRs" alt="Pull Requests" /></a>
+📖 <b>Cursos</b> — crie e gerencie cursos com facilidade<br>
+✏️ <b>Editor</b> — editor de conteúdo em blocos, estilo Notion<br>
+📦 <b>Coleções</b> — organize cursos em trilhas curadas<br>
+📝 <b>Tarefas</b> — atividades com acompanhamento de entregas<br>
+💬 <b>Discussões</b> — fóruns de comunidade para os alunos<br>
+🎙️ <b>Podcasts</b> — conteúdo em áudio<br>
+📊 <b>Analytics</b> — engajamento e desempenho dos cursos<br>
+🧊 <b>Playgrounds</b> — elementos interativos e simulações geradas por IA<br>
+💻 <b>Código</b> — execução real de código com correção automática em 30+ linguagens<br>
+📋 <b>Quadros</b> — whiteboards colaborativos em tempo real<br>
+🧠 <b>IA</b> — assistência contextual para aprender e ensinar<br>
+🎓 <b>Certificados</b> — emissão automática na conclusão do curso<br>
+👥 <b>Grupos</b> — organize alunos e controle acessos<br>
+🔍 <b>SEO</b> — metadados, sitemaps e open graph integrados<br>
+🎨 <b>Personalização</b> — identidade própria, landing pages e temas<br>
+🔐 <b>Login corporativo</b> — autenticação OIDC via Keycloak<br>
 </p>
 
-<p align="center">
-📖 <b>Courses</b> — Create and manage courses with ease<br>
-✏️ <b>Editor</b> — Powerful block-based Notion-like content editor<br>
-📦 <b>Collections</b> — Organize courses into curated bundles<br>
-📝 <b>Assignments</b> — Create tasks and track student submissions<br>
-💬 <b>Discussions</b> — Community forums for your learners<br>
-🎙️ <b>Podcasts</b> — Audio content for on-the-go learning<br>
-📊 <b>Analytics</b> — Track engagement and course performance<br>
-🧊 <b>Playgrounds</b> — AI-generated interactive elements, simulations & diagrams<br>
-💻 <b>Code</b> — Real code execution with auto-grading in 30+ languages<br>
-📋 <b>Boards</b> — Real-time collaborative whiteboards<br>
-🧠 <b>AI</b> — Context-aware AI for learning & teaching<br>
-🎓 <b>Certificates</b> — Auto-generate certificates on course completion<br>
-👥 <b>User Groups</b> — Organize learners and control access<br>
-🔍 <b>SEO</b> — Built-in SEO optimization with metadata, sitemaps & open graph<br>
-🎨 <b>Customization</b> — Custom branding, landing pages & theming<br>
-💳 <b>Payments (Enterprise)</b> — Sell courses with no fees and no lock-in<br>
-🔐 <b>SSO (Enterprise)</b> — Single sign-on with OAuth providers<br>
-🏢 <b>Multi-Org (Enterprise)</b> — Run multiple organizations from a single instance<br>
-</p>
+## 🚀 Começando
 
-## 🚀 Get Started
+### Desenvolvimento
 
-LearnHouse has an official CLI that handles everything — self-hosting, updates, backups, and local development.
+```bash
+git clone https://github.com/notoriun/learnhouse.git
+cd learnhouse
+npx learnhouse dev
+```
+
+O comando sobe PostgreSQL e Redis, instala as dependências e inicia os
+servidores de API, Web e Colaboração com hot reload.
 
 ### Self-host
 
@@ -47,96 +40,237 @@ LearnHouse has an official CLI that handles everything — self-hosting, updates
 npx learnhouse@latest setup
 ```
 
-The setup wizard walks you through domain, database, admin account, and optional features. Once done, it generates all config files and starts your instance.
+O assistente de instalação configura domínio, banco de dados, conta
+administrativa e recursos opcionais.
 
-```bash
-npx learnhouse start       # Start services
-npx learnhouse stop        # Stop services
-npx learnhouse update      # Update to latest version
-npx learnhouse logs        # Stream logs
-npx learnhouse backup      # Backup database
-npx learnhouse doctor      # Diagnose issues
+> O nome do pacote CLI (`learnhouse`) é um identificador técnico herdado do
+> projeto de origem; sua renomeação é gradual e não afeta a operação.
+
+## Como publicar
+
+A imagem da comunidade (`build-community.yaml`) só é publicada em push na `main` **quando a versão subiu**.
+
+1. Suba `version` em `apps/web/package.json` (mantenha `apps/collab` e `apps/api/pyproject.toml` alinhados). A comparação é semver contra a maior tag de versão existente (`1.3.4`/`v1.3.4`; tags `cli-*` são ignoradas).
+2. Mescle na `main`. Se subiu, publica `main`/`main-<sha>` e cria a tag `vX.Y.Z`; senão termina com sucesso sem publicar. Push em `dev` não publica mais.
+3. Forçar ou publicar a partir da `dev`: Actions → *Build Community Images* → *Run workflow* com `ambiente` (producao/desenvolvimento), `ref` (ex. `dev`) e `forcar=true` para ignorar a comparação. Pré-lançamento (`-rc.1`) só com `forcar`.
+4. Release oficial por tag numérica (`release.yaml`, padrão `[0-9]*`) continua como antes; a tag `vX.Y.Z` do fluxo acima não a dispara.
+
+Teste: `node --test .github/scripts/versao.test.mjs`.
+
+## 📁 Estrutura do projeto
+
+| App | Caminho | Descrição |
+|-----|---------|-----------|
+| **Web** | `apps/web` | Frontend — dashboard, player de cursos, editor, landing pages |
+| **API** | `apps/api` | Backend REST — auth, cursos, IA, analytics |
+| **Collab** | `apps/collab` | Colaboração em tempo real — edição ao vivo de cursos e quadros |
+| **CLI** | `apps/cli` | CLI oficial — instalação, dev e gestão de instância |
+| **Docs** | `docs` | Documentação pública (Nextra + Next.js) — ver seção abaixo |
+
+## 📚 Documentação (`docs/`)
+
+A documentação pública vive em `docs/` e é publicada em
+**docs.notoriun.com.br**. Stack: [Nextra](https://nextra.site) 4 +
+Next.js 16, React 19, Tailwind v4, busca via [Pagefind](https://pagefind.app).
+Gerenciador de pacotes: **Bun**.
+
+### Atualizando o conteúdo
+
+Todo o conteúdo é MDX em `docs/content/`. A rota segue o caminho do arquivo, e
+`index.mdx` responde pela raiz da seção:
+
+```
+docs/content/platform/certifications.mdx   ->  /platform/certifications
+docs/content/developers/index.mdx          ->  /developers
 ```
 
-### Development
+A **ordem e os rótulos da sidebar** não vêm do nome do arquivo: cada pasta tem
+um `_meta.json` que define a sequência, os títulos exibidos e os separadores de
+grupo. Uma página nova só aparece na navegação depois de ser registrada ali.
 
-```bash
-git clone https://github.com/learnhouse/learnhouse.git
-cd learnhouse
-npx learnhouse dev
+```jsonc
+// docs/content/_meta.json
+{
+  "index": "Home",
+  "-- Platform": { "type": "separator", "title": "Platform" },
+  "platform": "Platform",
+  "self-hosting": "Self Hosting"
+}
 ```
 
-This spins up PostgreSQL and Redis, installs dependencies, and starts the API, Web, and Collab servers with hot reload.
+Outros pontos de edição:
 
-> See the full [CLI documentation](apps/cli/README.md) for all commands and options.
+| O que | Onde |
+|-------|------|
+| Título/descrição globais e metadados | `docs/app/layout.jsx` |
+| Navbar e footer | `docs/components/Navbar/`, `docs/components/Footer/` |
+| Referência da API (gerada, **não** editar à mão) | `docs/lib/reference/openapi.snapshot.json` |
+| Estilos | `docs/styles.css` |
 
-## 🛠️ Tech Stack
-
-<p align="center">
-<a href="https://nextjs.org"><img src="https://img.shields.io/badge/Next.js-000?style=flat&logo=nextdotjs&logoColor=white" alt="Next.js" /></a>
-<a href="https://react.dev"><img src="https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black" alt="React" /></a>
-<a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white" alt="TypeScript" /></a>
-<a href="https://tailwindcss.com"><img src="https://img.shields.io/badge/TailwindCSS-06B6D4?style=flat&logo=tailwindcss&logoColor=white" alt="TailwindCSS" /></a>
-<a href="https://www.radix-ui.com"><img src="https://img.shields.io/badge/Radix_UI-161618?style=flat&logo=radixui&logoColor=white" alt="Radix UI" /></a>
-<a href="https://tiptap.dev"><img src="https://img.shields.io/badge/Tiptap-1a1a2e?style=flat&logoColor=white" alt="Tiptap" /></a>
-<a href="https://codemirror.net"><img src="https://img.shields.io/badge/CodeMirror-D30707?style=flat&logo=codemirror&logoColor=white" alt="CodeMirror" /></a>
-<a href="https://yjs.dev"><img src="https://img.shields.io/badge/Yjs-6EEB83?style=flat&logoColor=black" alt="Yjs" /></a>
-<a href="https://fastapi.tiangolo.com"><img src="https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
-<a href="https://www.python.org"><img src="https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white" alt="Python" /></a>
-<a href="https://www.postgresql.org"><img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white" alt="PostgreSQL" /></a>
-<a href="https://redis.io"><img src="https://img.shields.io/badge/Redis-DC382D?style=flat&logo=redis&logoColor=white" alt="Redis" /></a>
-<a href="https://www.docker.com"><img src="https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white" alt="Docker" /></a>
-<a href="https://stripe.com"><img src="https://img.shields.io/badge/Stripe-635BFF?style=flat&logo=stripe&logoColor=white" alt="Stripe" /></a>
-<a href="https://ai.google.dev"><img src="https://img.shields.io/badge/Gemini-8E75B2?style=flat&logo=googlegemini&logoColor=white" alt="Gemini" /></a>
-<a href="https://www.llamaindex.ai"><img src="https://img.shields.io/badge/LlamaIndex-000?style=flat&logoColor=white" alt="LlamaIndex" /></a>
-<a href="https://aws.amazon.com/s3"><img src="https://img.shields.io/badge/AWS_S3-569A31?style=flat&logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPjxwYXRoIGQ9Ik0xMiAyTDIgN3YxMGwxMCA1IDEwLTVWN0wxMiAyem0wIDIuMThMMTkuMTggNyAxMiA5LjgyIDQuODIgNyAxMiA0LjE4ek00IDguNjRsNyAzLjVWMTkuNWwtNy0zLjVWOC42NHptMTAgMTAuODZWMTIuMTRsNy0zLjV2Ny4zNmwtNyAzLjV6Ii8+PC9zdmc+&logoColor=white" alt="AWS S3" /></a>
-<a href="https://www.tinybird.co"><img src="https://img.shields.io/badge/Tinybird-1A1A1A?style=flat&logoColor=white" alt="Tinybird" /></a>
-</p>
-
-## 📁 Project Structure
-
-| App | Path | Description | Technology | Used by |
-|-----|------|-------------|------------|---------|
-| **Web** | `apps/web` | Frontend application — dashboard, course player, editor, landing pages | Next.js, React, TailwindCSS, Tiptap | Teachers, Students, Admins |
-| **API** | `apps/api` | Backend REST API — auth, courses, payments, AI, analytics | FastAPI, Python, SQLModel, Alembic | Web, CLI, Collab |
-| **Collab** | `apps/collab` | Real-time collaboration server — live editing sync for courses & boards | Hocuspocus, Yjs, WebSocket | Web (editor, boards) |
-| **CLI** | `apps/cli` | Official CLI — setup wizard, dev environment, instance management | Commander, Node.js | Developers, Self-hosters |
-
-## 💬 Community
-
-- [Discord](https://discord.gg/CMyZjjYZ6x) — chat with the team and other users
-- [Documentation](https://docs.learnhouse.app) — guides and references
-
-## 🤝 Contributing
+A referência da API é montada a partir de um snapshot do OpenAPI commitado no
+repo. Para atualizá-la depois de mudar endpoints na API:
 
 ```bash
-git clone https://github.com/learnhouse/learnhouse.git
-cd learnhouse
-npx learnhouse dev
+cd docs
+node scripts/update-openapi-snapshot.mjs http://localhost:1338
 ```
 
-- [Contributing Guide](CONTRIBUTING.md)
-- [Submit a bug](https://github.com/learnhouse/learnhouse/issues/new?assignees=&labels=bug%2Ctriage&projects=&template=bug.yml&title=%5BBug%5D%3A+)
-- [Good first issues](https://github.com/learnhouse/learnhouse/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
+Loop de desenvolvimento local:
 
-## 🔒 Security
+```bash
+cd docs
+bun install
+bun dev          # http://localhost:3000
+```
 
-We take the security of LearnHouse and the data entrusted to us seriously. If you discover a vulnerability, please email **security@learnhouse.app** — do not disclose it publicly until we've had a chance to investigate.
+> O índice do Pagefind (`public/_pagefind`) é gerado apenas no `postbuild`, e
+> não é commitado. Portanto a busca não fica funcional no `bun dev` — para
+> testá-la, use a imagem Docker descrita abaixo.
 
-Please include a clear description, steps to reproduce, affected endpoints, and any relevant screenshots or proof-of-concept code. We will acknowledge your report, keep you informed, and credit you once resolved if you wish.
+### O que o build faz
 
-See our full [Security Policy](https://learnhouse.app/security) for details on our practices, scope, and responsible disclosure guidelines.
+```
+bun run build
+  ├─ node scripts/generate-llms-full.mjs   -> public/llms-full.txt
+  └─ next build                            -> .next/ (116 rotas prerenderizadas)
 
-## ✍️ Author & Maintainer
+postbuild (o Bun encadeia automaticamente)
+  ├─ pagefind --site .next/server/app --output-path public/_pagefind
+  └─ next-sitemap                          -> public/sitemap.xml + robots.txt
+```
 
-Sweave (Badr B.) — [@swve](https://github.com/swve)
+**A doc não é um site estático.** `docs/next.config.mjs` não usa
+`output: 'export'`, e o Pagefind indexa a partir de `.next/server/app`. Ou seja:
+exige runtime Node em produção e **não** dá para servir só com nginx. O config
+usa `output: 'standalone'`, que empacota `server.js` mais as dependências
+rastreadas.
 
-## 💜 A Word
+### Imagem Docker
 
-LearnHouse is made with 💜, from the UI to the features it is carefully designed to make students and teachers lives easier and make education software more enjoyable.
+Construída pelo [Dockerfile.docs](Dockerfile.docs) — build em `oven/bun:1`,
+runtime em `node:22-slim` rodando `node server.js`:
 
-Thank you and have fun using/developing/testing LearnHouse !
+```bash
+# a partir da raiz do repo
+docker build -t learnhouse-docs:latest -f Dockerfile.docs .
 
-## 📄 License
+# testar localmente antes de publicar
+docker run --rm -p 3100:3000 learnhouse-docs:latest   # http://localhost:3100
+```
 
-[AGPL-3.0](LICENSE) — Enterprise features are available under a separate Enterprise License.
+Dois detalhes que parecem redundantes mas não são:
+
+- **`output: 'standalone'` não inclui `public/` nem `.next/static`.** Por isso o
+  Dockerfile tem dois `COPY` extras. Sem eles a imagem sobe, responde 200 e o
+  site aparece **sem CSS/JS e sem busca** — falha silenciosa.
+- **Existe um [Dockerfile.docs.dockerignore](Dockerfile.docs.dockerignore)
+  dedicado.** O `.dockerignore` da raiz exclui `docs/` (regra correta para o
+  build do app), o que deixaria o `COPY docs/ .` sem nada para copiar. O
+  BuildKit dá precedência ao arquivo `<dockerfile>.dockerignore`, então o build
+  da doc tem o próprio escopo sem afetar o contexto do build do app.
+
+> Os nomes têm sufixo `.docs` de propósito: o `Dockerfile` da raiz é o build do
+> app (web + api) e não deve ser sobrescrito.
+
+### Como funciona o compose
+
+[docker-compose.docs.yml](docker-compose.docs.yml) é uma **stack do Docker
+Swarm** — não um `docker compose up`. O arquivo tem um serviço só, e cada bloco
+existe por um motivo:
+
+| Bloco | Para que serve |
+|-------|----------------|
+| `image` | Imagem já construída. Em Swarm **cada nó resolve a imagem por conta própria**, então uma imagem só local não replica: para múltiplos nós, publicar em registry e apontar para lá. |
+| `networks: traefik-public` | Rede overlay **externa**, criada fora desta stack e compartilhada com o Traefik. Sem estar na mesma rede overlay, o Traefik não alcança o container. |
+| `deploy.replicas` | Número de instâncias do serviço. |
+| `deploy.placement.constraints` | Fixa o serviço no nó `server1`. |
+| `deploy.labels` | Os labels do Traefik. **Precisam ficar aqui, não em `labels`** — ver abaixo. |
+
+O serviço **não publica `ports`**: nada é exposto no host. O único caminho de
+entrada é o Traefik, pela rede overlay.
+
+> ⚠️ **`deploy.labels` e não `labels`.** Em Swarm o Traefik descobre serviços
+> pela API do Swarm, não pelos containers. Labels em `labels` ficam no container
+> e o Traefik simplesmente não os vê — o serviço sobe saudável e o domínio
+> retorna 404. É o erro mais comum nesse setup.
+
+Os labels, um por um:
+
+| Label | Efeito |
+|-------|--------|
+| `traefik.enable=true` | Habilita a descoberta deste serviço. |
+| `traefik.docker.network=traefik-public` | Diz por qual rede o Traefik deve falar com o container, necessário quando o serviço está em mais de uma rede. |
+| `routers.lhdocs.rule=Host(...)` | Casa o domínio `docs.notoriun.com.br`. |
+| `routers.lhdocs.entrypoints` | Entrypoint HTTPS do Traefik. **Ajustar** ao nome usado neste ambiente. |
+| `routers.lhdocs.tls=true` + `tls.certresolver` | Liga o TLS e escolhe o resolver Let's Encrypt. **Ajustar** ao nome usado neste ambiente. |
+| `services.lhdocs.loadbalancer.server.port=3000` | Porta **interna** do container. Não é porta publicada; é para onde o Traefik encaminha. |
+
+Para descobrir os nomes reais de entrypoint e certresolver do ambiente:
+
+```bash
+docker service inspect traefik \
+  --format '{{json .Spec.TaskTemplate.ContainerSpec.Args}}' | tr ',' '\n' \
+  | grep -iE 'entrypoint|certificatesresolvers'
+```
+
+### Publicando uma atualização
+
+```bash
+# 1. build com uma tag versionada (evita depender de :latest em Swarm)
+docker build -t <registry>/notoriun/learnhouse-docs:$(git rev-parse --short HEAD) \
+             -f Dockerfile.docs .
+docker push <registry>/notoriun/learnhouse-docs:<tag>
+
+# 2. primeiro deploy — ou qualquer mudança no compose
+docker stack deploy -c docker-compose.docs.yml learnhouse-docs
+
+# 2b. apenas trocar a imagem, sem reprocessar a stack
+docker service update --image <registry>/notoriun/learnhouse-docs:<tag> \
+  learnhouse-docs_learnhouse-docs
+
+# 3. acompanhar
+docker service logs -f learnhouse-docs_learnhouse-docs
+docker service ps learnhouse-docs_learnhouse-docs
+```
+
+> Em Swarm, `:latest` é uma armadilha: o serviço pode não reconhecer que a
+> imagem mudou e não recriar as tasks. Use tags versionadas.
+
+### Pontos de atenção conhecidos
+
+- **`entrypoints` e `tls.certresolver` estão com placeholder** no compose e
+  precisam ser ajustados antes do primeiro deploy.
+- **`sitemap.xml`, `robots.txt` e `llms-full.txt` ainda apontam para
+  `docs.learnhouse.app`** — valores fixos em `docs/next-sitemap.config.js`
+  (`siteUrl`) e `docs/scripts/generate-llms-full.mjs` (`SITE_URL`). Idem
+  `docsRepositoryBase` em `docs/app/layout.jsx`, que aponta para o repo
+  upstream. Herança do fork, ainda não corrigida.
+- **O build emite `warn [nextra] Init git repository failed`.** O `.git` não
+  entra no contexto do build, então as páginas saem sem a data de "última
+  atualização". Não afeta conteúdo nem busca.
+
+## 🔒 Segurança
+
+Vulnerabilidades devem ser reportadas de forma privada — veja
+[SECURITY.md](SECURITY.md). Não as divulgue publicamente antes da correção.
+
+## ⚖️ Licença e atribuição
+
+Distribuído sob a licença [AGPL-3.0](LICENSE). O código-fonte correspondente a
+cada versão em execução está disponível a todos os usuários do serviço.
+
+Este projeto é um trabalho derivado do
+[LearnHouse](https://github.com/learnhouse/learnhouse), cujos avisos de
+copyright e licença são preservados. **Notoriun é um produto independente, não
+afiliado, não endossado e não patrocinado pela LearnHouse, Inc.** O nome
+"LearnHouse" aparece neste repositório apenas como atribuição factual exigida
+pela licença.
+
+O código-fonte correspondente a cada release é publicado automaticamente junto
+da imagem, e a aplicação expõe um link **"Código-fonte (AGPL-3.0)"** apontando
+para a fonte da exata versão em execução.
+
+> **Nota:** a conformidade técnica descrita aqui orienta o trabalho de
+> engenharia e **não substitui parecer jurídico**. A operação comercial deve
+> validar o modelo final com profissional especializado em software livre e
+> marcas antes do go-live.

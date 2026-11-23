@@ -8,7 +8,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
-import lrnaiIcon from 'public/lrnai_icon.png'
+import aiIcon from '@components/Objects/aiIcon'
 import toast from 'react-hot-toast'
 import type { CoursePlan, ChapterPlan, ActivityPlan, CreatedChapter } from '@services/ai/courseplanning'
 import {
@@ -256,7 +256,7 @@ function PlanTabContent({
           style={{ background: 'conic-gradient(from 32deg at 53.75% 50%, rgb(35, 40, 93) 4deg, rgba(20, 0, 52, 0.95) 59deg, rgba(164, 45, 238, 0.88) 281deg)' }}
           className="p-4 rounded-full drop-shadow-md animate-pulse"
         >
-          <Image src={lrnaiIcon} alt="AI" width={32} height={32} />
+          <Image src={aiIcon} alt="AI" width={32} height={32} />
         </div>
         <p className="text-white/50 mt-4 text-sm">{t('courses.create.ai.generating_plan')}</p>
         {streamingContent && (
@@ -278,7 +278,7 @@ function PlanTabContent({
           style={{ background: 'conic-gradient(from 32deg at 53.75% 50%, rgb(35, 40, 93) 4deg, rgba(20, 0, 52, 0.95) 59deg, rgba(164, 45, 238, 0.88) 281deg)' }}
           className="p-4 rounded-full drop-shadow-md"
         >
-          <Image src={lrnaiIcon} alt="AI" width={32} height={32} />
+          <Image src={aiIcon} alt="AI" width={32} height={32} />
         </div>
         <h3 className="text-white/80 font-semibold mt-4">{t('courses.create.ai.describe_course')}</h3>
         <p className="text-white/50 text-sm mt-2 text-center max-w-md">{t('courses.create.ai.describe_course_hint')}</p>

@@ -46,11 +46,11 @@
     "help": "सहायता",
     "help_menu": {
       "documentation": "दस्तावेज़ीकरण",
-      "website": "LearnHouse वेबसाइट",
+      "website": "{{brand}} वेबसाइट",
       "discord": "Discord",
       "report_feedback": "समस्या या फीडबैक रिपोर्ट करें",
       "feedback_title": "फीडबैक भेजें",
-      "feedback_description": "अपने विचार साझा करके, बग रिपोर्ट करके, या नई सुविधाओं का सुझाव देकर LearnHouse को बेहतर बनाने में हमारी मदद करें।",
+      "feedback_description": "अपने विचार साझा करके, बग रिपोर्ट करके, या नई सुविधाओं का सुझाव देकर {{brand}} को बेहतर बनाने में हमारी मदद करें।",
       "feedback_placeholder": "हमें बताएं कि आप क्या सोच रहे हैं...",
       "feedback_success": "आपके फीडबैक के लिए धन्यवाद!",
       "send_feedback": "फीडबैक भेजें",
@@ -215,7 +215,7 @@
     "organizations": "संगठन",
     "billing": "बिलिंग",
     "create_organization": "संगठन बनाएँ",
-    "copyright": "© {{year}} LearnHouse, Inc.",
+    "copyright": "© {{year}} {{legalName}}",
     "delete_organization_error": "यह संगठन नहीं हटाया जा सका। कृपया पुनः प्रयास करें।",
     "org_actions": "संगठन की क्रियाएँ",
     "manage_upgrade": "प्रबंधित करें / अपग्रेड करें",
@@ -375,17 +375,17 @@
     "verifying_email": "आपका ईमेल पता सत्यापित किया जा रहा है...",
     "error_generic": "कुछ गलत हो गया। कृपया पुनः प्रयास करें।",
     "sign_in": "साइन इन करें",
-    "terms_text": "जारी रखते हुए, आप LearnHouse की",
+    "terms_text": "जारी रखते हुए, आप {{brand}} की",
     "terms_of_service": "सेवा की शर्तें",
     "and": "और",
     "privacy_policy": "गोपनीयता नीति",
     "image_title_forgot": "अपना पासवर्ड रीसेट करें।",
     "image_subtitle_forgot": "हम आपको कुछ ही समय में आपके खाते में वापस लाने में मदद करेंगे।",
-    "image_title_login": "LearnHouse में फिर से स्वागत है।",
+    "image_title_login": "{{brand}} में फिर से स्वागत है।",
     "image_subtitle_login": "जहाँ छोड़ा था वहीं से जारी रखें — आपके कोर्स, छात्र और टूल आपका इंतज़ार कर रहे हैं।",
     "image_title_reset": "बस थोड़ा और।",
     "image_subtitle_reset": "अपने खाते को सुरक्षित रखने के लिए एक मज़बूत पासवर्ड बनाएँ।",
-    "image_title_signup": "LearnHouse के साथ सिखाना शुरू करें।",
+    "image_title_signup": "{{brand}} के साथ सिखाना शुरू करें।",
     "image_subtitle_signup": "अपना खाता बनाएँ और कुछ ही मिनटों में अपना पहला कोर्स लॉन्च करें।",
     "image_title_verify": "अपना ईमेल सत्यापित करें।",
     "image_subtitle_verify": "अपने खाते को सुरक्षित करने और शुरू करने के लिए एक त्वरित कदम।",
@@ -576,14 +576,14 @@
     "import": {
       "scorm_package": "SCORM पैकेज",
       "scorm_description": "SCORM 1.2 या SCORM 2004 पैकेज आयात करें",
-      "learnhouse_courses": "LearnHouse कोर्स",
-      "learnhouse_description": "LearnHouse से निर्यात किए गए कोर्स आयात करें",
+      "learnhouse_courses": "{{brand}} कोर्स",
+      "learnhouse_description": "{{brand}} से निर्यात किए गए कोर्स आयात करें",
       "upload_package": "पैकेज अपलोड करें",
       "configure": "कॉन्फ़िगर करें",
       "complete": "पूर्ण",
       "click_to_upload": "अपलोड करने के लिए क्लिक करें या ड्रैग और ड्रॉप करें",
-      "learnhouse_format": "LearnHouse कोर्स निर्यात (.zip)",
-      "learnhouse_info": "LearnHouse कोर्स निर्यात पैकेज (.zip) अपलोड करें। आप चुन सकते हैं कि कौन से कोर्स आयात करने हैं और आयात विकल्प कॉन्फ़िगर कर सकते हैं।",
+      "learnhouse_format": "{{brand}} कोर्स निर्यात (.zip)",
+      "learnhouse_info": "{{brand}} कोर्स निर्यात पैकेज (.zip) अपलोड करें। आप चुन सकते हैं कि कौन से कोर्स आयात करने हैं और आयात विकल्प कॉन्फ़िगर कर सकते हैं।",
       "analyze_package": "पैकेज का विश्लेषण करें",
       "ready_to_analyze": "विश्लेषण के लिए तैयार",
       "invalid_file_format": "कृपया .zip फ़ाइल अपलोड करें",
@@ -1513,8 +1513,8 @@
       "import_course": "कोर्स आयात करें",
       "import_scorm": "SCORM पैकेज आयात करें",
       "import_scorm_description": "नया कोर्स बनाने के लिए SCORM पैकेज आयात करें",
-      "import_learnhouse": "LearnHouse कोर्स आयात करें",
-      "import_learnhouse_description": "LearnHouse निर्यात पैकेज से कोर्स आयात करें",
+      "import_learnhouse": "{{brand}} कोर्स आयात करें",
+      "import_learnhouse_description": "{{brand}} निर्यात पैकेज से कोर्स आयात करें",
       "import_select_type": "आयात करने के लिए पैकेज प्रकार चुनें",
       "no_courses": "अभी तक कोई कोर्स नहीं",
       "create_course_placeholder": "सामग्री जोड़ने के लिए कोर्स बनाएं",
@@ -2363,9 +2363,9 @@
         "footer_text_desc": "आपके संगठन के पृष्ठों के नीचे प्रदर्शित कस्टम टेक्स्ट",
         "default_language": "डिफ़ॉल्ट भाषा",
         "default_language_desc": "नए विज़िटर को डिफ़ॉल्ट रूप से दिखाई देने वाली भाषा और इस संस्था की ओर से भेजे जाने वाले ईमेल में उपयोग की जाने वाली भाषा। सदस्य अब भी अपनी UI भाषा बदल सकते हैं।",
-        "watermark_desc": "अपने संगठन के पेजों पर LearnHouse ब्रांडिंग वॉटरमार्क दिखाएं",
+        "watermark_desc": "अपने संगठन के पेजों पर {{brand}} ब्रांडिंग वॉटरमार्क दिखाएं",
         "watermark_free_plan": "फ्री प्लान पर वॉटरमार्क हमेशा दिखाया जाता है",
-        "watermark_label": "\"Made with LearnHouse\" वॉटरमार्क",
+        "watermark_label": "\"Made with {{brand}}\" वॉटरमार्क",
         "watermark_ee": "आपके एंटरप्राइज़ संस्करण लाइसेंस द्वारा छिपाया गया"
       },
       "images": {
@@ -3026,19 +3026,97 @@
         "failed_load": "छात्र डोज़ियर लोड करने में विफल।",
         "back_to_students": "छात्रों पर वापस जाएँ",
         "no_behavioral": "कोई व्यवहारिक डेटा नहीं (इस अवधि के लिए विश्लेषण अकॉन्फ़िगर हो सकता है)।",
-        "ranges": { "d30": "30 दिन", "d90": "90 दिन", "y1": "1 वर्ष" },
-        "kpi": { "courses": "पाठ्यक्रम", "completed": "{{count}} पूर्ण", "avg_progress": "औसत प्रगति", "time_spent": "बिताया गया समय", "assignments": "असाइनमेंट", "avg_grade": "औसत {{grade}}", "certificates": "प्रमाणपत्र", "connections": "कनेक्शन", "last": "अंतिम {{date}}" },
-        "tabs": { "connections": "कनेक्शन", "courses": "पाठ्यक्रम", "assignments": "असाइनमेंट", "code": "कोड", "community": "समुदाय", "certificates": "प्रमाणपत्र", "behavior": "व्यवहार" },
-        "identity": { "verified": "सत्यापित", "unverified": "असत्यापित", "via": "{{method}} के माध्यम से" },
-        "connections": { "title": "कनेक्शन", "empty": "अभी तक कोई दर्ज कनेक्शन नहीं।" },
-        "courses": { "title": "पाठ्यक्रम प्रगति", "empty": "किसी भी पाठ्यक्रम में नामांकित नहीं।", "activities": "{{done}}/{{total}} गतिविधियाँ", "enrolled": "नामांकित {{date}}" },
-        "assignments": { "title": "असाइनमेंट", "empty": "कोई असाइनमेंट सबमिशन नहीं।", "attempt": "प्रयास {{number}}", "feedback": "प्रतिक्रिया:" },
-        "code": { "title": "कोड अभ्यास", "empty": "कोई कोड सबमिशन नहीं।", "activity": "गतिविधि", "result": "परिणाम", "tests": "परीक्षण", "time": "समय", "when": "कब", "passed": "उत्तीर्ण", "failed": "असफल" },
-        "community": { "title": "समुदाय भागीदारी", "empty": "कोई समुदाय गतिविधि नहीं।", "discussions": "चर्चाएँ", "comments": "टिप्पणियाँ" },
-        "certificates": { "title": "अर्जित प्रमाणपत्र", "empty": "कोई प्रमाणपत्र अर्जित नहीं।" },
-        "behavior": { "title": "व्यवहारिक विश्लेषण", "time_by_course": "पाठ्यक्रम अनुसार बिताया गया समय", "searches": "खोजें" },
-        "status": { "completed": "पूर्ण", "in_progress": "प्रगति पर", "paused": "रोका गया", "cancelled": "रद्द किया गया", "graded": "अंकित", "submitted": "सबमिट किया गया", "pending": "लंबित", "late": "विलंबित", "not_submitted": "सबमिट नहीं किया गया" },
-        "comparison": { "student": "छात्र", "enrolled": "नामांकित", "completed": "पूर्ण", "certificates": "प्रमाणपत्र", "last_connection": "अंतिम कनेक्शन", "view": "देखें" }
+        "ranges": {
+          "d30": "30 दिन",
+          "d90": "90 दिन",
+          "y1": "1 वर्ष"
+        },
+        "kpi": {
+          "courses": "पाठ्यक्रम",
+          "completed": "{{count}} पूर्ण",
+          "avg_progress": "औसत प्रगति",
+          "time_spent": "बिताया गया समय",
+          "assignments": "असाइनमेंट",
+          "avg_grade": "औसत {{grade}}",
+          "certificates": "प्रमाणपत्र",
+          "connections": "कनेक्शन",
+          "last": "अंतिम {{date}}"
+        },
+        "tabs": {
+          "connections": "कनेक्शन",
+          "courses": "पाठ्यक्रम",
+          "assignments": "असाइनमेंट",
+          "code": "कोड",
+          "community": "समुदाय",
+          "certificates": "प्रमाणपत्र",
+          "behavior": "व्यवहार"
+        },
+        "identity": {
+          "verified": "सत्यापित",
+          "unverified": "असत्यापित",
+          "via": "{{method}} के माध्यम से"
+        },
+        "connections": {
+          "title": "कनेक्शन",
+          "empty": "अभी तक कोई दर्ज कनेक्शन नहीं।"
+        },
+        "courses": {
+          "title": "पाठ्यक्रम प्रगति",
+          "empty": "किसी भी पाठ्यक्रम में नामांकित नहीं।",
+          "activities": "{{done}}/{{total}} गतिविधियाँ",
+          "enrolled": "नामांकित {{date}}"
+        },
+        "assignments": {
+          "title": "असाइनमेंट",
+          "empty": "कोई असाइनमेंट सबमिशन नहीं।",
+          "attempt": "प्रयास {{number}}",
+          "feedback": "प्रतिक्रिया:"
+        },
+        "code": {
+          "title": "कोड अभ्यास",
+          "empty": "कोई कोड सबमिशन नहीं।",
+          "activity": "गतिविधि",
+          "result": "परिणाम",
+          "tests": "परीक्षण",
+          "time": "समय",
+          "when": "कब",
+          "passed": "उत्तीर्ण",
+          "failed": "असफल"
+        },
+        "community": {
+          "title": "समुदाय भागीदारी",
+          "empty": "कोई समुदाय गतिविधि नहीं।",
+          "discussions": "चर्चाएँ",
+          "comments": "टिप्पणियाँ"
+        },
+        "certificates": {
+          "title": "अर्जित प्रमाणपत्र",
+          "empty": "कोई प्रमाणपत्र अर्जित नहीं।"
+        },
+        "behavior": {
+          "title": "व्यवहारिक विश्लेषण",
+          "time_by_course": "पाठ्यक्रम अनुसार बिताया गया समय",
+          "searches": "खोजें"
+        },
+        "status": {
+          "completed": "पूर्ण",
+          "in_progress": "प्रगति पर",
+          "paused": "रोका गया",
+          "cancelled": "रद्द किया गया",
+          "graded": "अंकित",
+          "submitted": "सबमिट किया गया",
+          "pending": "लंबित",
+          "late": "विलंबित",
+          "not_submitted": "सबमिट नहीं किया गया"
+        },
+        "comparison": {
+          "student": "छात्र",
+          "enrolled": "नामांकित",
+          "completed": "पूर्ण",
+          "certificates": "प्रमाणपत्र",
+          "last_connection": "अंतिम कनेक्शन",
+          "view": "देखें"
+        }
       },
       "active_users": {
         "title": "सक्रिय उपयोगकर्ता",
@@ -5078,10 +5156,10 @@
       },
       "teach_the_world": {
         "title": "सीखें और बढ़ें",
-        "description": "LearnHouse से अधिकतम लाभ उठाने में मदद करने के लिए संसाधन।",
+        "description": "{{brand}} से अधिकतम लाभ उठाने में मदद करने के लिए संसाधन।",
         "classroom": "क्लासरूम",
         "classroom_desc": "अपने कोर्स को बढ़ाना और प्रबंधित करना सीखें",
-        "university": "LearnHouse विश्वविद्यालय",
+        "university": "{{brand}} विश्वविद्यालय",
         "university_desc": "गाइड, टिप्स और सर्वोत्तम अभ्यास"
       },
       "add_content": {
@@ -5111,7 +5189,7 @@
       }
     },
     "welcome": {
-      "title": "LearnHouse में आपका स्वागत है",
+      "title": "{{brand}} में आपका स्वागत है",
       "subtitle": "कोर्स बनाएं, शिक्षार्थियों को आमंत्रित करें और दुनिया के साथ ज्ञान साझा करें।",
       "get_started": "शुरू करें",
       "features_title": "आपको जो चाहिए वो सब",
@@ -5155,7 +5233,7 @@
   "embed": {
     "not_supported_description": "इस प्रकार की गतिविधि के लिए प्रमाणीकरण आवश्यक है और इसे एम्बेड नहीं किया जा सकता।",
     "not_supported_title": "यह गतिविधि समर्थित नहीं है",
-    "powered_by": "Powered by LearnHouse",
+    "powered_by": "Powered by {{brand}}",
     "visit_activity": "गतिविधि पेज पर जाएं"
   },
   "migration": {
@@ -5660,7 +5738,7 @@
         "title": "परीक्षण करना चाहते हैं?",
         "body": "जाएँ",
         "link": "डेवलपर पेज",
-        "suffix": "पर और इसके बजाय LearnHouse आज़माएँ।"
+        "suffix": "पर और इसके बजाय {{brand}} आज़माएँ।"
       },
       "validation": {
         "required": "आवश्यक",

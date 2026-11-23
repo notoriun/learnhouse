@@ -22,7 +22,7 @@ function CopyButton({ getText }) {
     } catch {}
   }, [getText])
   return (
-    <button className="lh-code-copy" onClick={handleCopy} aria-label="Copy code">
+    <button className="lh-code-copy" onClick={handleCopy} aria-label="Copiar código">
       {copied ? (
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="20 6 9 17 4 12" />
@@ -58,7 +58,7 @@ function substituteToken(container, html, token) {
  * Language-tabbed code panel. The selected language is shared across every
  * panel on the site (localStorage + a same-tab custom event).
  */
-export default function CodePanel({ snippets, title = 'Request' }) {
+export default function CodePanel({ snippets, title = 'Requisição' }) {
   const { token } = useApiToken()
   const [lang, setLang] = useState('curl')
   const codeRef = useRef(null)

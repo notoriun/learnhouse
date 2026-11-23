@@ -1,0 +1,719 @@
+"""Testes do serviço de provisionamento federado (feature 002).
+
+Chamam ``provision_federated_login`` diretamente com fixtures de
+``FederatedClaims`` e ``ProvisioningPolicy`` — sem fluxo OIDC completo
+(Nota de Integração do tasks.md).
+"""
+
+from datetime import datetime, timedelta, timezone
+
+import pytest
+from sqlmodel import select
+
+from src.db.external_identities import ExternalIdentity
+from src.db.user_audit_events import UserAuditEvent
+from src.db.user_organizations import UserOrganization
+from src.db.users import User
+from src.services.auth import provisioning as prov
+from src.services.auth.provisioning import (
+    FederatedClaims,
+    ProvisioningConflict,
+    ProvisioningDenied,
+    ProvisioningPolicy,
+    ProvisioningSuccess,
+    provision_federated_login,
+)
+
+ISSUER = "https://kc.test/realms/plataforma"
+
+
+def claims(**over):
+    base = dict(
+        issuer=ISSUER,
+        subject="sub-abc-123",
+        email="novo@acme.dev",
+        email_verified=True,
+        given_name="Novo",
+        family_name="Aluno",
+    )
+    base.update(over)
+    return FederatedClaims(**base)
+
+
+def policy(**over):
+    base = dict(auto_provision=True, allow_link_by_email=True, default_role_id=4)
+    base.update(over)
+    return ProvisioningPolicy(**base)
+
+
+async def _count(db, model):
+    return len((await db.execute(select(model))).scalars().all())
+
+
+async def _events(db, event_type=None):
+    rows = (await db.execute(select(UserAuditEvent))).scalars().all()
+    return [r for r in rows if event_type is None or r.event_type == event_type]
+
+
+@pytest.fixture
+async def audit_to_test_db(monkeypatch, db):
+    """record_audit_event usa uma sessão isolada própria; nos testes,
+    redireciona para a sessão de teste em memória."""
+    async def _fake(**kwargs):
+        # replica o filtro real de user_id opcional
+        from src.services.audit.audit import _USER_OPTIONAL_EVENT_TYPES
+
+        if not kwargs.get("user_id") and kwargs["event_type"] not in _USER_OPTIONAL_EVENT_TYPES:
+            return
+        db.add(
+            UserAuditEvent(
+                event_type=kwargs["event_type"],
+                user_id=kwargs.get("user_id"),
+                org_id=kwargs.get("org_id"),
+                audit_metadata=kwargs.get("metadata") or {},
+            )
+        )
+        await db.commit()
+
+    monkeypatch.setattr(prov, "record_audit_event", _fake)
+
+
+@pytest.fixture(autouse=True)
+def bypass_rbac(monkeypatch):
+    """create_user faz rbac_check; o provisionamento é sistêmico (sem usuário
+    atuante) — o bypass segue o padrão dos testes de OAuth."""
+    async def _ok(*a, **k):
+        return True
+
+    monkeypatch.setattr("src.services.users.users.rbac_check", _ok)
+    # Efeitos colaterais externos de create_user, neutralizados em teste:
+    for alvo in (
+        "src.services.users.users.check_limits_with_usage",
+        "src.services.users.users.increase_feature_usage",
+        "src.services.users.users.track",
+        "src.services.users.users.dispatch_webhooks",
+    ):
+        monkeypatch.setattr(alvo, _ok, raising=False)
+
+
+async def _provision(db, c, org, pol, request=None):
+    return await provision_federated_login(db, request, c, org, policy=pol)
+
+
+# ---------------------------------------------------------------------------
+# US1 — Primeiro acesso com provisionamento automático
+# ---------------------------------------------------------------------------
+
+
+class TestUS1Provisionamento:
+    async def test_primeiro_acesso_conforme_cria_conta_e_vinculo(
+        self, db, org, user_role, audit_to_test_db
+    ):
+        result = await _provision(db, claims(), org, policy(default_role_id=user_role.id))
+
+        assert isinstance(result, ProvisioningSuccess)
+        assert result.outcome == "provisioned"
+        assert result.user.signup_method == "sso"
+        assert result.user.email_verified is True
+        # ExternalIdentity criada com email_at_link_time (auditoria)
+        ext = (await db.execute(select(ExternalIdentity))).scalars().first()
+        assert ext.issuer == ISSUER and ext.subject == "sub-abc-123"
+        assert ext.email_at_link_time == "novo@acme.dev"
+        # Membership com papel de menor privilégio (nunca 1/2)
+        uo = (await db.execute(select(UserOrganization))).scalars().first()
+        assert uo.role_id == user_role.id
+        assert uo.role_id not in (1, 2)
+        # Evento sso_provisioned sem tokens
+        eventos = await _events(db, "sso_provisioned")
+        assert len(eventos) == 1
+        assert "token" not in str(eventos[0].audit_metadata).lower()
+
+    async def test_email_nao_verificado_nega_sem_escrita(
+        self, db, org, user_role, audit_to_test_db
+    ):
+        result = await _provision(
+            db, claims(email_verified=False), org, policy(default_role_id=user_role.id)
+        )
+
+        assert isinstance(result, ProvisioningDenied)
+        assert result.reason == "email_nao_verificado"
+        assert await _count(db, User) == 0
+        assert await _count(db, ExternalIdentity) == 0
+        assert await _count(db, UserOrganization) == 0
+
+    async def test_auto_provision_desativado_nega(
+        self, db, org, user_role, audit_to_test_db
+    ):
+        result = await _provision(
+            db, claims(), org, policy(auto_provision=False, default_role_id=user_role.id)
+        )
+
+        assert isinstance(result, ProvisioningDenied)
+        assert result.reason == "auto_provision_desativado"
+        assert await _count(db, User) == 0
+
+    async def test_politica_padrao_e_restritiva(self, db, org, audit_to_test_db):
+        # Política default (sem configuração) não provisiona.
+        result = await _provision(db, claims(), org, ProvisioningPolicy())
+
+        assert isinstance(result, ProvisioningDenied)
+        assert result.reason == "auto_provision_desativado"
+
+    async def test_dominio_nao_permitido_nega_e_audita_so_dominio(
+        self, db, org, user_role, audit_to_test_db
+    ):
+        result = await _provision(
+            db,
+            claims(email="alguem@fora.com"),
+            org,
+            policy(allowed_email_domains=["acme.dev"], default_role_id=user_role.id),
+        )
+
+        assert isinstance(result, ProvisioningDenied)
+        assert result.reason == "dominio_nao_permitido"
+        assert await _count(db, User) == 0
+        eventos = await _events(db, "sso_login_denied")
+        assert len(eventos) == 1
+        # Só o domínio no metadata, nunca o e-mail completo
+        meta = str(eventos[0].audit_metadata)
+        assert "fora.com" in meta
+        assert "alguem@fora.com" not in meta
+
+    async def test_lista_de_dominios_vazia_nao_restringe(
+        self, db, org, user_role, audit_to_test_db
+    ):
+        result = await _provision(
+            db,
+            claims(email="qualquer@dominio.com"),
+            org,
+            policy(allowed_email_domains=[], default_role_id=user_role.id),
+        )
+
+        assert isinstance(result, ProvisioningSuccess)
+
+
+# ---------------------------------------------------------------------------
+# US2 — Identidade estável mesmo com troca de e-mail
+# ---------------------------------------------------------------------------
+
+
+async def _seed_provisioned(db, org, user_role):
+    """Provisiona um usuário e devolve (user, identity)."""
+    result = await provision_federated_login(
+        db, None, claims(), org, policy(default_role_id=user_role.id)
+    )
+    assert isinstance(result, ProvisioningSuccess)
+    return result.user, result.external_identity
+
+
+class TestUS2IdentidadeEstavel:
+    async def test_troca_de_email_mantem_a_mesma_conta(
+        self, db, org, user_role, audit_to_test_db
+    ):
+        user, _ = await _seed_provisioned(db, org, user_role)
+        antes = await _count(db, User)
+
+        # Mesmo issuer+subject, e-mail NOVO no provedor.
+        result = await _provision(
+            db, claims(email="novo-email@acme.dev"), org, policy(default_role_id=user_role.id)
+        )
+
+        assert isinstance(result, ProvisioningSuccess)
+        assert result.outcome == "login"
+        assert result.user.id == user.id
+        assert await _count(db, User) == antes  # zero conta nova
+        # email_at_link_time inalterado (identidade não migra por e-mail)
+        assert result.external_identity.email_at_link_time == "novo@acme.dev"
+        eventos = await _events(db, "login")
+        assert any(e.audit_metadata.get("email_changed") for e in eventos)
+
+    async def test_subject_novo_com_email_antigo_nao_acessa_conta_alheia(
+        self, db, org, user_role, audit_to_test_db
+    ):
+        # Dona original do e-mail.
+        user, _ = await _seed_provisioned(db, org, user_role)
+
+        # Novo subject (pessoa diferente) chega com o MESMO e-mail.
+        result = await _provision(
+            db,
+            claims(subject="sub-outra-pessoa", email="novo@acme.dev"),
+            org,
+            policy(default_role_id=user_role.id),
+        )
+
+        # Nunca cai na conta da dona original por e-mail.
+        if isinstance(result, ProvisioningSuccess):
+            assert result.user.id != user.id
+        else:
+            assert isinstance(result, ProvisioningConflict)
+
+    async def test_usuario_bloqueado_nega_sem_recriar(
+        self, db, org, user_role, audit_to_test_db
+    ):
+        user, _ = await _seed_provisioned(db, org, user_role)
+        # Bloqueia a conta.
+        user.locked_until = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
+        db.add(user)
+        await db.commit()
+        antes = await _count(db, User)
+
+        result = await _provision(db, claims(), org, policy(default_role_id=user_role.id))
+
+        assert isinstance(result, ProvisioningDenied)
+        assert result.reason == "usuario_desativado"
+        assert await _count(db, User) == antes
+
+
+# ---------------------------------------------------------------------------
+# US3 — Vínculo seguro a conta pré-existente
+# ---------------------------------------------------------------------------
+
+
+async def _seed_native_user(db, org, role_id, email="nativo@acme.dev"):
+    """Conta nativa pré-existente com membership na org."""
+    u = User(
+        username="nativo",
+        first_name="Nativo",
+        last_name="User",
+        email=email,
+        password="hash",
+        user_uuid="user_nativo",
+        email_verified=True,
+        creation_date=str(datetime.now()),
+        update_date=str(datetime.now()),
+    )
+    db.add(u)
+    await db.commit()
+    await db.refresh(u)
+    db.add(
+        UserOrganization(
+            user_id=u.id, org_id=org.id, role_id=role_id,
+            creation_date=str(datetime.now()), update_date=str(datetime.now()),
+        )
+    )
+    await db.commit()
+    return u
+
+
+class TestUS3VinculoSeguro:
+    async def test_email_verificado_coincidente_vincula_conta_existente(
+        self, db, org, user_role, audit_to_test_db
+    ):
+        nativo = await _seed_native_user(db, org, user_role.id)
+        antes = await _count(db, User)
+
+        result = await _provision(
+            db,
+            claims(email="nativo@acme.dev"),
+            org,
+            policy(allow_link_by_email=True, auto_provision=True, default_role_id=user_role.id),
+        )
+
+        assert isinstance(result, ProvisioningSuccess)
+        assert result.outcome == "linked"
+        assert result.user.id == nativo.id
+        assert await _count(db, User) == antes  # sem conta nova
+        assert len(await _events(db, "sso_linked")) == 1
+
+    async def test_email_nao_verificado_nao_vincula(
+        self, db, org, user_role, audit_to_test_db
+    ):
+        await _seed_native_user(db, org, user_role.id)
+
+        result = await _provision(
+            db,
+            claims(email="nativo@acme.dev", email_verified=False),
+            org,
+            policy(allow_link_by_email=True, default_role_id=user_role.id),
+        )
+
+        assert isinstance(result, ProvisioningDenied)
+        assert result.reason == "email_nao_verificado"
+        assert await _count(db, ExternalIdentity) == 0
+
+    async def test_conflito_email_em_outra_organizacao(
+        self, db, org, other_org, user_role, audit_to_test_db
+    ):
+        # Conta nativa existe, mas SEM membership na org do fluxo.
+        u = User(
+            username="deoutra", first_name="De", last_name="Outra",
+            email="nativo@acme.dev", password="h", user_uuid="user_deoutra",
+            email_verified=True, creation_date=str(datetime.now()),
+            update_date=str(datetime.now()),
+        )
+        db.add(u)
+        await db.commit()
+
+        antes = await _count(db, User)
+
+        result = await _provision(
+            db, claims(email="nativo@acme.dev"), org,
+            policy(allow_link_by_email=True, default_role_id=user_role.id),
+        )
+
+        assert isinstance(result, ProvisioningConflict)
+        assert result.reason == "email_em_outra_organizacao"
+        eventos = await _events(db, "sso_conflict")
+        assert len(eventos) == 1 and eventos[0].user_id is None
+        assert await _count(db, ExternalIdentity) == 0
+        # Feature 009 / FR-012: com a criação automática LIGADA (é o que
+        # `policy()` monta), o conflito não pode escapar para o passo de criação
+        # e abrir uma conta paralela — o e-mail é de outra organização.
+        assert await _count(db, User) == antes
+        assert await _count(db, UserOrganization) == 0
+
+    async def test_conflito_politica_nega_vinculo(
+        self, db, org, user_role, audit_to_test_db
+    ):
+        await _seed_native_user(db, org, user_role.id)
+
+        result = await _provision(
+            db, claims(email="nativo@acme.dev"), org,
+            policy(allow_link_by_email=False, auto_provision=True, default_role_id=user_role.id),
+        )
+
+        assert isinstance(result, ProvisioningConflict)
+        assert result.reason == "email_conflito_politica"
+        assert await _count(db, ExternalIdentity) == 0
+
+    async def test_conflito_identidade_do_mesmo_issuer_outro_subject(
+        self, db, org, user_role, audit_to_test_db
+    ):
+        nativo = await _seed_native_user(db, org, user_role.id)
+        # Nativo já tem uma identidade do mesmo issuer (subject A).
+        db.add(
+            ExternalIdentity(
+                user_id=nativo.id, organization_id=org.id,
+                issuer=ISSUER, subject="sub-A", provider="keycloak",
+                email_at_link_time="nativo@acme.dev",
+            )
+        )
+        await db.commit()
+
+        # Chega o MESMO e-mail com subject B → conflito.
+        result = await _provision(
+            db, claims(subject="sub-B", email="nativo@acme.dev"), org,
+            policy(allow_link_by_email=True, default_role_id=user_role.id),
+        )
+
+        assert isinstance(result, ProvisioningConflict)
+        assert result.reason == "identidade_conflitante"
+
+
+# ---------------------------------------------------------------------------
+# US4 — Comprovação do reúso do mecanismo de sessão interno (sem código novo)
+# ---------------------------------------------------------------------------
+
+
+class TestUS4ReusoDeSessao:
+    """FR-009: a sessão federada usa o MESMO mecanismo do login nativo. Estes
+    testes comprovam o reúso do chokepoint — nenhum código de sessão é criado
+    por esta feature (research.md §6)."""
+
+    def test_sessao_sso_carrega_amr_sso_e_org(self):
+        from src.security.auth import decode_jwt
+        from src.security.session_context import AMR_CLAIM, AUTH_METHOD_SSO, SORG_CLAIM
+        from src.services.auth.session import mint_session_tokens
+
+        issue = mint_session_tokens("aluno@acme.dev", amr=AUTH_METHOD_SSO, org_id=7)
+
+        payload = decode_jwt(issue.access_token)
+        assert payload[AMR_CLAIM] == "sso"
+        assert str(payload[SORG_CLAIM]) == "7"
+        assert payload["purpose"] == "session"
+
+    def test_refresh_sso_tem_jti_e_purpose_session(self):
+        """O refresh token federado é estruturalmente idêntico ao nativo — flui
+        pelo mesmo caminho de rotação/replay de /auth/refresh (FR-010)."""
+        from src.security.auth import decode_jwt
+        from src.security.session_context import AUTH_METHOD_SSO
+        from src.services.auth.session import mint_session_tokens
+
+        issue = mint_session_tokens("aluno@acme.dev", amr=AUTH_METHOD_SSO, org_id=7)
+
+        refresh = decode_jwt(issue.refresh_token)
+        assert refresh["purpose"] == "session"
+        assert refresh.get("jti")  # jti presente → rotação/replay já cobertos
+
+
+# ---------------------------------------------------------------------------
+# Feature 007 — realm com e-mail-como-username
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# Feature 009 — política efetiva de admissão e colisão de nome de usuário
+# ---------------------------------------------------------------------------
+
+
+async def _seed_oidc_config(db, org, *, auto_provision, issuer="https://idp.cliente.example/realms/corp"):
+    """Linha de configuração OIDC por organização (feature 004)."""
+    from src.db.oidc_provider_config import OIDCProviderConfig
+
+    row = OIDCProviderConfig(
+        org_id=org.id,
+        issuer_url=issuer,
+        client_id="cliente-app",
+        enabled=True,
+        auto_provision_users=auto_provision,
+        created_by_user_id=1,
+    )
+    db.add(row)
+    await db.commit()
+    await db.refresh(row)
+    return row
+
+
+class TestFeature009PoliticaEfetiva:
+    """A mudança da feature 009 é de POLÍTICA, e ela é deliberadamente estreita:
+    só o caminho do provedor da própria plataforma passa a admitir criação
+    automática. Estes testes fixam as duas metades — a que abriu e a que não."""
+
+    async def test_default_do_servico_permanece_fail_closed(self):
+        """Instanciar a política sem argumentos não cria nem vincula nada.
+
+        Fixa que a feature 009 NÃO relaxou o default do serviço: quem abre o
+        caminho é o router, apenas no fallback global, e apenas ali."""
+        pol = ProvisioningPolicy()
+
+        assert pol.auto_provision is False
+        assert pol.allow_link_by_email is False
+        assert pol.allowed_email_domains == []
+
+    async def test_sem_config_de_org_a_politica_lida_do_banco_e_restritiva(
+        self, db, org
+    ):
+        """`get_provisioning_policy` sem linha de config → restritiva.
+
+        É por isso que o router precisa montar a política do provedor da
+        plataforma explicitamente, em vez de depender desta leitura."""
+        pol = await prov.get_provisioning_policy(db, org.id)
+
+        assert pol.auto_provision is False
+
+    async def test_idp_de_terceiro_desligado_nega_sem_criar_conta(
+        self, db, org, user_role, audit_to_test_db
+    ):
+        """SC-008: organização com IdP de terceiro que não habilitou a criação
+        automática continua recusando, exatamente como antes da feature 009."""
+        await _seed_oidc_config(db, org, auto_provision=False)
+
+        pol = await prov.get_provisioning_policy(db, org.id)
+        assert pol.auto_provision is False
+
+        result = await _provision(db, claims(), org, pol)
+
+        assert isinstance(result, ProvisioningDenied)
+        assert result.reason == "auto_provision_desativado"
+        assert await _count(db, User) == 0
+        assert await _count(db, ExternalIdentity) == 0
+        assert await _count(db, UserOrganization) == 0
+
+    async def test_idp_de_terceiro_habilitado_pela_org_cria_conta(
+        self, db, org, user_role, audit_to_test_db
+    ):
+        """Contraste do teste acima: com a organização habilitando, cria.
+
+        Sem este contraste, o teste anterior passaria mesmo se a criação
+        estivesse quebrada para todo mundo."""
+        await _seed_oidc_config(db, org, auto_provision=True)
+
+        pol = await prov.get_provisioning_policy(db, org.id)
+        assert pol.auto_provision is True
+
+        result = await _provision(db, claims(), org, pol)
+
+        assert isinstance(result, ProvisioningSuccess)
+        assert result.outcome == "provisioned"
+
+
+class TestFeature009Reentrada:
+    """Com a criação automática ligada, "não duplicar" deixa de ser trivial: o
+    passo de criação passou a ser alcançável, então cada reentrada é uma chance
+    de gerar conta paralela."""
+
+    async def test_segundo_acesso_identico_cai_na_mesma_conta(
+        self, db, org, user_role, audit_to_test_db
+    ):
+        user, identidade = await _seed_provisioned(db, org, user_role)
+        contas_antes = await _count(db, User)
+        vinculos_antes = await _count(db, ExternalIdentity)
+        ultimo_acesso_antes = identidade.last_login_at
+
+        result = await _provision(db, claims(), org, policy(default_role_id=user_role.id))
+
+        assert isinstance(result, ProvisioningSuccess)
+        assert result.outcome == "login"
+        assert result.user.id == user.id
+        assert await _count(db, User) == contas_antes
+        assert await _count(db, ExternalIdentity) == vinculos_antes
+        assert result.external_identity.last_login_at >= ultimo_acesso_antes
+        # Desfecho distinguível na auditoria: login, não provisionamento.
+        logins = await _events(db, "login")
+        assert any(e.audit_metadata.get("method") == "sso" for e in logins)
+
+    async def test_corrida_de_criacao_produz_um_unico_vinculo(
+        self, db, org, user_role, audit_to_test_db, monkeypatch
+    ):
+        """FR-011 / SC-005: a perdedora da corrida conclui como login na conta
+        vencedora, e existe exatamente um vínculo para (issuer, subject).
+
+        A corrida é simulada cegando a perdedora na PRIMEIRA busca de identidade
+        — é o estado real de quem consultou antes da vencedora gravar. A partir
+        daí o caminho exercitado é o de verdade: a constraint única de
+        (issuer, subject) rejeita a segunda inserção e o código re-seleciona a
+        vencedora.
+        """
+        vencedora, _ = await _seed_provisioned(db, org, user_role)
+
+        busca_real = prov._find_identity
+        chamadas = {"n": 0}
+
+        async def _cega_na_primeira(db_session, issuer, subject):
+            chamadas["n"] += 1
+            if chamadas["n"] == 1:
+                return None
+            return await busca_real(db_session, issuer, subject)
+
+        monkeypatch.setattr(prov, "_find_identity", _cega_na_primeira)
+
+        # E-mail diferente para o passo de vínculo por e-mail não interceptar —
+        # é o caminho de criação que precisa ser exercitado até a constraint.
+        result = await _provision(
+            db,
+            claims(email="corrida@acme.dev"),
+            org,
+            policy(default_role_id=user_role.id),
+        )
+
+        assert isinstance(result, ProvisioningSuccess)
+        assert result.outcome == "login"
+        assert result.user.id == vencedora.id
+        # A constraint é a garantia, não a lógica de aplicação: um só vínculo.
+        vinculos = (
+            await db.execute(
+                select(ExternalIdentity).where(
+                    ExternalIdentity.issuer == ISSUER,
+                    ExternalIdentity.subject == "sub-abc-123",
+                )
+            )
+        ).scalars().all()
+        assert len(vinculos) == 1
+
+    async def test_corrida_real_conclui_como_login_sem_conta_extra(
+        self, db, org, user_role, audit_to_test_db, monkeypatch
+    ):
+        """A corrida de verdade: duas tentativas da MESMA identidade, portanto
+        com o mesmo e-mail.
+
+        Difere do teste acima, que usa e-mails distintos para alcançar a
+        constraint por dentro do caminho de criação. Aqui o e-mail coincide, então
+        a perdedora entra pelo passo de vínculo — e é ali que a constraint a
+        redireciona para a conta vencedora. Este é o caminho que roda em
+        produção, e é o que FR-011 e SC-005 descrevem: exatamente uma conta, e a
+        perdedora concluindo como acesso normal.
+        """
+        vencedora, _ = await _seed_provisioned(db, org, user_role)
+        contas_antes = await _count(db, User)
+
+        busca_real = prov._find_identity
+        chamadas = {"n": 0}
+
+        async def _cega_na_primeira(db_session, issuer, subject):
+            chamadas["n"] += 1
+            if chamadas["n"] == 1:
+                return None
+            return await busca_real(db_session, issuer, subject)
+
+        monkeypatch.setattr(prov, "_find_identity", _cega_na_primeira)
+
+        result = await _provision(db, claims(), org, policy(default_role_id=user_role.id))
+
+        assert isinstance(result, ProvisioningSuccess)
+        assert result.outcome == "login"
+        assert result.user.id == vencedora.id
+        # Nenhuma conta extra e nenhum vínculo extra: a corrida não duplica nada.
+        assert await _count(db, User) == contas_antes
+        assert await _count(db, ExternalIdentity) == 1
+
+
+class TestFeature009ColisaoDeUsername:
+    """Com a criação automática ligada, colisão de nome de usuário deixa de ser
+    caso raro. Antes ela derrubava o acesso inteiro com erro interno, porque
+    `create_user` funde conflito de e-mail e de username num 400 genérico."""
+
+    async def test_username_em_uso_por_outro_email_recebe_sufixo(
+        self, db, org, user_role, audit_to_test_db
+    ):
+        # Conta local `nativo` com e-mail DIFERENTE do da identidade federada:
+        # o passo de vínculo por e-mail não se aplica, então o fluxo chega na
+        # criação e colide no username.
+        await _seed_native_user(db, org, user_role.id, email="outro@acme.dev")
+
+        result = await _provision(
+            db,
+            claims(preferred_username="nativo", email="nativo@acme.dev"),
+            org,
+            policy(default_role_id=user_role.id),
+        )
+
+        assert isinstance(result, ProvisioningSuccess), getattr(result, "reason", result)
+        assert result.outcome == "provisioned"
+        assert result.user.username != "nativo"
+        assert result.user.username.startswith("nativo")
+        assert result.user.email == "nativo@acme.dev"
+        # A conta alheia permanece intocada.
+        alheia = (
+            await db.execute(select(User).where(User.email == "outro@acme.dev"))
+        ).scalars().first()
+        assert alheia.username == "nativo"
+
+    async def test_varias_colisoes_ainda_concluem_o_acesso(
+        self, db, org, user_role, audit_to_test_db
+    ):
+        """Vários sufixos ocupados não podem virar recusa: o acesso conclui com
+        algum nome livre."""
+        await _seed_native_user(db, org, user_role.id, email="outro@acme.dev")
+        for i in range(1, 6):
+            u = User(
+                username=f"nativo-{i}",
+                first_name="Ocupado",
+                last_name="Sufixo",
+                email=f"ocupado{i}@acme.dev",
+                password="hash",
+                user_uuid=f"user_ocupado_{i}",
+                email_verified=True,
+                creation_date=str(datetime.now()),
+                update_date=str(datetime.now()),
+            )
+            db.add(u)
+        await db.commit()
+
+        result = await _provision(
+            db,
+            claims(preferred_username="nativo", email="nativo@acme.dev"),
+            org,
+            policy(default_role_id=user_role.id),
+        )
+
+        assert isinstance(result, ProvisioningSuccess), getattr(result, "reason", result)
+        assert result.outcome == "provisioned"
+        ocupados = {"nativo"} | {f"nativo-{i}" for i in range(1, 6)}
+        assert result.user.username not in ocupados
+
+
+class TestFeature007Username:
+    async def test_preferred_username_em_forma_de_email_vira_parte_local(
+        self, db, org, audit_to_test_db
+    ):
+        """O guard anti-URL do create_user rejeita e-mail cru como username;
+        o provisionamento deve usar a parte local (antes do @)."""
+        result = await _provision(
+            db,
+            claims(preferred_username="nova@example.com", email="nova@example.com"),
+            org,
+            policy(),
+        )
+
+        assert isinstance(result, ProvisioningSuccess)
+        assert result.user.username == "nova"

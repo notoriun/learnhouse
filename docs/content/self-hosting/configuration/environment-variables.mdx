@@ -1,189 +1,191 @@
 import { Callout } from 'nextra/components'
 
-# Environment Variables
+# Variáveis de Ambiente
 
-This page is the deployment reference for LearnHouse environment variables. The backend
-loads `apps/api/config/config.yaml` first, then overrides matching settings from the
-environment. The web app reads `NEXT_PUBLIC_*` values from runtime config or `process.env`.
-The CLI-generated `.env` file is the recommended way to configure a self-hosted instance.
+Esta página é a referência de implantação para as variáveis de ambiente do Notoriun. O backend
+carrega `apps/api/config/config.yaml` primeiro, depois sobrescreve as configurações
+correspondentes a partir do ambiente. O app web lê valores `NEXT_PUBLIC_*` da configuração em
+tempo de execução ou de `process.env`. O arquivo `.env` gerado pela CLI é a forma recomendada de
+configurar uma instância self-hosted.
 
 <Callout type="info">
-Values shown as "required" have no safe production fallback. Values shown as "unset" are
-optional: the feature stays disabled or uses a runtime fallback when the variable is missing.
+Valores marcados como "obrigatório" não têm um valor padrão seguro para produção. Valores
+marcados como "não definido" são opcionais: o recurso permanece desativado ou usa um valor de
+fallback em tempo de execução quando a variável está ausente.
 </Callout>
 
-## Instance and hosting
+## Instância e hospedagem
 
-| Variable | Description | Type | Default / required | Used by |
+| Variável | Descrição | Tipo | Padrão / obrigatório | Usado por |
 | --- | --- | --- | --- | --- |
-| `LEARNHOUSE_SITE_NAME` | Instance name returned by the API. | string | `LearnHouse` | API |
-| `LEARNHOUSE_SITE_DESCRIPTION` | Short instance description returned by the API. | string | `LearnHouse is an open-source platform tailored for learning experiences.` | API |
-| `LEARNHOUSE_CONTACT_EMAIL` | Contact email for the instance. | email | `hi@learnhouse.app` | API |
-| `LEARNHOUSE_ENV` | Environment label for backend and Sentry reporting. | string | `dev` | API, Web |
-| `LEARNHOUSE_DEVELOPMENT_MODE` | Enables development-only API behavior such as docs routes and EE dev override. | boolean | `false` | API, CLI |
-| `LEARNHOUSE_SAAS` | Enables SaaS deployment mode, plan gating, and platform endpoint warnings. | boolean | `false` | API |
-| `LEARNHOUSE_SELF_HOSTED` | Legacy self-hosting flag used in tenancy inference. Prefer `LEARNHOUSE_TENANCY`. Parsed loosely: any non-empty value (including the string `false`) enables it, so leave it unset to keep it off. | boolean-like string | unset (off) | API |
-| `LEARNHOUSE_USE_DEFAULT_ORG` | Legacy default-org flag used in tenancy inference. Prefer `LEARNHOUSE_TENANCY`. Parsed loosely: any non-empty value (including the string `false`) enables it, so leave it unset to keep it off. | boolean-like string | unset (off) | API |
-| `LEARNHOUSE_TENANCY` | Selects `single` host tenancy or `multi` subdomain tenancy. Multi-tenancy requires EE or SaaS mode. | enum: `single`, `multi` | `single` unless inferred as multi-tenant | API, EE CLI |
-| `LEARNHOUSE_DOMAIN` | Public domain used for org routing, cookie decisions, and custom-domain CNAME targets. Include the port for local development. | hostname | `localhost:3000` | API, CLI |
-| `LEARNHOUSE_FRONTEND_DOMAIN` | Frontend host used by the API when it needs the public frontend domain separately from the backend host. | hostname | `localhost:3000` | API, EE CLI |
-| `LEARNHOUSE_SSL` | Backend-side SSL flag for generated URLs and hosting config. | boolean | `false` | API |
-| `LEARNHOUSE_PORT` | Backend port. Local config defaults to `1338`; the production CLI template emits `9000`. | integer | `1338` locally, `9000` in generated Docker installs | API, CLI, API container |
-| `LEARNHOUSE_ALLOWED_ORIGINS` | Comma-separated CORS allowlist. | CSV of URLs | `http://localhost:3000,http://localhost:3001` | API |
-| `LEARNHOUSE_ALLOWED_REGEXP` | Additional CORS origin regex used by multi-tenant deployments. | regex string | `\b((?:https?://)[^\s/$.?#].[^\s]*)\b` | API |
-| `LEARNHOUSE_COOKIE_DOMAIN` | Cookie domain for auth cookies. Use a leading dot only when subdomains must share auth. | hostname | `.localhost` | API, CLI |
-| `LEARNHOUSE_COOKIE_DOMAIN_ALLOW_BROAD` | Acknowledges intentionally broad cookie domains such as `.example.com` and silences the safety warning. | boolean | `false` | API, EE CLI |
-| `LEARNHOUSE_CUSTOM_DOMAIN_DEV_MODE` | Skips DNS verification for all custom domains and marks them verified immediately. Development/testing only. | boolean | `false` | API |
-| `LEARNHOUSE_PUBLIC` | Docker build argument that produces a community build by excluding non-community code. | boolean | `false` | Dockerfiles (root, API, Web) |
-| `LEARNHOUSE_PLATFORM_URL` | Base URL for LearnHouse platform links, upgrade URLs, and email allowlist checks. | URL | unset; backend flows fall back to `https://www.learnhouse.app` and the web token-exchange to `https://learnhouse.app` | API, Web |
-| `LEARNHOUSE_PLATFORM_API_KEY` | Shared secret for platform-only internal endpoints such as packs. | secret string | required for SaaS/platform endpoints | API |
-| `CLOUD_INTERNAL_KEY` | Shared secret for SaaS-internal endpoints (custom-domain sync and the `cloud_internal` router). When unset, those endpoints reject every request and the API logs a startup warning. | secret string | unset; required for SaaS custom-domain provisioning | API |
+| `LEARNHOUSE_SITE_NAME` | Nome da instância devolvido pela API. | string | `LearnHouse` | API |
+| `LEARNHOUSE_SITE_DESCRIPTION` | Descrição curta da instância devolvida pela API. | string | `LearnHouse is an open-source platform tailored for learning experiences.` | API |
+| `LEARNHOUSE_CONTACT_EMAIL` | E-mail de contato da instância. | e-mail | `hi@learnhouse.app` | API |
+| `LEARNHOUSE_ENV` | Rótulo de ambiente para o backend e relatórios do Sentry. | string | `dev` | API, Web |
+| `LEARNHOUSE_DEVELOPMENT_MODE` | Ativa comportamentos da API só de desenvolvimento, como rotas de docs e a sobreposição de dev do EE. | booleano | `false` | API, CLI |
+| `LEARNHOUSE_SAAS` | Ativa o modo de implantação SaaS, restrição por plano e avisos de endpoint de plataforma. | booleano | `false` | API |
+| `LEARNHOUSE_SELF_HOSTED` | Flag legado de self-hosting usado na inferência de tenancy. Prefira `LEARNHOUSE_TENANCY`. Interpretado de forma frouxa: qualquer valor não vazio (inclusive a string `false`) o ativa, então deixe não definido para mantê-lo desligado. | string tipo-booleana | não definido (desligado) | API |
+| `LEARNHOUSE_USE_DEFAULT_ORG` | Flag legado de organização padrão usado na inferência de tenancy. Prefira `LEARNHOUSE_TENANCY`. Interpretado de forma frouxa: qualquer valor não vazio (inclusive a string `false`) o ativa, então deixe não definido para mantê-lo desligado. | string tipo-booleana | não definido (desligado) | API |
+| `LEARNHOUSE_TENANCY` | Escolhe tenancy de host `single` ou de subdomínio `multi`. Multi-tenancy exige modo EE ou SaaS. | enum: `single`, `multi` | `single`, exceto quando inferido como multi-tenant | API, EE CLI |
+| `LEARNHOUSE_DOMAIN` | Domínio público usado para roteamento de organização, decisões de cookie e destinos CNAME de domínio personalizado. Inclua a porta para desenvolvimento local. | hostname | `localhost:3000` | API, CLI |
+| `LEARNHOUSE_FRONTEND_DOMAIN` | Host de frontend usado pela API quando ela precisa do domínio público do frontend separado do host de backend. | hostname | `localhost:3000` | API, EE CLI |
+| `LEARNHOUSE_SSL` | Flag de SSL do lado do backend, para URLs geradas e configuração de hospedagem. | booleano | `false` | API |
+| `LEARNHOUSE_PORT` | Porta do backend. A configuração local usa `1338` por padrão; o template de produção da CLI emite `9000`. | número inteiro | `1338` localmente, `9000` em instalações Docker geradas | API, CLI, contêiner da API |
+| `LEARNHOUSE_ALLOWED_ORIGINS` | Lista de permissão de CORS separada por vírgula. | CSV de URLs | `http://localhost:3000,http://localhost:3001` | API |
+| `LEARNHOUSE_ALLOWED_REGEXP` | Regex adicional de origem CORS usada por implantações multi-tenant. | string regex | `\b((?:https?://)[^\s/$.?#].[^\s]*)\b` | API |
+| `LEARNHOUSE_COOKIE_DOMAIN` | Domínio de cookie para cookies de autenticação. Use um ponto inicial apenas quando subdomínios precisarem compartilhar autenticação. | hostname | `.localhost` | API, CLI |
+| `LEARNHOUSE_COOKIE_DOMAIN_ALLOW_BROAD` | Reconhece domínios de cookie deliberadamente amplos, como `.example.com`, e silencia o aviso de segurança. | booleano | `false` | API, EE CLI |
+| `LEARNHOUSE_CUSTOM_DOMAIN_DEV_MODE` | Pula a verificação de DNS para todos os domínios personalizados e os marca como verificados imediatamente. Apenas desenvolvimento/testes. | booleano | `false` | API |
+| `LEARNHOUSE_PUBLIC` | Argumento de build do Docker que produz um build community, excluindo código não-community. | booleano | `false` | Dockerfiles (raiz, API, Web) |
+| `LEARNHOUSE_PLATFORM_URL` | URL base para links da plataforma, URLs de upgrade e verificações de lista de permissão de e-mail. | URL | não definido; os fluxos do backend caem para `https://www.learnhouse.app` e a troca de token do web para `https://learnhouse.app` | API, Web |
+| `LEARNHOUSE_PLATFORM_API_KEY` | Segredo compartilhado para endpoints internos só de plataforma, como pacotes. | string secreta | obrigatório para endpoints SaaS/plataforma | API |
+| `CLOUD_INTERNAL_KEY` | Segredo compartilhado para endpoints internos do SaaS (sincronização de domínio personalizado e o router `cloud_internal`). Quando não definido, esses endpoints recusam toda requisição e a API registra um aviso na inicialização. | string secreta | não definido; obrigatório para provisionamento de domínio personalizado em SaaS | API |
 
-## Database, Redis, and collaboration
+## Banco de dados, Redis e colaboração
 
-| Variable | Description | Type | Default / required | Used by |
+| Variável | Descrição | Tipo | Padrão / obrigatório | Usado por |
 | --- | --- | --- | --- | --- |
-| `LEARNHOUSE_SQL_CONNECTION_STRING` | PostgreSQL connection string for the API and Alembic migrations. | PostgreSQL URL | `postgresql://learnhouse:learnhouse@localhost:5432/learnhouse`; production installs should set it | API, API migrations, CLI |
-| `LEARNHOUSE_DB_URL` | Fallback database URL for the standalone `apps/api/scripts/migrate.py` migration helper when `DATABASE_URL` is unset. | PostgreSQL URL | `postgresql://learnhouse:learnhouse@localhost:5432/learnhouse` | API migration script |
-| `LEARNHOUSE_PGBOUNCER` | Forces PgBouncer/Supavisor-safe asyncpg settings even when the URL does not reveal a pooler. | boolean | `false` | API |
-| `LEARNHOUSE_REDIS_CONNECTION_STRING` | Redis URL for the API cache/session/event clients. | Redis URL | `redis://localhost:6379/learnhouse` | API, CLI |
-| `LEARNHOUSE_REDIS_URL` | Redis URL for the collaboration server. | Redis URL | `redis://localhost:6379`; CLI setup emits `redis://redis:6379` | Collab, CLI |
-| `LEARNHOUSE_API_URL` | API base URL used by the collaboration server. | URL | `http://localhost:8000`; generated compose sets `http://localhost:9000` | Collab, CLI |
+| `LEARNHOUSE_SQL_CONNECTION_STRING` | String de conexão PostgreSQL para a API e migrações Alembic. | URL PostgreSQL | `postgresql://learnhouse:learnhouse@localhost:5432/learnhouse`; instalações de produção devem defini-la | API, migrações da API, CLI |
+| `LEARNHOUSE_DB_URL` | URL de banco de dados alternativa para o utilitário independente de migração `apps/api/scripts/migrate.py`, quando `DATABASE_URL` não está definida. | URL PostgreSQL | `postgresql://learnhouse:learnhouse@localhost:5432/learnhouse` | Script de migração da API |
+| `LEARNHOUSE_PGBOUNCER` | Força configurações do asyncpg seguras para PgBouncer/Supavisor, mesmo quando a URL não revela um pooler. | booleano | `false` | API |
+| `LEARNHOUSE_REDIS_CONNECTION_STRING` | URL do Redis para os clientes de cache/sessão/eventos da API. | URL do Redis | `redis://localhost:6379/learnhouse` | API, CLI |
+| `LEARNHOUSE_REDIS_URL` | URL do Redis para o servidor de colaboração. | URL do Redis | `redis://localhost:6379`; a instalação via CLI emite `redis://redis:6379` | Collab, CLI |
+| `LEARNHOUSE_API_URL` | URL base da API usada pelo servidor de colaboração. | URL | `http://localhost:8000`; o compose gerado define `http://localhost:9000` | Collab, CLI |
 
-## Security, setup, and auth
+## Segurança, instalação e autenticação
 
-| Variable | Description | Type | Default / required | Used by |
+| Variável | Descrição | Tipo | Padrão / obrigatório | Usado por |
 | --- | --- | --- | --- | --- |
-| `LEARNHOUSE_AUTH_JWT_SECRET_KEY` | JWT signing key shared by the API and collaboration server. Must be at least 32 characters. | secret string | required | API, Collab, CLI |
-| `LEARNHOUSE_INITIAL_ADMIN_EMAIL` | Initial admin email used by the API install command and generated `.env` files. | email | `admin@school.dev` for the API install command; CLI setup writes the chosen email | API, CLI |
-| `LEARNHOUSE_INITIAL_ADMIN_PASSWORD` | Initial admin password used by the API install command and generated `.env` files. | secret string | required for install/bootstrap | API, CLI |
-| `LEARNHOUSE_INITIAL_ORG_NAME` | Initial organization display name used during install. | string | `Default Organization` | API, CLI |
-| `LEARNHOUSE_INITIAL_ORG_SLUG` | Initial organization slug used during install. | slug string | `default` | API, CLI |
-| `LEARNHOUSE_GOOGLE_CLIENT_ID` | Google OAuth client ID used by web auth proxy routes. | string | unset unless Google OAuth is enabled | Web, CLI |
-| `LEARNHOUSE_GOOGLE_CLIENT_SECRET` | Google OAuth client secret used by the web token exchange route. | secret string | unset unless Google OAuth is enabled | Web, CLI |
-| `LEARNHOUSE_GOOGLE_OAUTH_CLIENT_ID` | Expected Google OAuth audience for backend ID-token validation. If unset, audience verification is disabled with a warning. | string | unset | API |
+| `LEARNHOUSE_AUTH_JWT_SECRET_KEY` | Chave de assinatura JWT compartilhada pela API e pelo servidor de colaboração. Deve ter ao menos 32 caracteres. | string secreta | obrigatório | API, Collab, CLI |
+| `LEARNHOUSE_INITIAL_ADMIN_EMAIL` | E-mail do admin inicial usado pelo comando de instalação da API e pelos arquivos `.env` gerados. | e-mail | `admin@school.dev` para o comando de instalação da API; a instalação via CLI grava o e-mail escolhido | API, CLI |
+| `LEARNHOUSE_INITIAL_ADMIN_PASSWORD` | Senha do admin inicial usada pelo comando de instalação da API e pelos arquivos `.env` gerados. | string secreta | obrigatório para instalação/bootstrap | API, CLI |
+| `LEARNHOUSE_INITIAL_ORG_NAME` | Nome de exibição da organização inicial usado durante a instalação. | string | `Default Organization` | API, CLI |
+| `LEARNHOUSE_INITIAL_ORG_SLUG` | Slug da organização inicial usado durante a instalação. | string slug | `default` | API, CLI |
+| `LEARNHOUSE_GOOGLE_CLIENT_ID` | ID de client do Google OAuth usado pelas rotas de proxy de autenticação do web. | string | não definido, a menos que o Google OAuth esteja ativado | Web, CLI |
+| `LEARNHOUSE_GOOGLE_CLIENT_SECRET` | Segredo de client do Google OAuth usado pela rota de troca de token do web. | string secreta | não definido, a menos que o Google OAuth esteja ativado | Web, CLI |
+| `LEARNHOUSE_GOOGLE_OAUTH_CLIENT_ID` | Audiência esperada do Google OAuth para validação do ID-token no backend. Se não definida, a verificação de audiência é desativada com um aviso. | string | não definido | API |
 
-## Web runtime
+## Runtime do web
 
-| Variable | Description | Type | Default / required | Used by |
+| Variável | Descrição | Tipo | Padrão / obrigatório | Usado por |
 | --- | --- | --- | --- | --- |
-| `NEXT_PUBLIC_LEARNHOUSE_API_URL` | Explicit API URL for frontend API calls. If unset, the web app derives it from `NEXT_PUBLIC_LEARNHOUSE_BACKEND_URL`. | URL | derived as `{backend}/api/v1/` | Web, CLI |
-| `NEXT_PUBLIC_LEARNHOUSE_BACKEND_URL` | Backend base URL used by the web app and server-side auth proxy routes. | URL | `http://localhost/` in config helpers; local dev checker writes `http://localhost:1338/` | Web, CLI |
-| `NEXT_PUBLIC_LEARNHOUSE_DOMAIN` | Public frontend domain. The web app can also fall back to runtime cookies set by the backend. | hostname | `localhost` or runtime cookie fallback | Web, CLI |
-| `NEXT_PUBLIC_LEARNHOUSE_TOP_DOMAIN` | Top-level/root domain used for cookie and subdomain helpers. | hostname | derived from `NEXT_PUBLIC_LEARNHOUSE_DOMAIN` when unset | Web, CLI |
-| `NEXT_PUBLIC_LEARNHOUSE_MULTI_ORG` | Legacy public multi-org flag generated by the CLI. Backend `LEARNHOUSE_TENANCY` is authoritative for current behavior. | boolean | `false` | CLI, legacy Web config |
-| `NEXT_PUBLIC_LEARNHOUSE_DEFAULT_ORG` | Default organization slug used by frontend routing fallbacks. | slug string | `default` | Web, CLI |
-| `NEXT_PUBLIC_LEARNHOUSE_HTTPS` | Selects `https://` instead of `http://` in frontend URL helpers. | boolean | `false` | Web, CLI |
-| `NEXT_PUBLIC_LEARNHOUSE_MEDIA_URL` | Base URL for direct media links. If unset, media URLs use the backend URL. | URL | unset, falls back to backend URL | Web |
-| `NEXT_PUBLIC_UNSPLASH_ACCESS_KEY` | Unsplash API access key for the in-editor Unsplash image picker (course thumbnails, board/community thumbnails, editor image blocks, and more). The picker still renders when unset, but Unsplash searches return nothing. | string | unset | Web, CLI |
-| `NEXT_PUBLIC_LEARNHOUSE_PLATFORM_URL` | Browser-safe platform base URL for upgrade and auth exchange flows. | URL | unset | Web |
-| `NEXT_PUBLIC_LEARNHOUSE_SENTRY_DSN` | Browser/server Sentry DSN for the web app. | URL | unset | Web |
-| `NEXT_PUBLIC_LEARNHOUSE_ENV` | Web Sentry environment label. | string | `dev` | Web |
+| `NEXT_PUBLIC_LEARNHOUSE_API_URL` | URL explícita da API para chamadas do frontend. Se não definida, o app web a deriva de `NEXT_PUBLIC_LEARNHOUSE_BACKEND_URL`. | URL | derivada como `{backend}/api/v1/` | Web, CLI |
+| `NEXT_PUBLIC_LEARNHOUSE_BACKEND_URL` | URL base do backend usada pelo app web e pelas rotas de proxy de autenticação no servidor. | URL | `http://localhost/` nos helpers de configuração; o verificador de dev local grava `http://localhost:1338/` | Web, CLI |
+| `NEXT_PUBLIC_LEARNHOUSE_DOMAIN` | Domínio público do frontend. O app web também pode recorrer a cookies de runtime definidos pelo backend. | hostname | `localhost` ou fallback de cookie em runtime | Web, CLI |
+| `NEXT_PUBLIC_LEARNHOUSE_TOP_DOMAIN` | Domínio raiz/de nível superior usado por helpers de cookie e subdomínio. | hostname | derivado de `NEXT_PUBLIC_LEARNHOUSE_DOMAIN` quando não definido | Web, CLI |
+| `NEXT_PUBLIC_LEARNHOUSE_MULTI_ORG` | Flag pública legada de multi-org gerada pela CLI. `LEARNHOUSE_TENANCY` no backend é a fonte de verdade atual. | booleano | `false` | CLI, configuração legada do Web |
+| `NEXT_PUBLIC_LEARNHOUSE_DEFAULT_ORG` | Slug da organização padrão usado nos fallbacks de roteamento do frontend. | string slug | `default` | Web, CLI |
+| `NEXT_PUBLIC_LEARNHOUSE_HTTPS` | Escolhe `https://` em vez de `http://` nos helpers de URL do frontend. | booleano | `false` | Web, CLI |
+| `NEXT_PUBLIC_LEARNHOUSE_MEDIA_URL` | URL base para links diretos de mídia. Se não definida, URLs de mídia usam a URL do backend. | URL | não definido, cai para a URL do backend | Web |
+| `NEXT_PUBLIC_UNSPLASH_ACCESS_KEY` | Chave de acesso à API do Unsplash para o seletor de imagens do Unsplash no editor (miniaturas de curso, miniaturas de quadro/comunidade, blocos de imagem do editor e mais). O seletor ainda renderiza quando não definida, mas as buscas do Unsplash não retornam nada. | string | não definido | Web, CLI |
+| `NEXT_PUBLIC_LEARNHOUSE_PLATFORM_URL` | URL base da plataforma, segura para o navegador, para fluxos de upgrade e troca de autenticação. | URL | não definido | Web |
+| `NEXT_PUBLIC_LEARNHOUSE_SENTRY_DSN` | DSN do Sentry para navegador/servidor do app web. | URL | não definido | Web |
+| `NEXT_PUBLIC_LEARNHOUSE_ENV` | Rótulo de ambiente do Sentry no web. | string | `dev` | Web |
 
-## AI
+## IA
 
-| Variable | Description | Type | Default / required | Used by |
+| Variável | Descrição | Tipo | Padrão / obrigatório | Usado por |
 | --- | --- | --- | --- | --- |
-| `LEARNHOUSE_IS_AI_ENABLED` | Master switch for AI features. | boolean | `false` | API, CLI |
-| `LEARNHOUSE_GEMINI_API_KEY` | Legacy Google/Gemini key and fallback embeddings key for providers without embeddings. | secret string | unset | API, CLI |
-| `LEARNHOUSE_AI_PROVIDER` | Provider for generation: `google`, `openai`, `anthropic`, `deepseek`, `moonshot`, `mistral`, `openrouter`, `bedrock`, `ollama`, or another supported Pydantic AI provider. | string | `google` | API |
-| `LEARNHOUSE_AI_API_KEY` | API key for the selected AI provider. Not required for `ollama`; optional for `bedrock`. | secret string | unset; required for most providers | API |
-| `LEARNHOUSE_AI_BASE_URL` | Custom endpoint for OpenAI-compatible or local providers. | URL | unset; Ollama falls back to `http://localhost:11434/v1` | API |
-| `LEARNHOUSE_AI_MODEL_FAST` | Low-latency model tier for titles, follow-ups, and migration tasks. | model id | `gemini-3.1-flash-lite` | API |
-| `LEARNHOUSE_AI_MODEL_STANDARD` | Standard model tier for chat, RAG, and standard-plan generation. | model id | `gemini-3.5-flash` | API |
-| `LEARNHOUSE_AI_MODEL_PRO` | Pro model tier for upgraded course planning and generation flows. | model id | `gemini-3.1-pro-preview` | API |
-| `LEARNHOUSE_AI_IMAGE_MODEL` | Google image-generation model ("nano banana"). Google-only path (uses the Gemini key regardless of provider). | model id | `gemini-2.5-flash-image` | API |
-| `LEARNHOUSE_AI_TTS_MODEL` | Google text-to-speech model for AI audio / podcast generation. Google-only path. All Gemini TTS models are currently preview. | model id | `gemini-2.5-flash-preview-tts` | API |
-| `LEARNHOUSE_AI_EMBEDDING_PROVIDER` | Optional provider override for RAG embeddings. | string | same as `LEARNHOUSE_AI_PROVIDER` | API |
-| `LEARNHOUSE_AI_EMBEDDING_MODEL` | Optional embedding model override. | model id | provider default, such as `gemini-embedding-001`, `text-embedding-3-small`, or `nomic-embed-text` | API |
-| `LEARNHOUSE_AI_EMBEDDING_DIMENSIONS` | Embedding vector size. Changing this requires a matching database migration and re-index. | integer | `768` | API |
+| `LEARNHOUSE_IS_AI_ENABLED` | Interruptor geral para os recursos de IA. | booleano | `false` | API, CLI |
+| `LEARNHOUSE_GEMINI_API_KEY` | Chave legada do Google/Gemini e chave de fallback de embeddings para provedores sem embeddings. | string secreta | não definido | API, CLI |
+| `LEARNHOUSE_AI_PROVIDER` | Provedor para geração: `google`, `openai`, `anthropic`, `deepseek`, `moonshot`, `mistral`, `openrouter`, `bedrock`, `ollama`, ou outro provedor Pydantic AI suportado. | string | `google` | API |
+| `LEARNHOUSE_AI_API_KEY` | Chave de API do provedor de IA selecionado. Não é necessária para `ollama`; opcional para `bedrock`. | string secreta | não definido; obrigatório para a maioria dos provedores | API |
+| `LEARNHOUSE_AI_BASE_URL` | Endpoint personalizado para provedores compatíveis com OpenAI ou locais. | URL | não definido; o Ollama cai para `http://localhost:11434/v1` | API |
+| `LEARNHOUSE_AI_MODEL_FAST` | Camada de modelo de baixa latência para títulos, follow-ups e tarefas de migração. | id de modelo | `gemini-3.1-flash-lite` | API |
+| `LEARNHOUSE_AI_MODEL_STANDARD` | Camada de modelo padrão para chat, RAG e geração do plano padrão. | id de modelo | `gemini-3.5-flash` | API |
+| `LEARNHOUSE_AI_MODEL_PRO` | Camada de modelo Pro para fluxos avançados de planejamento e geração de curso. | id de modelo | `gemini-3.1-pro-preview` | API |
+| `LEARNHOUSE_AI_IMAGE_MODEL` | Modelo de geração de imagem do Google ("nano banana"). Caminho exclusivo do Google (usa a chave Gemini independente do provedor). | id de modelo | `gemini-2.5-flash-image` | API |
+| `LEARNHOUSE_AI_TTS_MODEL` | Modelo de texto para fala do Google, para geração de áudio/podcast por IA. Caminho exclusivo do Google. Todos os modelos Gemini TTS estão atualmente em preview. | id de modelo | `gemini-2.5-flash-preview-tts` | API |
+| `LEARNHOUSE_AI_EMBEDDING_PROVIDER` | Sobrescrita opcional de provedor para embeddings de RAG. | string | igual a `LEARNHOUSE_AI_PROVIDER` | API |
+| `LEARNHOUSE_AI_EMBEDDING_MODEL` | Sobrescrita opcional de modelo de embedding. | id de modelo | padrão do provedor, como `gemini-embedding-001`, `text-embedding-3-small`, ou `nomic-embed-text` | API |
+| `LEARNHOUSE_AI_EMBEDDING_DIMENSIONS` | Tamanho do vetor de embedding. Alterar isso exige uma migração de banco de dados correspondente e reindexação. | número inteiro | `768` | API |
 
-## Email
+## E-mail
 
-| Variable | Description | Type | Default / required | Used by |
+| Variável | Descrição | Tipo | Padrão / obrigatório | Usado por |
 | --- | --- | --- | --- | --- |
-| `LEARNHOUSE_EMAIL_PROVIDER` | Outbound email provider. | enum: `resend`, `smtp` | `resend` | API, CLI |
-| `LEARNHOUSE_RESEND_API_KEY` | Resend API key when `LEARNHOUSE_EMAIL_PROVIDER=resend`. | secret string | unset; required to send via Resend | API, CLI |
-| `LEARNHOUSE_SYSTEM_EMAIL_ADDRESS` | Sender address for system email. | email | unset; CLI setup can emit `noreply@{domain}` | API, CLI |
-| `LEARNHOUSE_SMTP_HOST` | SMTP server hostname when `LEARNHOUSE_EMAIL_PROVIDER=smtp`. | hostname | unset | API, CLI |
-| `LEARNHOUSE_SMTP_PORT` | SMTP server port. | integer | `587` | API, CLI |
-| `LEARNHOUSE_SMTP_USERNAME` | SMTP authentication username. | string | unset | API, CLI |
-| `LEARNHOUSE_SMTP_PASSWORD` | SMTP authentication password. | secret string | unset | API, CLI |
-| `LEARNHOUSE_SMTP_USE_TLS` | Enables TLS for SMTP. | boolean | `true` | API, CLI |
+| `LEARNHOUSE_EMAIL_PROVIDER` | Provedor de e-mail de saída. | enum: `resend`, `smtp` | `resend` | API, CLI |
+| `LEARNHOUSE_RESEND_API_KEY` | Chave de API do Resend quando `LEARNHOUSE_EMAIL_PROVIDER=resend`. | string secreta | não definido; obrigatório para enviar via Resend | API, CLI |
+| `LEARNHOUSE_SYSTEM_EMAIL_ADDRESS` | Endereço remetente para e-mails do sistema. | e-mail | não definido; a instalação via CLI pode emitir `noreply@{domain}` | API, CLI |
+| `LEARNHOUSE_SMTP_HOST` | Hostname do servidor SMTP quando `LEARNHOUSE_EMAIL_PROVIDER=smtp`. | hostname | não definido | API, CLI |
+| `LEARNHOUSE_SMTP_PORT` | Porta do servidor SMTP. | número inteiro | `587` | API, CLI |
+| `LEARNHOUSE_SMTP_USERNAME` | Usuário de autenticação SMTP. | string | não definido | API, CLI |
+| `LEARNHOUSE_SMTP_PASSWORD` | Senha de autenticação SMTP. | string secreta | não definido | API, CLI |
+| `LEARNHOUSE_SMTP_USE_TLS` | Ativa TLS para SMTP. | booleano | `true` | API, CLI |
 
-## Content storage
+## Armazenamento de conteúdo
 
-| Variable | Description | Type | Default / required | Used by |
+| Variável | Descrição | Tipo | Padrão / obrigatório | Usado por |
 | --- | --- | --- | --- | --- |
-| `LEARNHOUSE_CONTENT_DELIVERY_TYPE` | Storage backend for uploaded content. | enum: `filesystem`, `s3api` | `filesystem` | API, CLI |
-| `LEARNHOUSE_S3_API_BUCKET_NAME` | S3-compatible bucket name when using `s3api`. | string | unset; required for S3 storage | API, CLI |
-| `LEARNHOUSE_S3_API_ENDPOINT_URL` | S3-compatible endpoint URL. Leave unset for provider defaults where supported. | URL | unset | API, CLI |
+| `LEARNHOUSE_CONTENT_DELIVERY_TYPE` | Backend de armazenamento para conteúdo enviado. | enum: `filesystem`, `s3api` | `filesystem` | API, CLI |
+| `LEARNHOUSE_S3_API_BUCKET_NAME` | Nome do bucket compatível com S3, ao usar `s3api`. | string | não definido; obrigatório para armazenamento S3 | API, CLI |
+| `LEARNHOUSE_S3_API_ENDPOINT_URL` | URL do endpoint compatível com S3. Deixe não definida para usar os padrões do provedor, quando suportado. | URL | não definido | API, CLI |
 
-## Payments
+## Pagamentos
 
-| Variable | Description | Type | Default / required | Used by |
+| Variável | Descrição | Tipo | Padrão / obrigatório | Usado por |
 | --- | --- | --- | --- | --- |
-| `LEARNHOUSE_STRIPE_SECRET_KEY` | Stripe secret key. | secret string | unset | API |
-| `LEARNHOUSE_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key. | string | unset | API |
-| `LEARNHOUSE_STRIPE_WEBHOOK_STANDARD_SECRET` | Signing secret for the standard Stripe webhook endpoint. | secret string | unset | API |
-| `LEARNHOUSE_STRIPE_WEBHOOK_CONNECT_SECRET` | Signing secret for the Stripe Connect webhook endpoint. | secret string | unset | API |
-| `LEARNHOUSE_STRIPE_CLIENT_ID` | Stripe Connect OAuth client ID. | string | unset | API |
+| `LEARNHOUSE_STRIPE_SECRET_KEY` | Chave secreta do Stripe. | string secreta | não definido | API |
+| `LEARNHOUSE_STRIPE_PUBLISHABLE_KEY` | Chave pública do Stripe. | string | não definido | API |
+| `LEARNHOUSE_STRIPE_WEBHOOK_STANDARD_SECRET` | Segredo de assinatura para o endpoint de webhook padrão do Stripe. | string secreta | não definido | API |
+| `LEARNHOUSE_STRIPE_WEBHOOK_CONNECT_SECRET` | Segredo de assinatura para o endpoint de webhook do Stripe Connect. | string secreta | não definido | API |
+| `LEARNHOUSE_STRIPE_CLIENT_ID` | ID de client OAuth do Stripe Connect. | string | não definido | API |
 
-## Code execution and analytics
+## Execução de código e analytics
 
-| Variable | Description | Type | Default / required | Used by |
+| Variável | Descrição | Tipo | Padrão / obrigatório | Usado por |
 | --- | --- | --- | --- | --- |
-| `LEARNHOUSE_JUDGE0_API_URL` | Judge0 API URL. Setting it enables code execution routes. | URL | unset | API |
-| `LEARNHOUSE_JUDGE0_CLIENT_ID` | Optional Judge0 client ID. | string | unset | API |
-| `LEARNHOUSE_JUDGE0_CLIENT_SECRET` | Optional Judge0 client secret. | secret string | unset | API |
-| `LEARNHOUSE_TINYBIRD_API_URL` | Tinybird regional API URL. Setting it enables analytics config. | URL | unset | API |
-| `LEARNHOUSE_TINYBIRD_INGEST_TOKEN` | Tinybird token with ingest/write permissions. | secret string | unset; required for event ingestion | API |
-| `LEARNHOUSE_TINYBIRD_READ_TOKEN` | Tinybird token with read/query permissions. | secret string | unset; required for analytics reads | API |
+| `LEARNHOUSE_JUDGE0_API_URL` | URL da API do Judge0. Defini-la ativa as rotas de execução de código. | URL | não definido | API |
+| `LEARNHOUSE_JUDGE0_CLIENT_ID` | ID de client opcional do Judge0. | string | não definido | API |
+| `LEARNHOUSE_JUDGE0_CLIENT_SECRET` | Segredo de client opcional do Judge0. | string secreta | não definido | API |
+| `LEARNHOUSE_TINYBIRD_API_URL` | URL regional da API do Tinybird. Defini-la ativa a configuração de analytics. | URL | não definido | API |
+| `LEARNHOUSE_TINYBIRD_INGEST_TOKEN` | Token do Tinybird com permissões de ingestão/escrita. | string secreta | não definido; obrigatório para ingestão de eventos | API |
+| `LEARNHOUSE_TINYBIRD_READ_TOKEN` | Token do Tinybird com permissões de leitura/consulta. | string secreta | não definido; obrigatório para leituras de analytics | API |
 
-## Observability
+## Observabilidade
 
-| Variable | Description | Type | Default / required | Used by |
+| Variável | Descrição | Tipo | Padrão / obrigatório | Usado por |
 | --- | --- | --- | --- | --- |
-| `LEARNHOUSE_SENTRY_DSN` | Backend Sentry DSN; also used by the web edge Sentry config as a non-public fallback. | URL | unset | API, Web edge |
-| `LEARNHOUSE_LOGFIRE_ENABLED` | CLI-generated Logfire flag. The current OSS runtime does not read it directly. | boolean | `False` in CLI-generated `.env` | CLI |
+| `LEARNHOUSE_SENTRY_DSN` | DSN do Sentry no backend; também usado pela configuração de Sentry na borda do web como fallback não-público. | URL | não definido | API, borda Web |
+| `LEARNHOUSE_LOGFIRE_ENABLED` | Flag do Logfire gerada pela CLI. O runtime OSS atual não a lê diretamente. | booleano | `False` no `.env` gerado pela CLI | CLI |
 
-## Enterprise and development controls
+## Controles de Enterprise e desenvolvimento
 
-| Variable | Description | Type | Default / required | Used by |
+| Variável | Descrição | Tipo | Padrão / obrigatório | Usado por |
 | --- | --- | --- | --- | --- |
-| `LEARNHOUSE_LICENSE_KEY` | Enterprise license key. Validated by the EE backend at runtime; the CLI passes it through during install/update. | secret string | required for EE installs and updates | EE backend, EE CLI |
-| `LEARNHOUSE_LICENSE_SERVER_URL` | Enterprise license server URL. | URL | `https://partners.learnhouse.app` | EE backend, EE CLI |
-| `LEARNHOUSE_LICENSE_GRACE_HOURS` | Offline grace period (hours) the EE backend allows before an unvalidated license is rejected. | integer | `25` (max `168`) | EE backend |
-| `LEARNHOUSE_DATA_DIR` | Data directory path inside the Enterprise backend container. | path | `/app/data` | EE backend container |
-| `LEARNHOUSE_DISABLE_EE` | Disables local Enterprise hooks even if the `ee/` folder exists. | boolean-like string | unset; CLI dev sets `1` unless `--ee` is used | API, CLI dev |
-| `LEARNHOUSE_FORCE_EE` | Forces EE mode during development when EE code is present. Ignored unless development mode is enabled. | boolean-like string | unset | API, CLI dev |
-| `WORKOS_API_KEY` | WorkOS API key for Enterprise SSO. Required (with `WORKOS_CLIENT_ID`) to enable WorkOS-backed SSO. | secret string | unset; required for SSO | EE backend |
-| `WORKOS_CLIENT_ID` | WorkOS client ID for Enterprise SSO. | string | unset; required for SSO | EE backend |
-| `SSO_REDIRECT_URI` | Full SSO callback URL override. When set, it is used as-is. | URL | unset; derived from `SSO_REDIRECT_URI_BASE` / the configured domain | EE backend |
-| `SSO_REDIRECT_URI_BASE` | Base URL used to build the SSO callback when `SSO_REDIRECT_URI` is not set. | URL | unset; falls back to `LEARNHOUSE_DOMAIN`, then to `http://localhost:4000` | EE backend |
+| `LEARNHOUSE_LICENSE_KEY` | Chave de licença Enterprise. Validada pelo backend EE em runtime; a CLI a repassa durante instalação/atualização. | string secreta | obrigatório para instalações e atualizações EE | Backend EE, EE CLI |
+| `LEARNHOUSE_LICENSE_SERVER_URL` | URL do servidor de licença Enterprise. | URL | `https://partners.learnhouse.app` | Backend EE, EE CLI |
+| `LEARNHOUSE_LICENSE_GRACE_HOURS` | Período de tolerância offline (horas) que o backend EE permite antes de rejeitar uma licença não validada. | número inteiro | `25` (máx. `168`) | Backend EE |
+| `LEARNHOUSE_DATA_DIR` | Caminho do diretório de dados dentro do contêiner do backend Enterprise. | caminho | `/app/data` | Contêiner do backend EE |
+| `LEARNHOUSE_DISABLE_EE` | Desativa os hooks locais de Enterprise mesmo se a pasta `ee/` existir. | string tipo-booleana | não definido; a CLI de dev define `1` a menos que `--ee` seja usado | API, CLI de dev |
+| `LEARNHOUSE_FORCE_EE` | Força o modo EE durante o desenvolvimento quando código EE está presente. Ignorado a menos que o modo de desenvolvimento esteja ativado. | string tipo-booleana | não definido | API, CLI de dev |
+| `WORKOS_API_KEY` | Chave de API do WorkOS para SSO Enterprise. Obrigatória (com `WORKOS_CLIENT_ID`) para ativar SSO baseado em WorkOS. | string secreta | não definido; obrigatório para SSO | Backend EE |
+| `WORKOS_CLIENT_ID` | ID de client do WorkOS para SSO Enterprise. | string | não definido; obrigatório para SSO | Backend EE |
+| `SSO_REDIRECT_URI` | Sobrescrita completa da URL de callback do SSO. Quando definida, é usada como está. | URL | não definido; derivada de `SSO_REDIRECT_URI_BASE` / do domínio configurado | Backend EE |
+| `SSO_REDIRECT_URI_BASE` | URL base usada para construir o callback do SSO quando `SSO_REDIRECT_URI` não está definida. | URL | não definido; cai para `LEARNHOUSE_DOMAIN`, depois para `http://localhost:4000` | Backend EE |
 
-## Related generated variables
+## Variáveis geradas relacionadas
 
-These variables do not use the `LEARNHOUSE_` prefix, but the CLI writes them into the same
-`.env` file and several services require them.
+Estas variáveis não usam o prefixo `LEARNHOUSE_`, mas a CLI as grava no mesmo arquivo `.env`, e
+vários serviços as exigem.
 
-| Variable | Description | Type | Default / required | Used by |
+| Variável | Descrição | Tipo | Padrão / obrigatório | Usado por |
 | --- | --- | --- | --- | --- |
-| `HTTP_PORT` | Public HTTP port chosen during CLI setup. | integer | setup choice | CLI-generated compose |
-| `NEXTAUTH_URL` | Base URL for NextAuth-compatible auth helpers. | URL | generated from the configured domain | CLI, doctor |
-| `NEXTAUTH_SECRET` | Secret used by NextAuth-compatible auth helpers. | secret string | generated by CLI setup | CLI, doctor |
-| `COLLAB_INTERNAL_KEY` | Shared key for API-to-collaboration-server internal auth. | secret string | required for dev and production collab auth | API, Collab, CLI |
-| `NEXT_PUBLIC_COLLAB_URL` | Public WebSocket URL for the collaboration server. | WebSocket URL | generated from the configured domain | Web, CLI |
-| `COLLAB_PORT` | Local collaboration server port. | integer | `4000` in local dev checker | Collab, CLI dev |
-| `COLLAB_TRUST_PROXY` | Set to `true` when the collaboration server runs behind a reverse proxy so client IPs (used for WebSocket rate limiting) are read from `X-Forwarded-For`. | boolean | `false` | Collab |
-| `POSTGRES_USER` | PostgreSQL user for generated non-external database installs. | string | `learnhouse` | CLI-generated compose |
-| `POSTGRES_PASSWORD` | PostgreSQL password for generated non-external database installs. | secret string | generated by CLI setup | CLI-generated compose |
-| `POSTGRES_DB` | PostgreSQL database name for generated non-external database installs. | string | `learnhouse` | CLI-generated compose |
+| `HTTP_PORT` | Porta HTTP pública escolhida durante a instalação via CLI. | número inteiro | escolha da instalação | Compose gerado pela CLI |
+| `NEXTAUTH_URL` | URL base para os helpers de autenticação compatíveis com NextAuth. | URL | gerada a partir do domínio configurado | CLI, doctor |
+| `NEXTAUTH_SECRET` | Segredo usado pelos helpers de autenticação compatíveis com NextAuth. | string secreta | gerado pela instalação via CLI | CLI, doctor |
+| `COLLAB_INTERNAL_KEY` | Chave compartilhada para autenticação interna API-para-servidor-de-colaboração. | string secreta | obrigatório para autenticação de collab em dev e produção | API, Collab, CLI |
+| `NEXT_PUBLIC_COLLAB_URL` | URL WebSocket pública para o servidor de colaboração. | URL WebSocket | gerada a partir do domínio configurado | Web, CLI |
+| `COLLAB_PORT` | Porta local do servidor de colaboração. | número inteiro | `4000` no verificador de dev local | Collab, CLI de dev |
+| `COLLAB_TRUST_PROXY` | Defina como `true` quando o servidor de colaboração rodar detrás de um proxy reverso, para que IPs de cliente (usados na limitação de taxa de WebSocket) sejam lidos de `X-Forwarded-For`. | booleano | `false` | Collab |
+| `POSTGRES_USER` | Usuário do PostgreSQL para instalações de banco de dados não-externo geradas. | string | `learnhouse` | Compose gerado pela CLI |
+| `POSTGRES_PASSWORD` | Senha do PostgreSQL para instalações de banco de dados não-externo geradas. | string secreta | gerada pela instalação via CLI | Compose gerado pela CLI |
+| `POSTGRES_DB` | Nome do banco de dados PostgreSQL para instalações de banco de dados não-externo geradas. | string | `learnhouse` | Compose gerado pela CLI |
 
-## Full example
+## Exemplo completo
 
 ```env filename=".env" copy
-# Domain and hosting
+# Domínio e hospedagem
 LEARNHOUSE_DOMAIN=learn.example.com
 HTTP_PORT=443
 NEXT_PUBLIC_LEARNHOUSE_BACKEND_URL=https://learn.example.com/
@@ -199,19 +201,19 @@ LEARNHOUSE_REDIS_CONNECTION_STRING=redis://redis:6379/learnhouse
 LEARNHOUSE_COOKIE_DOMAIN=.example.com
 LEARNHOUSE_PORT=9000
 
-# Security and bootstrap
+# Segurança e bootstrap
 LEARNHOUSE_AUTH_JWT_SECRET_KEY=replace-with-at-least-32-random-characters
 LEARNHOUSE_INITIAL_ADMIN_EMAIL=admin@example.com
 LEARNHOUSE_INITIAL_ADMIN_PASSWORD=change-this-password
 LEARNHOUSE_INITIAL_ORG_NAME=Default Organization
 LEARNHOUSE_INITIAL_ORG_SLUG=default
 
-# Collaboration
+# Colaboração
 COLLAB_INTERNAL_KEY=replace-with-random-shared-secret
 LEARNHOUSE_REDIS_URL=redis://redis:6379
 NEXT_PUBLIC_COLLAB_URL=wss://learn.example.com/collab
 
-# AI, email, and storage
+# IA, e-mail e armazenamento
 LEARNHOUSE_IS_AI_ENABLED=False
 LEARNHOUSE_EMAIL_PROVIDER=resend
 LEARNHOUSE_CONTENT_DELIVERY_TYPE=filesystem

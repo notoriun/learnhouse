@@ -135,3 +135,48 @@ server-verify dispatch, CODE grading, retry caps, due dates, permissions).
 > instance (it passes against `learnhouse dev` / a branch-built image).
 > CODE task type is covered by backend tests only (Judge0 isn't available on a
 > self-host).
+
+---
+
+## Feature module: `keycloak` (login corporativo)
+
+Valida as jornadas de identidade corporativa contra um **Keycloak real**, não
+simulado. Diferente dos outros módulos, este **não** boota a própria instância:
+ele exige o ambiente do `docker-compose.local.yml`, que sobe a plataforma junto
+de um Keycloak 26.x com o realm `dev` provisionado.
+
+```bash
+# na raiz do repositório
+cp .env.local.example .env          # e troque os segredos
+docker compose -f docker-compose.local.yml up -d --build
+until curl -sf http://localhost/api/v1/health >/dev/null; do sleep 5; done
+
+# aqui
+E2E_BASE_URL=http://localhost bun run test:keycloak
+```
+
+`E2E_BASE_URL` liga `SKIP_BOOT` automaticamente (ver `core/instance.ts`), então
+a suíte roda contra o ambiente de pé. `E2E_PORT` não participa e **não** há
+conflito com a porta 8080 do Keycloak.
+
+O script `test:keycloak` falha com instrução de correção quando `E2E_BASE_URL`
+não está definida — sem essa guarda, o harness bootaria uma instância sem
+provedor de identidade e as 20 jornadas reprovariam por motivo enganoso.
+
+### Preparo do ambiente
+
+O procedimento completo, com as três lacunas da documentação oficial que
+impedem a subida (falta de `.env`, `LEARNHOUSE_FRONTEND_DOMAIN` e a conta local
+de vínculo), está em
+[`specs/008-testes-keycloak-local/quickstart.md`](../../specs/008-testes-keycloak-local/quickstart.md).
+
+### Fases da execução
+
+1. **Pré-condições** — 6 verificações de ambiente que rodam antes de qualquer
+   jornada. Reprovação aqui é classificada como *indisponibilidade de serviço*
+   ou *preparação de ambiente*, nunca como defeito de produto.
+2. **Jornadas** — US1 (entrada), US2 (registro e admissão), US3 (encerramento
+   coordenado), US4 (guardas de conta federada).
+
+Cada jornada carrega no título o requisito de origem nas specs 001 a 004 e 007,
+de modo que a cobertura é auditável pelo próprio relatório.

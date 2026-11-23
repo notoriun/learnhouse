@@ -21,23 +21,23 @@ import {
 
 const features = [
   // Row 1 — hero features (large)
-  { icon: PencilSimple, label: 'Block Editor', desc: 'Notion-like WYSIWYG editor with rich content blocks, videos, documents, and embeds', color: '#3b82f6', size: 'large', href: '/platform/editor' },
-  { icon: Brain, label: 'AI Tutoring', desc: 'Built-in AI assistant for students and teachers with RAG-powered context', color: '#a855f7', size: 'large', href: '/platform/ai' },
-  { icon: UsersThree, label: 'Real-time Collaboration', desc: 'Live co-editing for course content and boards powered by Hocuspocus', color: '#ec4899', size: 'large', href: '/platform/editor/collaboration' },
+  { icon: PencilSimple, label: 'Editor de Blocos', desc: 'Editor WYSIWYG ao estilo Notion, com blocos de conteúdo rico, vídeos, documentos e embeds', color: '#3b82f6', size: 'large', href: '/platform/editor' },
+  { icon: Brain, label: 'Tutoria com IA', desc: 'Assistente de IA integrado para alunos e professores, com contexto via RAG', color: '#a855f7', size: 'large', href: '/platform/ai' },
+  { icon: UsersThree, label: 'Colaboração em Tempo Real', desc: 'Coedição em tempo real de conteúdo de curso e quadros, com Hocuspocus', color: '#ec4899', size: 'large', href: '/platform/editor/collaboration' },
 
   // Row 2+ — standard features
-  { icon: BookOpen, label: 'Courses & Trails', desc: 'Chapters, activities, collections, and learning paths', color: '#10b981', href: '/platform/courses' },
-  { icon: ClipboardText, label: 'Assignments', desc: 'Automated and manual grading', color: '#f59e0b', href: '/platform/assignments' },
-  { icon: Terminal, label: 'Code Execution', desc: 'Run code in 7+ languages', color: '#8b5cf6', href: '/platform/code-execution' },
-  { icon: ChatCircle, label: 'Discussions', desc: 'Threaded conversations', color: '#f43f5e', href: '/platform/discussions' },
-  { icon: ChalkboardSimple, label: 'Boards', desc: 'Collaborative whiteboards', color: '#f97316', href: '/platform/boards' },
-  { icon: Microphone, label: 'Podcasts', desc: 'Audio content and episodes', color: '#ec4899', href: '/platform/podcasts' },
-  { icon: Certificate, label: 'Certifications', desc: 'Auto-generate on completion', color: '#14b8a6', href: '/platform/certifications' },
-  { icon: ChartBar, label: 'Analytics', desc: 'Track progress and engagement', color: '#d97706', href: '/platform/analytics' },
-  { icon: CreditCard, label: 'Payments', desc: 'Sell courses with Stripe', color: '#6366f1', href: '/platform/payments' },
-  { icon: Buildings, label: 'Multi-tenancy', desc: 'Multiple organizations', color: '#0891b2', href: '/platform/organizations/multi-tenancy' },
-  { icon: ShieldCheck, label: 'Enterprise SSO', desc: 'WorkOS SAML/OIDC', color: '#475569', href: '/platform/users/authentication' },
-  { icon: MagnifyingGlass, label: 'Search', desc: 'Full-text search', color: '#737373', href: '/platform/search' },
+  { icon: BookOpen, label: 'Cursos e Trilhas', desc: 'Capítulos, atividades, coleções e trilhas de aprendizagem', color: '#10b981', href: '/platform/courses' },
+  { icon: ClipboardText, label: 'Tarefas', desc: 'Correção automática e manual', color: '#f59e0b', href: '/platform/assignments' },
+  { icon: Terminal, label: 'Execução de Código', desc: 'Execute código em mais de 7 linguagens', color: '#8b5cf6', href: '/platform/code-execution' },
+  { icon: ChatCircle, label: 'Discussões', desc: 'Conversas em thread', color: '#f43f5e', href: '/platform/discussions' },
+  { icon: ChalkboardSimple, label: 'Quadros', desc: 'Whiteboards colaborativos', color: '#f97316', href: '/platform/boards' },
+  { icon: Microphone, label: 'Podcasts', desc: 'Conteúdo em áudio e episódios', color: '#ec4899', href: '/platform/podcasts' },
+  { icon: Certificate, label: 'Certificações', desc: 'Geração automática na conclusão', color: '#14b8a6', href: '/platform/certifications' },
+  { icon: ChartBar, label: 'Analytics', desc: 'Acompanhe progresso e engajamento', color: '#d97706', href: '/platform/analytics' },
+  { icon: CreditCard, label: 'Pagamentos', desc: 'Venda cursos com Stripe', color: '#6366f1', href: '/platform/payments' },
+  { icon: Buildings, label: 'Multi-tenancy', desc: 'Múltiplas organizações', color: '#0891b2', href: '/platform/organizations/multi-tenancy' },
+  { icon: ShieldCheck, label: 'SSO Enterprise', desc: 'WorkOS SAML/OIDC', color: '#475569', href: '/platform/users/authentication' },
+  { icon: MagnifyingGlass, label: 'Busca', desc: 'Busca em texto completo', color: '#737373', href: '/platform/search' },
 ]
 
 function FeatureCard({ icon: Icon, label, color, desc, large, href }) {

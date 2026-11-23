@@ -1,36 +1,36 @@
 import { Callout } from 'nextra/components'
 
-# Organization Settings
+# Configurações da Organização
 
-Each organization in LearnHouse has its own configurable settings that control branding, features, and access.
+Cada organização no Notoriun tem suas próprias configurações, que controlam identidade visual, recursos e acesso.
 
-## Branding
+## Identidade Visual
 
-Customize the look and feel of your organization:
+Personalize a aparência da sua organização:
 
-- Organization name and description
-- Logo and favicon
-- Color scheme and theme preferences
+- Nome e descrição da organização
+- Logo e favicon
+- Esquema de cores e preferências de tema
 
-## AI Configuration
+## Configuração de IA
 
-Per-organization AI controls let admins:
+Controles de IA por organização permitem que admins:
 
-- Enable or disable AI features for the organization
-- Set a per-user request limit to cap usage
-- Toggle individual AI surfaces (such as the admin copilot)
+- Ativem ou desativem recursos de IA para a organização
+- Definam um limite de requisições por usuário para conter o uso
+- Ativem ou desativem superfícies de IA individuais (como o copiloto administrativo)
 
 <Callout>
-The Google Gemini API key itself is a global, instance-level setting (`LEARNHOUSE_GEMINI_API_KEY`) — it is configured once at deployment and shared across all organizations. See [AI Setup](/self-hosting/configuration/ai-setup) for details.
+A própria chave de API do Google Gemini é uma configuração global, no nível da instância (`LEARNHOUSE_GEMINI_API_KEY`) — ela é configurada uma vez na implantação e compartilhada entre todas as organizações. Veja [Configuração de IA](/self-hosting/configuration/ai-setup) para detalhes.
 </Callout>
 
-## User and Access Settings
+## Configurações de Usuário e Acesso
 
-Control how users interact with your organization:
+Controle como os usuários interagem com sua organização:
 
-- **Signup mechanism** — Choose between open signup and invite-only registration.
-- **User limits** — Set maximum user counts if needed.
+- **Mecanismo de cadastro** — Escolha entre cadastro aberto e registro somente por convite.
+- **Limites de usuário** — Defina limites máximos de usuários, se necessário.
 
-## Managing Settings
+## Gerenciando Configurações
 
-Organization settings are accessible to Admin users from the organization dashboard. Navigate to **Settings** to view and modify all available options.
+As configurações da organização são acessíveis a usuários Admin a partir do dashboard da organização. Navegue até **Configurações** para ver e modificar todas as opções disponíveis.

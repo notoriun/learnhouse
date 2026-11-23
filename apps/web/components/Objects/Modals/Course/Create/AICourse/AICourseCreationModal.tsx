@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
-import lrnaiIcon from 'public/lrnai_icon.png'
+import aiIcon from '@components/Objects/aiIcon'
 import AICoursePreview from './AICoursePreview'
 import AICourseChat from './AICourseChat'
 import type { CoursePlan, CoursePlanningMessage, CreatedChapter, Attachment } from '@services/ai/courseplanning'
@@ -224,7 +224,7 @@ function AICourseCreationModal({
                 <Image
                   className="outline outline-1 outline-neutral-200/20 rounded-lg"
                   width={24}
-                  src={lrnaiIcon}
+                  src={aiIcon}
                   alt="AI Course"
                 />
                 <span className="text-sm font-semibold text-white/70">

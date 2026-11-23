@@ -1,5 +1,6 @@
 {
-  "index": "Overview",
-  "dev-environment": "Dev Environment",
-  "guidelines": "Guidelines"
+  "index": "Visão Geral",
+  "dev-environment": "Ambiente de Dev",
+  "keycloak-local": "Keycloak Local",
+  "guidelines": "Diretrizes"
 }

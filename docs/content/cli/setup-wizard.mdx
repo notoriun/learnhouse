@@ -1,107 +1,120 @@
 import { Callout } from 'nextra/components'
 
-# Setup Wizard
+# Assistente de Instalação
 
-The setup wizard (`npx learnhouse@latest setup`) is an interactive 6-step process that generates a complete Docker Compose deployment. You can go back and edit any step before confirming.
+O assistente de instalação (`npx learnhouse@latest setup`) é um processo interativo de 6 passos
+que gera uma implantação Docker Compose completa. Você pode voltar e editar qualquer passo antes
+de confirmar.
 
-## Step 1 — Install Directory
+## Passo 1 — Diretório de Instalação
 
-Choose where the deployment files will be created.
+Escolha onde os arquivos de implantação serão criados.
 
-- **Default**: `./learnhouse`
-- The directory is created if it doesn't exist
+- **Padrão**: `./learnhouse`
+- O diretório é criado se não existir
 
-## Step 2 — Domain Configuration
+## Passo 2 — Configuração de Domínio
 
-Configure your hostname and HTTPS settings.
+Configure seu hostname e as configurações de HTTPS.
 
-- **Domain**: hostname or IP address (default: `localhost`)
-- **HTTPS options** (non-localhost only):
-  - **Automatic SSL** (recommended) — Uses Let's Encrypt via Caddy. Requires a valid domain and ports 80/443.
-  - **Manual SSL** — You handle the reverse proxy or Cloudflare. LearnHouse runs on HTTP internally.
-  - **No HTTPS** — HTTP only (not recommended for production)
-- **Port**: Automatically set based on SSL choice (443 for auto SSL, 80 for HTTP)
+- **Domínio**: hostname ou endereço IP (padrão: `localhost`)
+- **Opções de HTTPS** (só para não-localhost):
+  - **SSL Automático** (recomendado) — Usa Let's Encrypt via Caddy. Requer um domínio válido e
+    as portas 80/443.
+  - **SSL Manual** — Você lida com o proxy reverso ou o Cloudflare. O Notoriun roda em HTTP
+    internamente.
+  - **Sem HTTPS** — Só HTTP (não recomendado para produção)
+- **Porta**: Definida automaticamente com base na escolha de SSL (443 para SSL automático, 80
+  para HTTP)
 
-## Step 3 — Database & Redis
+## Passo 3 — Banco de Dados e Redis
 
-Choose local Docker containers or connect to external services.
+Escolha contêineres Docker locais ou conecte-se a serviços externos.
 
 ### PostgreSQL
 
-- **Local Docker** (recommended):
-  - Uses `pgvector/pgvector:pg16` (PostgreSQL 16 with the pgvector extension, used for AI/RAG features when enabled)
-  - Password is auto-generated
-- **External** — Provide a connection string (`postgresql://user:pass@host:5432/db`). The wizard tests connectivity before proceeding.
+- **Docker local** (recomendado):
+  - Usa `pgvector/pgvector:pg16` (PostgreSQL 16 com a extensão pgvector, usada para recursos de
+    IA/RAG quando ativados)
+  - A senha é gerada automaticamente
+- **Externo** — Forneça uma string de conexão (`postgresql://user:pass@host:5432/db`). O
+  assistente testa a conectividade antes de continuar.
 
 ### Redis
 
-- **Local Docker** (recommended) — Uses `redis:7.2.3-alpine`
-- **External** — Provide a connection string. The wizard tests connectivity before proceeding.
+- **Docker local** (recomendado) — Usa `redis:7.2.3-alpine`
+- **Externo** — Forneça uma string de conexão. O assistente testa a conectividade antes de
+  continuar.
 
-## Step 4 — Organization
+## Passo 4 — Organização
 
-Set your organization name (e.g., "My School"). This creates the initial organization in the database.
+Defina o nome da sua organização (ex.: "Minha Escola"). Isso cria a organização inicial no
+banco de dados.
 
-## Step 5 — Admin Account
+## Passo 5 — Conta de Admin
 
-Create the first admin user with email and password (minimum 8 characters).
+Crie o primeiro usuário admin com e-mail e senha (mínimo de 8 caracteres).
 
-## Step 6 — Optional Features
+## Passo 6 — Recursos Opcionais
 
-Enable any of the following integrations:
+Ative qualquer uma das seguintes integrações:
 
-| Feature | Required Configuration |
+| Recurso | Configuração Necessária |
 | --- | --- |
-| **AI (Gemini)** | Gemini API key |
-| **Email (Resend)** | Resend API key + system email address |
-| **Email (SMTP)** | Host, port, username, password, TLS toggle + system email |
-| **S3 Storage** | Bucket name, endpoint URL (optional for AWS) |
+| **IA (Gemini)** | Chave de API do Gemini |
+| **E-mail (Resend)** | Chave de API do Resend + endereço de e-mail do sistema |
+| **E-mail (SMTP)** | Host, porta, usuário, senha, toggle de TLS + e-mail do sistema |
+| **Armazenamento S3** | Nome do bucket, URL do endpoint (opcional para AWS) |
 | **Google OAuth** | Client ID + Client Secret |
-| **Unsplash** | Access Key |
+| **Unsplash** | Chave de Acesso |
 
-## Confirmation
+## Confirmação
 
-After completing all steps, the wizard shows a summary of your configuration. You can:
+Depois de completar todos os passos, o assistente mostra um resumo da sua configuração. Você
+pode:
 
-- **Proceed** — Generate files and optionally start the deployment
-- **Edit** — Go back and change any step
-- **Cancel** — Abort without generating anything
+- **Continuar** — Gerar os arquivos e opcionalmente iniciar a implantação
+- **Editar** — Voltar e mudar qualquer passo
+- **Cancelar** — Abortar sem gerar nada
 
-## Generated Files
+## Arquivos Gerados
 
-After confirmation, the wizard creates:
+Depois da confirmação, o assistente cria:
 
 ```
 {installDir}/
-├── docker-compose.yml        # Service definitions
-├── .env                      # All configuration variables
-├── learnhouse.config.json    # CLI metadata
+├── docker-compose.yml        # Definições de serviço
+├── .env                      # Todas as variáveis de configuração
+├── learnhouse.config.json    # Metadados da CLI
 └── extra/
-    ├── Caddyfile             # If auto-SSL enabled
-    └── nginx.prod.conf       # If manual SSL or HTTP
+    ├── Caddyfile             # Se auto-SSL ativado
+    └── nginx.prod.conf       # Se SSL manual ou HTTP
 ```
 
-## Docker Services
+## Serviços Docker
 
-Each deployment gets a unique 8-character ID for container and network isolation.
+Cada implantação recebe um ID único de 8 caracteres para isolamento de contêiner e rede.
 
-| Service | Image | Purpose |
+| Serviço | Imagem | Propósito |
 | --- | --- | --- |
-| `learnhouse-app-{id}` | `ghcr.io/learnhouse/app:latest` (or `:dev`) | Next.js + FastAPI application |
-| `learnhouse-db-{id}` | `pgvector/pgvector:pg16` | PostgreSQL database |
-| `learnhouse-redis-{id}` | `redis:7.2.3-alpine` | Redis cache |
-| `learnhouse-caddy-{id}` | `caddy:2-alpine` | Reverse proxy with auto-SSL |
-| `learnhouse-nginx-{id}` | `nginx:alpine` | Reverse proxy (no auto-SSL) |
+| `learnhouse-app-{id}` | `ghcr.io/notoriun/learnhouse/app:latest` (ou `:dev`) | Aplicação Next.js + FastAPI |
+| `learnhouse-db-{id}` | `pgvector/pgvector:pg16` | Banco de dados PostgreSQL |
+| `learnhouse-redis-{id}` | `redis:7.2.3-alpine` | Cache Redis |
+| `learnhouse-caddy-{id}` | `caddy:2-alpine` | Proxy reverso com auto-SSL |
+| `learnhouse-nginx-{id}` | `nginx:alpine` | Proxy reverso (sem auto-SSL) |
 
 <Callout type="info">
-The wizard optionally starts the deployment and waits up to 3 minutes for the health check (`/api/v1/health`) to pass before showing your credentials and URL.
+O assistente opcionalmente inicia a implantação e espera até 3 minutos pela verificação de
+saúde (`/api/v1/health`) passar antes de mostrar suas credenciais e URL.
 </Callout>
 
-## Release Channels
+## Canais de Release
 
-During setup you choose a release channel:
+Durante a instalação você escolhe um canal de release:
 
-- **Stable** — Recommended for production (pulls `ghcr.io/learnhouse/app:latest`)
-- **Dev** — Bleeding edge, latest features (pulls `ghcr.io/learnhouse/app:dev`)
+- **Stable** — Recomendado para produção (baixa `ghcr.io/notoriun/learnhouse/app:latest`)
+- **Dev** — Últimas novidades, recursos mais recentes (baixa
+  `ghcr.io/notoriun/learnhouse/app:dev`)
 
-To pin to a specific image tag after setup, use `learnhouse update --version <tag>`.
+Para fixar em uma tag de imagem específica após a instalação, use
+`learnhouse update --version <tag>`.

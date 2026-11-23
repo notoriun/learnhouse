@@ -1,0 +1,48 @@
+# Stack Swarm da documentação (docs.notoriun.com.br).
+#
+# Nome de arquivo: `docker-compose.docs.yml` e não `docker-compose.yml` de
+# propósito — um docker-compose.yml na raiz viraria o arquivo padrão do
+# `docker compose`, e um `docker compose up` no repo passaria a subir a doc em
+# vez do app. Mesmo critério do Dockerfile.docs.
+#
+# Deploy (no nó do Swarm):
+#   docker stack deploy -c docker-compose.docs.yml learnhouse-docs
+#   docker service logs -f learnhouse-docs_learnhouse-docs
+#
+# ATENÇÃO antes do primeiro deploy — ajustar os dois valores marcados abaixo
+# para os nomes que já existem no Traefik deste ambiente:
+#   docker service inspect traefik \
+#     --format '{{json .Spec.TaskTemplate.ContainerSpec.Args}}' | tr ',' '\n' \
+#     | grep -iE 'entrypoint|certificatesresolvers'
+
+services:
+  learnhouse-docs:
+    # Build local: docker build -t learnhouse-docs:latest -f Dockerfile.docs .
+    # Para deploy multi-nó, publicar em registry e trocar por
+    # <registry>/<org>/learnhouse-docs:<tag> — no Swarm cada nó resolve a
+    # imagem por conta própria, e uma imagem só local não é replicável.
+    image: learnhouse-docs:latest
+    networks:
+      - traefik-public
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == server1
+      # Em Swarm os labels do Traefik precisam ficar em `deploy.labels`. Se
+      # forem para `labels` no nível do serviço, ficam no container e o Traefik,
+      # que lê a API do Swarm, não os enxerga.
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=traefik-public
+        - traefik.http.routers.lhdocs.rule=Host(`docs.notoriun.com.br`)
+        # AJUSTAR: nome do entrypoint HTTPS deste Traefik (websecure | https | ...)
+        - traefik.http.routers.lhdocs.entrypoints=websecure
+        - traefik.http.routers.lhdocs.tls=true
+        # AJUSTAR: nome do certresolver Let's Encrypt deste Traefik.
+        - traefik.http.routers.lhdocs.tls.certresolver=CHANGEME_CERTRESOLVER
+        - traefik.http.services.lhdocs.loadbalancer.server.port=3000
+
+networks:
+  traefik-public:
+    external: true

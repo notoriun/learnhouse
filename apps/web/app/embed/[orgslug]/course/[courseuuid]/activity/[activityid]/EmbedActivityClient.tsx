@@ -4,6 +4,7 @@ import React, { Suspense, lazy, useState, useEffect, useRef, useCallback } from 
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'next/navigation'
 import { getLEARNHOUSE_DOMAIN_VAL, getLEARNHOUSE_HTTP_PROTOCOL_VAL } from '@services/config/config'
+import { getBrand } from '@services/config/brand'
 import Image from 'next/image'
 import { CourseContext, CourseDispatchContext } from '@components/Contexts/CourseContext'
 import { useActivity } from '@/hooks/queries/useActivity'
@@ -121,7 +122,8 @@ function useContentReady(activityType: string, activitySubType?: string) {
 function EmbedActivityClient({ activityId, courseuuid, orgslug, bgcolor }: EmbedActivityClientProps) {
   const { t } = useTranslation()
   const searchParams = useSearchParams()
-  const showLearnHouseLogo = searchParams.get('showlearnhouselogo') !== 'false'
+  // Nome do parâmetro preservado — é API pública de embeds já publicados (FR-009).
+  const showBrandBadge = searchParams.get('showlearnhouselogo') !== 'false'
   const textColor = searchParams.get('textcolor')
 
   const { data: activity, isLoading: activityLoading } = useActivity(activityId)
@@ -136,8 +138,8 @@ function EmbedActivityClient({ activityId, courseuuid, orgslug, bgcolor }: Embed
   const getActivityUrl = () => {
     const cleanCourseUuid = (course?.course_uuid ?? courseuuid).replace('course_', '')
     const path = `/course/${cleanCourseUuid}/activity/${activityId}`
-    // Always build an absolute org URL — the embed may be served from the main app domain
-    // (e.g. app.learnhouse.io), so a relative path would resolve to the wrong host.
+    // Always build an absolute org URL — the embed may be served from the main app
+    // domain, so a relative path would resolve to the wrong host.
     if (typeof window !== 'undefined' && orgslug) {
       const domain = getLEARNHOUSE_DOMAIN_VAL()
       const protocol = getLEARNHOUSE_HTTP_PROTOCOL_VAL()
@@ -168,8 +170,8 @@ function EmbedActivityClient({ activityId, courseuuid, orgslug, bgcolor }: Embed
         <div className="bg-white rounded-2xl nice-shadow p-8 max-w-md w-full text-center">
           <div className="mb-6">
             <Image
-              src="/learnhouse_bigicon.png"
-              alt="LearnHouse"
+              src={getBrand().logos.symbol}
+              alt={getBrand().name}
               width={64}
               height={64}
               className="mx-auto"
@@ -190,7 +192,7 @@ function EmbedActivityClient({ activityId, courseuuid, orgslug, bgcolor }: Embed
             {t('embed.visit_activity')}
           </a>
         </div>
-        {showLearnHouseLogo && <PoweredByBadge activityUrl={getActivityUrl()} />}
+        {showBrandBadge && <PoweredByBadge activityUrl={getActivityUrl()} />}
       </div>
     )
   }
@@ -260,7 +262,7 @@ function EmbedActivityClient({ activityId, courseuuid, orgslug, bgcolor }: Embed
       >
         {renderActivityContent()}
       </div>
-      {showLearnHouseLogo && ready && <PoweredByBadge activityUrl={getActivityUrl()} />}
+      {showBrandBadge && ready && <PoweredByBadge activityUrl={getActivityUrl()} />}
     </div>
   )
 }
@@ -277,8 +279,8 @@ function PoweredByBadge({ activityUrl }: { activityUrl: string }) {
         className="bg-white/80 backdrop-blur-lg rounded-2xl p-2 light-shadow block cursor-pointer"
       >
         <Image
-          src="/lrn.svg"
-          alt="LearnHouse"
+          src={getBrand().logos.symbol}
+          alt={getBrand().name}
           width={20}
           height={20}
         />

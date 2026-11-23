@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import { verifyStripeConnection } from '@services/payments/providers/stripe'
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
 import Image from 'next/image'
-import learnhouseIcon from 'public/learnhouse_bigicon_1.png'
+import { getBrand } from '@services/config/brand'
 import { useTranslation } from 'react-i18next'
 
 function StripeConnectCallbackInner() {
@@ -70,10 +70,11 @@ function StripeConnectCallbackInner() {
       <div className="flex flex-col items-center">
         <div className="mb-10">
           <Image
+            unoptimized
             quality={100}
             width={50}
             height={50}
-            src={learnhouseIcon}
+            src={getBrand().logos.symbol}
             alt=""
           />
         </div>

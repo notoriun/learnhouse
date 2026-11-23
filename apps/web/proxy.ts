@@ -228,8 +228,18 @@ export const config = {
 }
 
 export default async function proxy(req: NextRequest) {
-  const instance = await getInstanceInfo()
   const { pathname, search } = req.nextUrl
+
+  // Brand assets (/public/brand/*) and the AGPL legal pages live OUTSIDE the
+  // org tree. The matcher's `[\w-]+\.\w+` exclusion only covers root-level
+  // files, so without this pass-through the tenant catch-all rewrites them to
+  // /orgs/{slug}/... — which does not exist — breaking every logo and the
+  // /legal attribution page in all tenancy modes.
+  if (pathname.startsWith('/brand/') || pathname === '/legal' || pathname.startsWith('/legal/')) {
+    return NextResponse.next()
+  }
+
+  const instance = await getInstanceInfo()
   const fullhost = req.headers.get('host')
 
   // SEO: canonicalize mixed-case top-level route names (/Login → /login). Scoped

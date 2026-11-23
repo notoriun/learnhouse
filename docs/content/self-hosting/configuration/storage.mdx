@@ -1,29 +1,33 @@
 import { Callout } from 'nextra/components'
 
-# Content Storage
+# Armazenamento de Conteúdo
 
-LearnHouse supports two storage backends for uploaded content such as images, videos, and documents.
+O Notoriun suporta dois backends de armazenamento para conteúdo enviado, como imagens, vídeos e
+documentos.
 
-## Storage Options
+## Opções de Armazenamento
 
-### Filesystem (Default)
+### Filesystem (Padrão)
 
-By default, uploaded content is stored on the local filesystem using a Docker volume. This is the simplest option and works well for small to medium deployments.
+Por padrão, o conteúdo enviado é armazenado no filesystem local usando um volume Docker. Esta é a
+opção mais simples e funciona bem para implantações pequenas a médias.
 
 ```env
 LEARNHOUSE_CONTENT_DELIVERY_TYPE=filesystem
 ```
 
-Content is persisted in a Docker volume, so it survives container restarts. The `learnhouse backup` command includes filesystem content in its backups.
+O conteúdo é persistido em um volume Docker, então sobrevive a reinicializações de contêiner. O
+comando `learnhouse backup` inclui o conteúdo do filesystem em seus backups.
 
-### S3-Compatible Storage
+### Armazenamento Compatível com S3
 
-For production deployments or when you need scalable storage, you can use any S3-compatible storage service:
+Para implantações de produção ou quando você precisa de armazenamento escalável, você pode usar
+qualquer serviço de armazenamento compatível com S3:
 
 - **AWS S3**
 - **CloudFlare R2**
 - **MinIO** (self-hosted)
-- Any other S3-compatible provider
+- Qualquer outro provedor compatível com S3
 
 ```env
 LEARNHOUSE_CONTENT_DELIVERY_TYPE=s3api
@@ -31,7 +35,7 @@ LEARNHOUSE_S3_API_BUCKET_NAME=learnhouse-content
 LEARNHOUSE_S3_API_ENDPOINT_URL=https://s3.amazonaws.com
 ```
 
-After updating your storage configuration, restart your instance:
+Depois de atualizar sua configuração de armazenamento, reinicie sua instância:
 
 ```bash
 learnhouse stop
@@ -39,26 +43,32 @@ learnhouse start
 ```
 
 <Callout type="info">
-When using S3-compatible storage, make sure the bucket exists and the credentials have read/write permissions. For AWS S3, credentials are typically provided via standard AWS environment variables or instance roles.
+Ao usar armazenamento compatível com S3, garanta que o bucket exista e que as credenciais tenham
+permissões de leitura/escrita. Para AWS S3, as credenciais normalmente são fornecidas via
+variáveis de ambiente padrão da AWS ou papéis de instância.
 </Callout>
 
-## Choosing a Storage Backend
+## Escolhendo um Backend de Armazenamento
 
-| Consideration | Filesystem | S3-Compatible |
+| Consideração | Filesystem | Compatível com S3 |
 |---|---|---|
-| Setup complexity | Simple, works out of the box | Requires external service or additional container |
-| Scalability | Limited by server disk | Virtually unlimited |
-| Backup | Included in `learnhouse backup` | Managed separately by your storage provider |
-| Cost | Included with your server | Varies by provider |
-| Redundancy | Single disk, no redundancy | Built-in redundancy (provider-dependent) |
+| Complexidade de configuração | Simples, funciona de imediato | Requer serviço externo ou contêiner adicional |
+| Escalabilidade | Limitada pelo disco do servidor | Praticamente ilimitada |
+| Backup | Incluído em `learnhouse backup` | Gerenciado separadamente pelo seu provedor de armazenamento |
+| Custo | Incluído com seu servidor | Varia por provedor |
+| Redundância | Disco único, sem redundância | Redundância integrada (depende do provedor) |
 
-For most self-hosted installations starting out, filesystem storage is a good default. You can migrate to S3-compatible storage later as your needs grow.
+Para a maioria das instalações self-hosted começando agora, o armazenamento em filesystem é um
+bom padrão. Você pode migrar para armazenamento compatível com S3 depois, conforme suas
+necessidades crescem.
 
-## Using MinIO for Self-Hosted S3
+## Usando MinIO para S3 Self-Hosted
 
-If you want S3-compatible storage without relying on a cloud provider, you can run MinIO alongside LearnHouse. MinIO provides an S3-compatible API on your own infrastructure.
+Se você quer armazenamento compatível com S3 sem depender de um provedor de nuvem, você pode
+executar o MinIO junto com o Notoriun. O MinIO fornece uma API compatível com S3 na sua própria
+infraestrutura.
 
-Configure the endpoint URL to point to your MinIO instance:
+Configure a URL do endpoint para apontar para sua instância MinIO:
 
 ```env
 LEARNHOUSE_CONTENT_DELIVERY_TYPE=s3api

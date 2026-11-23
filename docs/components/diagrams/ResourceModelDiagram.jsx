@@ -59,7 +59,7 @@ function Chain({ title, nodes }) {
         {nodes.map((node, i) => (
           <div key={node.label} style={{ display: 'contents' }}>
             <Card node={node} />
-            {i < nodes.length - 1 && <Arrow label="has many" />}
+            {i < nodes.length - 1 && <Arrow label="tem muitos" />}
           </div>
         ))}
       </div>
@@ -68,26 +68,26 @@ function Chain({ title, nodes }) {
 }
 
 const content = [
-  { label: 'Organization', sub: 'org_slug', icon: Buildings, color: '#6366f1', bg: '#eef2ff', border: '#c7d2fe' },
-  { label: 'Course', sub: 'course_uuid', icon: BookOpen, color: '#0ea5e9', bg: '#e0f2fe', border: '#bae6fd' },
-  { label: 'Chapter', sub: 'ordered', icon: Stack, color: '#8b5cf6', bg: '#f5f3ff', border: '#ddd6fe' },
-  { label: 'Activity', sub: 'video · doc · page', icon: Article, color: '#db2777', bg: '#fdf2f8', border: '#fbcfe8' },
+  { label: 'Organização', sub: 'org_slug', icon: Buildings, color: '#6366f1', bg: '#eef2ff', border: '#c7d2fe' },
+  { label: 'Curso', sub: 'course_uuid', icon: BookOpen, color: '#0ea5e9', bg: '#e0f2fe', border: '#bae6fd' },
+  { label: 'Capítulo', sub: 'ordenado', icon: Stack, color: '#8b5cf6', bg: '#f5f3ff', border: '#ddd6fe' },
+  { label: 'Atividade', sub: 'vídeo · doc · página', icon: Article, color: '#db2777', bg: '#fdf2f8', border: '#fbcfe8' },
 ]
 
 const progress = [
-  { label: 'User', sub: 'learner', icon: User, color: '#10b981', bg: '#ecfdf5', border: '#a7f3d0' },
-  { label: 'Trail', sub: 'one per user, per org', icon: Path, color: '#0d9488', bg: '#f0fdfa', border: '#99f6e4' },
-  { label: 'Run', sub: 'one per enrolled course', icon: Flag, color: '#f59e0b', bg: '#fffbeb', border: '#fde68a' },
-  { label: 'Step', sub: 'one per completed activity', icon: CheckCircle, color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
+  { label: 'Usuário', sub: 'aluno', icon: User, color: '#10b981', bg: '#ecfdf5', border: '#a7f3d0' },
+  { label: 'Trilha', sub: 'uma por usuário, por org', icon: Path, color: '#0d9488', bg: '#f0fdfa', border: '#99f6e4' },
+  { label: 'Execução', sub: 'uma por curso matriculado', icon: Flag, color: '#f59e0b', bg: '#fffbeb', border: '#fde68a' },
+  { label: 'Passo', sub: 'um por atividade concluída', icon: CheckCircle, color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
 ]
 
 export default function ResourceModelDiagram() {
   return (
     <div style={{ border: '1px solid #e5e7eb', borderRadius: 16, background: '#fafafa', padding: 20, margin: '24px 0', display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <Chain title="Content you read" nodes={content} />
-      <Chain title="Progress you write" nodes={progress} />
+      <Chain title="Conteúdo que você lê" nodes={content} />
+      <Chain title="Progresso que você escreve" nodes={progress} />
       <p style={{ fontSize: 12, color: '#64748b', margin: '0 2px', lineHeight: 1.5 }}>
-        The two chains connect through enrollment: a <strong>Run</strong> records a learner&apos;s enrollment in a <strong>Course</strong>, and each <strong>Step</strong> records completion of an <strong>Activity</strong>.
+        As duas cadeias se conectam através da matrícula: uma <strong>Execução</strong> registra a matrícula de um aluno em um <strong>Curso</strong>, e cada <strong>Passo</strong> registra a conclusão de uma <strong>Atividade</strong>.
       </p>
     </div>
   )

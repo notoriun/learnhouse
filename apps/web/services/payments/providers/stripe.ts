@@ -7,7 +7,7 @@ import { RequestBodyWithAuthHeader, errorHandling, secureFetch } from '@services
 
 /**
  * Generate a Stripe Connect OAuth link for the given org.
- * The org admin opens this URL to authorize LearnHouse on their Stripe account.
+ * The org admin opens this URL to authorize the platform on their Stripe account.
  */
 export async function getStripeOnboardingLink(
   orgId: number,

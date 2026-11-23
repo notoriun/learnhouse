@@ -1,0 +1,184 @@
+import { Callout } from 'nextra/components'
+
+# Login Corporativo (Keycloak)
+
+A plataforma suporta login corporativo via OpenID Connect (Authorization Code + PKCE) com o
+Keycloak da plataforma como provedor de identidade. Quando ativo, a tela de login exibe o
+botão **"Entrar com identidade corporativa"** e, para organizações que usam o provedor da
+plataforma, também **"Criar conta pela identidade corporativa"** — as contas nascem, trocam
+credencial e são encerradas no provedor; a plataforma atua como *relying party*.
+
+## Habilitação global (deployment)
+
+Configure o provedor da plataforma por variáveis de ambiente na API:
+
+| Variável | Descrição |
+|---|---|
+| `LEARNHOUSE_KEYCLOAK_ENABLED` | `true` para ativar o login corporativo global |
+| `LEARNHOUSE_KEYCLOAK_ISSUER` | Issuer do realm (ex.: `https://id.exemplo.com/realms/plataforma`) |
+| `LEARNHOUSE_KEYCLOAK_CLIENT_ID` | Client OIDC confidencial cadastrado no realm |
+| `LEARNHOUSE_KEYCLOAK_CLIENT_SECRET` | Segredo do client |
+| `LEARNHOUSE_KEYCLOAK_CLOCK_SKEW` | Tolerância de relógio em segundos (padrão 30) |
+
+O issuer DEVE usar HTTPS fora de desenvolvimento. O client precisa da *redirect URI* exata
+`https://<seu-dominio>/api/auth/keycloak/callback`. Além disso, o método **SSO** precisa
+estar entre os métodos de entrada permitidos da organização (configuração existente em
+Segurança da organização).
+
+Para provisionar o realm e os clients do zero, veja
+[Keycloak (Self-Hosting)](/self-hosting/configuration/keycloak); para desenvolvimento local
+com Keycloak pronto no compose, [Keycloak no Ambiente Local](/developers/contributing/keycloak-local).
+
+## Primeiro acesso e destino
+
+Com o **provedor da plataforma**, o primeiro acesso de alguém que ainda não tem conta cria a
+conta automaticamente: ela nasce vinculada à identidade corporativa e, nos acessos seguintes,
+a mesma identidade cai sempre na mesma conta. Não é preciso cadastrar a pessoa antes.
+
+O vínculo é feito pela identidade estável do provedor, **nunca pelo e-mail** — trocar o e-mail
+no provedor não cria conta nova nem transfere dados.
+
+As guardas de admissão continuam valendo em todos os casos:
+
+| Guarda | Efeito quando não atendida |
+|---|---|
+| E-mail verificado no provedor | Acesso recusado, nenhuma conta criada |
+| Domínio de e-mail permitido pela organização | Acesso recusado, nenhuma conta criada |
+| Método SSO habilitado na organização | Login corporativo indisponível |
+| Conta bloqueada | Acesso recusado |
+
+A conta criada recebe o papel de **menor privilégio** da organização do fluxo; a criação
+automática nunca concede administração. E-mail que coincide com uma conta já existente na
+mesma organização resulta em **vínculo**, não em conta duplicada; se a conta pertencer a outra
+organização, o caso é registrado como conflito para revisão administrativa.
+
+Concluído o acesso — conta recém-criada, recém-vinculada ou já conhecida — a pessoa é levada à
+**área principal da organização**, a tela com o menu de navegação.
+
+## Como a conta federada fica registrada
+
+Cinco registros descrevem uma conta que entra por identidade corporativa. Saber onde cada
+informação vive é o que permite responder, em suporte, se uma conta *nasceu* pelo SSO ou se
+*já existia* e foi vinculada depois.
+
+| Registro | O que guarda |
+|---|---|
+| Conta do usuário | Perfil, credencial e **método de origem** da conta |
+| Identidade externa | O vínculo durável com a identidade do provedor |
+| Membresia | Organização e papel dentro dela |
+| Eventos de auditoria | O desfecho de cada acesso, distinguível por tipo |
+| Sessão no provedor | O que permite encerrar a sessão no provedor junto com a local |
+
+### Criada pelo SSO ou vinculada depois?
+
+A distinção está em dois campos da conta:
+
+| | Conta criada pelo SSO | Conta que já existia e foi vinculada |
+|---|---|---|
+| Método de origem | `sso` | preservado (`email`, `google`, …) |
+| Senha | **vazia** — sem credencial local utilizável | hash preservado |
+
+Uma conta criada pelo SSO não nasce com senha e não passa a aceitar entrada por senha. A conta
+pré-existente mantém a credencial que já tinha; ganhar um vínculo corporativo não a remove.
+
+O nome de usuário é derivado da parte antes do `@` do endereço (ou do identificador que o
+provedor envia). Se esse nome já estiver em uso por **outra** conta, um sufixo é acrescentado —
+o acesso conclui normalmente em vez de falhar.
+
+### O vínculo é por identidade, não por e-mail
+
+A identidade externa é registrada pela combinação **emissor + identificador estável** do
+provedor (`iss` + `sub` do token), com unicidade garantida no banco. É essa constraint que
+assegura uma única conta por identidade, inclusive quando dois acessos simultâneos disputam a
+criação.
+
+O e-mail observado no momento do vínculo é guardado **apenas para auditoria** — nunca é usado
+para localizar a identidade. Consequência prática: trocar o e-mail no provedor não cria conta
+nova, não transfere dados e não faz a pessoa perder o histórico.
+
+### Desfechos na auditoria
+
+Cada acesso registra um evento distinguível, sem nenhum token no conteúdo:
+
+| Evento | Significado |
+|---|---|
+| `sso_provisioned` | A conta foi criada agora, no primeiro acesso |
+| `sso_linked` | A identidade foi vinculada a uma conta que já existia |
+| `login` (com método `sso`) | Identidade já conhecida entrou |
+| `sso_login_denied` | Admissão recusada, com o motivo |
+| `sso_conflict` | Conflito de identidade, para revisão administrativa |
+
+O evento de conflito é registrado **sem usuário associado**: um conflito nunca é atribuído à
+conta alheia envolvida.
+
+### Sessão no provedor
+
+Cada acesso cria também um registro de sessão no provedor, guardando de forma **cifrada** o
+*refresh token* e o *ID token* recebidos. É o que permite o
+[logout coordenado](#encerramento-de-sessão): ao sair da plataforma, a sessão no provedor é
+encerrada também, e uma revogação vinda do provedor derruba a sessão local. Sessões encerradas
+mantêm o motivo da revogação.
+
+## Configuração por organização
+
+Administradores podem configurar um provedor OIDC próprio para a organização pelo painel
+(Configurações → Autenticação), com teste de conexão, segredo *write-only* (nunca exibido) e
+políticas de admissão:
+
+- **Auto-provisionamento** — cria a conta no primeiro login corporativo (com papel padrão de
+  menor privilégio obrigatório). Para IdP de terceiro esta opção nasce **desligada**: a
+  organização precisa habilitá-la explicitamente. O padrão de criação automática descrito em
+  [Primeiro acesso e destino](#primeiro-acesso-e-destino) vale só para o provedor da plataforma.
+- **Domínios de e-mail permitidos** — restringe quem pode entrar/ser provisionado.
+- **Vínculo por e-mail** — liga a identidade corporativa a uma conta local pré-existente com
+  o mesmo e-mail verificado, quando permitido pela política.
+
+<Callout type="info">
+O caminho de **registro** (criação de conta pela tela do provedor) existe apenas para o
+provedor da plataforma. Organizações com IdP próprio de terceiro (Azure AD, Okta etc.)
+continuam com login e provisionamento normais, mas nunca recebem o botão de registro — a
+API recusa com `REGISTRO_NAO_DISPONIVEL`.
+</Callout>
+
+## Registro pela identidade corporativa
+
+Com o provedor da plataforma ativo e o auto-registro habilitado no realm
+(`registrationAllowed`), o "Criar conta pela identidade corporativa" leva à tela de registro
+do próprio Keycloak — mesmos parâmetros e proteções (PKCE, state, nonce) do login. Ao
+concluir, a pessoa volta autenticada e a conta é provisionada segundo a política da
+organização.
+
+Requisitos e comportamento:
+
+- **E-mail verificado é pré-condição**: o realm deve verificar o e-mail (SMTP +
+  verificação); registro com e-mail não verificado é recusado na admissão com orientação
+  clara.
+- O controle de "registro aberto ou fechado" é do **realm** (Keycloak), não da plataforma.
+- Recomenda-se `registrationEmailAsUsername` no realm: o e-mail é o identificador único de
+  entrada (evita colisão de nomes de usuário entre sistemas que compartilham o realm). O
+  apelido local da plataforma é derivado automaticamente da parte antes do `@`.
+
+## Contas federadas
+
+Uma conta é **federada** quando possui vínculo de identidade com o provedor da plataforma
+(criado no primeiro login, pelo registro ou pela [migração](/platform/users/keycloak-migration)).
+Para contas federadas:
+
+- **Senha e e-mail são gerenciados na central de conta do provedor** (`<issuer>/account`).
+  A troca local é recusada com `403 CONTA_FEDERADA` e a interface exibe o aviso com o link
+  — o endereço também é exposto em `GET /api/v1/instance/info` (`account_console_url`).
+- **E-mail alterado no provedor** é refletido automaticamente no login corporativo seguinte.
+- Demais campos de perfil (nome, bio, avatar) continuam editáveis na plataforma.
+
+<Callout>
+Durante a transição, o login por senha local de contas migradas continua funcionando até a
+organização desligar o método "password" nos métodos de entrada. A senha local fica
+congelada (a troca é bloqueada) e pode divergir da senha do provedor — estado transitório
+esperado; o estado final recomendado é SSO-only.
+</Callout>
+
+## Encerramento de sessão
+
+O logout de sessões federadas usa RP-Initiated Logout (encerra também a sessão no provedor)
+e a API aceita *backchannel logout* do Keycloak — sessões derrubadas no provedor são
+revogadas na plataforma.

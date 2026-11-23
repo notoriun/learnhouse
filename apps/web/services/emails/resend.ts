@@ -2,7 +2,8 @@ import 'server-only'
 import { Resend } from 'resend'
 import * as React from 'react'
 import { isSaaSMode } from '@lib/saas'
-import { LearnHouseEmail, type LearnHouseEmailProps } from '@components/Emails/LearnHouseEmail'
+import { getBrand } from '@services/config/brand'
+import { BrandEmail, type BrandEmailProps } from '@components/Emails/BrandEmail'
 
 // Resend transactional email. Lazy singleton so a keyless build/deploy never
 // throws at import time. `send()` renders the shared React Email template and is
@@ -27,8 +28,14 @@ export function isEmailEnabled(): boolean {
   return Boolean(process.env.RESEND_API_KEY)
 }
 
-const DEFAULT_FROM =
-  process.env.RESEND_FROM_EMAIL || 'LearnHouse <hello@emails.learnhouse.app>'
+// Remetente padrão: RESEND_FROM_EMAIL manda; senão um endereço neutro derivado
+// do domínio do contactEmail da marca (feature 005 — nada hardcoded).
+function defaultFrom(): string {
+  if (process.env.RESEND_FROM_EMAIL) return process.env.RESEND_FROM_EMAIL
+  const brand = getBrand()
+  const domain = brand.contactEmail.split('@')[1]
+  return `${brand.name} <no-reply@${domain}>`
+}
 
 export interface SendResult {
   ok: boolean
@@ -43,8 +50,8 @@ export interface SendResult {
 export async function send(
   to: string | string[],
   subject: string,
-  props: LearnHouseEmailProps,
-  from: string = DEFAULT_FROM,
+  props: BrandEmailProps,
+  from: string = defaultFrom(),
 ): Promise<SendResult> {
   // SaaS-only: transactional email never sends on OSS/self-hosted, even if a
   // RESEND_API_KEY happens to be present.
@@ -61,7 +68,7 @@ export async function send(
       from,
       to: Array.isArray(to) ? to : [to],
       subject,
-      react: React.createElement(LearnHouseEmail, props),
+      react: React.createElement(BrandEmail, props),
     })
     if (error) {
       console.error('[email] Resend error:', error)

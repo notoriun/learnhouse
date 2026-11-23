@@ -1,0 +1,123 @@
+name: Keycloak Validation
+
+permissions:
+  contents: read
+
+# Validação ponta a ponta do login corporativo contra um Keycloak REAL.
+#
+# Diferente do workflow E2E, que valida a imagem publicada via CLI, este sobe o
+# docker-compose.local.yml — que traz a plataforma (build local) junto de um
+# Keycloak 26.x com o realm `dev` provisionado e um coletor SMTP. É a única
+# forma de exercitar as jornadas de identidade sem simular o provedor.
+#
+# NÃO é portão de pull request, por decisão registrada (FR-017 da feature
+# 008-testes-keycloak-local): há defeitos de produto conhecidos e ainda abertos
+# que mantêm a suíte vermelha de propósito — travar PRs neles pararia o
+# repositório sem corrigir nada. Roda sob demanda e semanalmente.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * 1' # segundas, 04:00 UTC
+
+jobs:
+  keycloak:
+    name: Login corporativo (Keycloak real)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Preparar .env a partir do template
+        run: |
+          cp .env.local.example .env
+          # Segredos de ambiente descartável: gerados aqui, nunca commitados.
+          for var in NEXTAUTH_SECRET LEARNHOUSE_AUTH_JWT_SECRET_KEY COLLAB_INTERNAL_KEY; do
+            secret=$(openssl rand -base64 32)
+            python3 - "$var" "$secret" <<'PY'
+          import sys, pathlib, re
+          var, secret = sys.argv[1], sys.argv[2]
+          p = pathlib.Path('.env')
+          p.write_text(re.sub(rf'^{var}=.*$', f'{var}={secret}', p.read_text(), flags=re.M))
+          PY
+          done
+          python3 - <<'PY'
+          import pathlib, re, os
+          p = pathlib.Path('.env')
+          s = p.read_text()
+          s = re.sub(r'^LEARNHOUSE_INITIAL_ADMIN_PASSWORD=.*$',
+                     f"LEARNHOUSE_INITIAL_ADMIN_PASSWORD={os.environ['ADMIN_PASSWORD']}",
+                     s, flags=re.M)
+          p.write_text(s)
+          PY
+        env:
+          ADMIN_PASSWORD: CiKeycloakAdmin!234
+
+      - name: Subir o ambiente (plataforma + Keycloak + coletor SMTP)
+        run: docker compose -f docker-compose.local.yml up -d --build
+
+      - name: Aguardar prontidão
+        run: |
+          # A prontidão da plataforma inclui migrações e criação da organização
+          # inicial; a do provedor, o import do realm. Falhar aqui é ambiente,
+          # não produto — e a mensagem precisa dizer isso.
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost/api/v1/health >/dev/null; then app=ok; break; fi
+            if ! docker ps --filter name=learnhouse-app-local --filter status=running -q | grep -q .; then
+              echo "::error::A aplicação morreu no arranque. Log abaixo."
+              docker logs learnhouse-app-local 2>&1 | tail -40
+              exit 1
+            fi
+            sleep 5
+          done
+          [ "${app:-}" = ok ] || { echo "::error::Aplicação não ficou pronta em 5 min"; exit 1; }
+
+          for i in $(seq 1 40); do
+            if curl -sf http://localhost:8080/realms/dev/.well-known/openid-configuration >/dev/null; then kc=ok; break; fi
+            sleep 3
+          done
+          [ "${kc:-}" = ok ] || { echo "::error::Keycloak não ficou pronto"; exit 1; }
+
+      - name: Instalar dependências da suíte
+        working-directory: apps/e2e
+        run: |
+          bun install
+          bunx playwright install --with-deps chromium
+
+      - name: Executar a validação
+        working-directory: apps/e2e
+        env:
+          E2E_BASE_URL: http://localhost
+          E2E_ADMIN_EMAIL: admin@e2e-tests.com
+          E2E_ADMIN_PASSWORD: CiKeycloakAdmin!234
+        run: bun run test:keycloak
+
+      - name: Log da aplicação em caso de falha
+        if: failure()
+        run: docker logs learnhouse-app-local 2>&1 | tail -100
+
+      - name: Publicar relatório
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: keycloak-validation-report
+          path: apps/e2e/playwright-report/
+          retention-days: 7
+
+      - name: Publicar traces e vídeos das falhas
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: keycloak-validation-traces
+          # Os artefatos capturam a tela do provedor no momento do preenchimento
+          # da senha. O campo é do tipo senha, então o valor não é renderizado —
+          # mesmo assim a retenção é curta e o artefato não sai do repositório.
+          path: apps/e2e/test-results/
+          retention-days: 3
+
+      - name: Derrubar o ambiente
+        if: always()
+        run: docker compose -f docker-compose.local.yml down -v

@@ -35,7 +35,7 @@ export default function TOC({ headings = [] }) {
 
   return (
     <div className="lh-toc-inner">
-      <p className="lh-toc-title">On this page</p>
+      <p className="lh-toc-title">Nesta página</p>
       <ul className="lh-toc-list">
         {headings.map((heading) => (
           <li key={heading.id}>

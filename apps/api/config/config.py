@@ -1,8 +1,12 @@
 import os
 import yaml
 from typing import Literal, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from dotenv import load_dotenv
+
+# One-shot guard for the missing-credential report below: config is loaded on
+# every request, and repeating the report drowns out every other startup log.
+_LOGGED_MISSING_INTERNAL_KEYS = False
 
 
 class CookieConfig(BaseModel):
@@ -118,6 +122,16 @@ class RedisConfig(BaseModel):
     redis_connection_string: Optional[str]
 
 
+class KeycloakConfig(BaseModel):
+    enabled: bool = False
+    issuer: str = ""
+    client_id: str = ""
+    # Somente env/config — nunca serializado em resposta de API nem em logs
+    # (repr=False evita vazamento acidental em repr/str do objeto de config).
+    client_secret: str = Field(default="", repr=False)
+    clock_skew: int = 30
+
+
 class InternalStripeConfig(BaseModel):
     stripe_secret_key: str | None
     stripe_publishable_key: str | None
@@ -144,6 +158,7 @@ class LearnHouseConfig(BaseModel):
     payments_config: InternalPaymentsConfig
     tinybird_config: TinybirdConfig | None
     judge0_config: Judge0Config | None
+    keycloak_config: KeycloakConfig = KeycloakConfig()
 
 
 def get_learnhouse_config() -> LearnHouseConfig:
@@ -609,18 +624,75 @@ def get_learnhouse_config() -> LearnHouseConfig:
     # control plane (custom domains, plans, internal cron) to the per-tenant
     # backend. Self-hosted EE / OSS deployments don't run that control plane
     # and don't need them, so suppress the warning in those modes.
-    if not development_mode and saas_mode:
+    # Reported ONCE per process, as a single aggregated line. This block used to
+    # warn on every config load, which emitted the same two lines thousands of
+    # times a day and buried the one-shot warnings around them — a disabled
+    # Google audience check sat unnoticed in that noise. One loud line per
+    # process is what actually gets read.
+    global _LOGGED_MISSING_INTERNAL_KEYS
+    if not development_mode and saas_mode and not _LOGGED_MISSING_INTERNAL_KEYS:
+        _LOGGED_MISSING_INTERNAL_KEYS = True
         import logging as _cfg_log
         _log = _cfg_log.getLogger(__name__)
+
+        missing = []
         if not os.environ.get("CLOUD_INTERNAL_KEY"):
-            _log.warning(
-                "CLOUD_INTERNAL_KEY is not set. Internal endpoints "
-                "(custom domain sync, cloud_internal) will reject every request."
+            missing.append(
+                "CLOUD_INTERNAL_KEY (custom domain sync, cloud_internal plan writes)"
             )
         if not os.environ.get("LEARNHOUSE_PLATFORM_API_KEY"):
-            _log.warning(
-                "LEARNHOUSE_PLATFORM_API_KEY is not set. Platform endpoints "
-                "(packs internal_router) will reject every request."
+            missing.append(
+                "LEARNHOUSE_PLATFORM_API_KEY (pack activation, active-user overage billing)"
+            )
+        if not (
+            os.environ.get("LEARNHOUSE_GOOGLE_OAUTH_CLIENT_ID")
+            or os.environ.get("LEARNHOUSE_GOOGLE_CLIENT_ID")
+        ):
+            missing.append(
+                "LEARNHOUSE_GOOGLE_OAUTH_CLIENT_ID (Google OAuth audience "
+                "verification — absent means it is DISABLED, not merely unset)"
+            )
+        if missing:
+            _log.critical(
+                "SaaS deployment is missing %d required credential(s); the "
+                "features behind them fail silently until these are set: %s",
+                len(missing),
+                "; ".join(missing),
+            )
+
+    # Keycloak (login corporativo OIDC) — envs têm precedência sobre o YAML
+    kc_yaml = yaml_config.get("keycloak", {}) or {}
+    env_kc_enabled = os.environ.get("LEARNHOUSE_KEYCLOAK_ENABLED")
+    kc_enabled = (
+        env_kc_enabled.lower() in ("true", "1", "yes")
+        if env_kc_enabled is not None
+        else bool(kc_yaml.get("enabled", False))
+    )
+    kc_issuer = (
+        os.environ.get("LEARNHOUSE_KEYCLOAK_ISSUER") or kc_yaml.get("issuer") or ""
+    ).rstrip("/")
+    kc_client_id = (
+        os.environ.get("LEARNHOUSE_KEYCLOAK_CLIENT_ID") or kc_yaml.get("client_id") or ""
+    )
+    kc_client_secret = (
+        os.environ.get("LEARNHOUSE_KEYCLOAK_CLIENT_SECRET")
+        or kc_yaml.get("client_secret")
+        or ""
+    )
+    kc_clock_skew = int(
+        os.environ.get("LEARNHOUSE_KEYCLOAK_CLOCK_SKEW")
+        or kc_yaml.get("clock_skew")
+        or 30
+    )
+    if kc_enabled:
+        if not kc_issuer or not kc_client_id or not kc_client_secret:
+            raise ValueError(
+                "LEARNHOUSE_KEYCLOAK_ENABLED=true exige LEARNHOUSE_KEYCLOAK_ISSUER, "
+                "LEARNHOUSE_KEYCLOAK_CLIENT_ID e LEARNHOUSE_KEYCLOAK_CLIENT_SECRET."
+            )
+        if not development_mode and not kc_issuer.startswith("https://"):
+            raise ValueError(
+                "LEARNHOUSE_KEYCLOAK_ISSUER deve usar HTTPS fora de desenvolvimento."
             )
 
     # Create LearnHouseConfig object
@@ -660,6 +732,13 @@ def get_learnhouse_config() -> LearnHouseConfig:
         ),
         tinybird_config=tinybird_config,
         judge0_config=judge0_config,
+        keycloak_config=KeycloakConfig(
+            enabled=kc_enabled,
+            issuer=kc_issuer,
+            client_id=kc_client_id,
+            client_secret=kc_client_secret,
+            clock_skew=kc_clock_skew,
+        ),
     )
 
     return config

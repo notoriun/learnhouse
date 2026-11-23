@@ -1,8 +1,9 @@
 {
-  "index": "Overview",
-  "environment-variables": "Environment Variables",
-  "ai-setup": "AI Setup",
-  "email": "Email",
-  "storage": "Content Storage",
-  "ssl": "SSL & Domain"
+  "index": "Visão Geral",
+  "environment-variables": "Variáveis de Ambiente",
+  "ai-setup": "Configuração de IA",
+  "email": "E-mail",
+  "keycloak": "Keycloak (Login Corporativo)",
+  "storage": "Armazenamento de Conteúdo",
+  "ssl": "SSL e Domínio"
 }

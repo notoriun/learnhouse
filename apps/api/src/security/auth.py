@@ -18,13 +18,15 @@ from src.security.security import ALGORITHM, SECRET_KEY, security_hash_password
 from src.security.session_context import (
     AMR_CLAIM,
     AUTH_METHOD_API_TOKEN,
+    LEGACY_GRACE_CLAIM,
     SORG_CLAIM,
+    USID_CLAIM,
     SessionProvenance,
     set_session_provenance,
 )
 
 
-def _publish_session_provenance(amr, org_id) -> None:
+def _publish_session_provenance(amr, org_id, legacy_grace_expires=None) -> None:
     """Store the current request's session provenance for the org-policy gates.
 
     Coerces ``sorg`` to int defensively (JWT numbers survive as int, but a
@@ -35,7 +37,13 @@ def _publish_session_provenance(amr, org_id) -> None:
         parsed_org = int(org_id) if org_id is not None else None
     except (TypeError, ValueError):  # pragma: no cover - defensive coercion of a hand-crafted claim
         parsed_org = None
-    set_session_provenance(SessionProvenance(amr=amr, org_id=parsed_org))
+    try:
+        parsed_grace = int(legacy_grace_expires) if legacy_grace_expires is not None else None
+    except (TypeError, ValueError):  # pragma: no cover - defensive coercion of a hand-crafted claim
+        parsed_grace = None
+    set_session_provenance(
+        SessionProvenance(amr=amr, org_id=parsed_org, legacy_grace_expires=parsed_grace)
+    )
 
 
 # SECURITY: Pre-computed Argon2 hash of an unknown password. Verifying a
@@ -326,6 +334,19 @@ def decode_refresh_token(token: str) -> Optional[dict]:
         return payload
     except PyJWTError:
         return None
+
+
+def _unmark_refresh_jti_used(user_id: int, jti: str) -> None:
+    """Desfaz o consumo do jti (feature 003): numa falha transitória do refresh
+    upstream, nada rotaciona e o MESMO refresh cookie deve funcionar na próxima
+    tentativa. Sem isso, o gate one-time-use derrubaria o usuário à toa."""
+    r = _get_revocation_redis_client()
+    if r is None:
+        return
+    try:
+        r.delete(f"refresh_used:{user_id}:{jti}")
+    except Exception:
+        pass
 
 
 def _mark_refresh_jti_used(user_id: int, jti: str) -> bool:
@@ -626,12 +647,26 @@ async def get_current_user(
         if user.id is not None and _is_token_revoked_for_user(user.id, issued_at):
             raise credentials_exception
 
+        # Revogação por sessão federada (feature 003): se o claim usid está na
+        # blocklist de sessão upstream, rejeita. Custo zero para sessões nativas
+        # (só corre quando o claim existe) — espelha o padrão jwt_revoked_before.
+        usid = payload.get(USID_CLAIM) if token else None
+        if usid:
+            from src.services.auth.upstream_session import is_revoked_in_redis
+
+            if is_revoked_in_redis(usid):
+                raise credentials_exception
+
         public_user = PublicUser(**user.model_dump())
         request.state.user = public_user
         request.state.is_api_token = False
         # Publish this session's provenance (how the user authenticated, which
         # org the session was minted for) for the per-org auth-method policy.
-        _publish_session_provenance(payload.get(AMR_CLAIM), payload.get(SORG_CLAIM))
+        _publish_session_provenance(
+            payload.get(AMR_CLAIM),
+            payload.get(SORG_CLAIM),
+            payload.get(LEGACY_GRACE_CLAIM),
+        )
         _record_activity_from_request(request, public_user.id)
         return public_user
     else:

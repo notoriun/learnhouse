@@ -23,7 +23,9 @@ export default async function EditPlaygroundPage({ params }: { params: PageParam
   const access_token = session?.tokens?.access_token
 
   if (!access_token) {
-    redirect('/auth/login')
+    // `/login`, não `/auth/login`: `/auth/*` é destino interno da reescrita em
+    // proxy.ts e responde 404 quando pedido de fora.
+    redirect('/login')
   }
 
   let playground

@@ -42,7 +42,7 @@ export default function GoogleCallbackPage() {
 
       // Check if we need to bounce to a custom domain origin.
       // When OAuth was initiated from a custom domain (e.g., learn.mozilla.org),
-      // Google redirects to the main domain (dev.learnhouse.io). We detect this
+      // Google redirects to the main configured domain. We detect this
       // via returnOrigin in the state and bounce the code+state to the custom domain
       // so CSRF validation and cookie-setting happen on the correct origin.
       try {

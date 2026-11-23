@@ -3,27 +3,27 @@ import { Callout } from 'nextra/components'
 # Multi-Tenancy
 
 <Callout type="warning">
-Multi-tenancy is an **Enterprise** feature. It is not available on the open-source or standard plans.
+Multi-tenancy é um recurso **Enterprise**. Não está disponível nos planos de código aberto ou padrão.
 </Callout>
 
-LearnHouse supports running one or more organizations on a single instance. This multi-tenant architecture lets you serve different groups from the same deployment.
+O Notoriun suporta rodar uma ou mais organizações em uma única instância. Essa arquitetura multi-tenant permite atender diferentes grupos a partir da mesma implantação.
 
-## Single Organization (Default)
+## Organização Única (Padrão)
 
-By default, LearnHouse runs with a single organization. This is the simplest setup and is suitable for most deployments where one team, school, or company uses the platform.
+Por padrão, o Notoriun roda com uma única organização. Esta é a configuração mais simples, adequada para a maioria das implantações em que um único time, escola ou empresa usa a plataforma.
 
-## Multi-Organization
+## Multi-Organização
 
-In multi-org mode, a single LearnHouse instance hosts multiple independent organizations. Each organization operates as if it were its own separate platform:
+No modo multi-org, uma única instância do Notoriun hospeda múltiplas organizações independentes. Cada organização opera como se fosse sua própria plataforma separada:
 
-- Courses, users, and settings are fully scoped to each organization.
-- Data is stored in a shared database but isolated by organization ID.
-- Each organization can have its own branding and configuration.
+- Cursos, usuários e configurações são totalmente restritos a cada organização.
+- Os dados são armazenados em um banco compartilhado, mas isolados por ID de organização.
+- Cada organização pode ter sua própria identidade visual e configuração.
 
 <Callout>
-Multi-org mode is useful for platforms that serve multiple schools, departments, or clients from a centralized deployment.
+O modo multi-org é útil para plataformas que atendem múltiplas escolas, departamentos ou clientes a partir de uma implantação centralizada.
 </Callout>
 
-## Data Isolation
+## Isolamento de Dados
 
-All database queries are scoped by `org_id`, ensuring that one organization cannot access another's data. Users, courses, collections, trails, and settings are all partitioned at the organization level.
+Todas as consultas ao banco de dados são restritas por `org_id`, garantindo que uma organização não possa acessar os dados de outra. Usuários, cursos, coleções, trilhas e configurações são todos particionados no nível da organização.

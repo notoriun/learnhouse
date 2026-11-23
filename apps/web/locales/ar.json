@@ -46,11 +46,11 @@
     "help": "مساعدة",
     "help_menu": {
       "documentation": "الوثائق",
-      "website": "موقع LearnHouse",
+      "website": "موقع {{brand}}",
       "discord": "Discord",
       "report_feedback": "الإبلاغ عن مشكلة أو ملاحظات",
       "feedback_title": "إرسال ملاحظات",
-      "feedback_description": "ساعدنا في تحسين LearnHouse من خلال مشاركة أفكارك أو الإبلاغ عن الأخطاء أو اقتراح ميزات جديدة.",
+      "feedback_description": "ساعدنا في تحسين {{brand}} من خلال مشاركة أفكارك أو الإبلاغ عن الأخطاء أو اقتراح ميزات جديدة.",
       "feedback_placeholder": "أخبرنا بما يدور في ذهنك...",
       "feedback_success": "شكراً لملاحظاتك!",
       "send_feedback": "إرسال ملاحظات",
@@ -215,7 +215,7 @@
     "organizations": "المؤسسات",
     "billing": "الفوترة",
     "create_organization": "إنشاء مؤسسة",
-    "copyright": "© {{year}} LearnHouse, Inc.",
+    "copyright": "© {{year}} {{legalName}}",
     "delete_organization_error": "تعذّر حذف هذه المؤسسة. يرجى المحاولة مرة أخرى.",
     "org_actions": "إجراءات المؤسسة",
     "manage_upgrade": "إدارة / ترقية",
@@ -358,11 +358,11 @@
     "privacy_policy": "سياسة الخصوصية",
     "image_title_forgot": "أعد تعيين كلمة مرورك.",
     "image_subtitle_forgot": "سنساعدك على العودة إلى حسابك في لمح البصر.",
-    "image_title_login": "مرحبًا بعودتك إلى LearnHouse.",
+    "image_title_login": "مرحبًا بعودتك إلى {{brand}}.",
     "image_subtitle_login": "تابِع من حيث توقفت — دوراتك وطلابك وأدواتك في انتظارك.",
     "image_title_reset": "أوشكت على الانتهاء.",
     "image_subtitle_reset": "أنشئ كلمة مرور قوية للحفاظ على أمان حسابك.",
-    "image_title_signup": "ابدأ التدريس مع LearnHouse.",
+    "image_title_signup": "ابدأ التدريس مع {{brand}}.",
     "image_subtitle_signup": "أنشئ حسابك وأطلق دورتك الأولى في دقائق.",
     "image_title_verify": "تحقّق من بريدك الإلكتروني.",
     "image_subtitle_verify": "خطوة سريعة واحدة لتأمين حسابك والبدء.",
@@ -564,14 +564,14 @@
     "import": {
       "scorm_package": "حزمة SCORM",
       "scorm_description": "استيراد حزم SCORM 1.2 أو SCORM 2004",
-      "learnhouse_courses": "دورات LearnHouse",
-      "learnhouse_description": "استيراد الدورات المصدرة من LearnHouse",
+      "learnhouse_courses": "دورات {{brand}}",
+      "learnhouse_description": "استيراد الدورات المصدرة من {{brand}}",
       "upload_package": "رفع الحزمة",
       "configure": "تكوين",
       "complete": "مكتمل",
       "click_to_upload": "انقر للرفع أو اسحب وأفلت",
-      "learnhouse_format": "تصدير دورة LearnHouse (.zip)",
-      "learnhouse_info": "ارفع حزمة تصدير دورات LearnHouse (.zip). ستتمكن من اختيار الدورات للاستيراد وتكوين خيارات الاستيراد.",
+      "learnhouse_format": "تصدير دورة {{brand}} (.zip)",
+      "learnhouse_info": "ارفع حزمة تصدير دورات {{brand}} (.zip). ستتمكن من اختيار الدورات للاستيراد وتكوين خيارات الاستيراد.",
       "analyze_package": "تحليل الحزمة",
       "ready_to_analyze": "جاهز للتحليل",
       "invalid_file_format": "يرجى رفع ملف .zip",
@@ -1501,8 +1501,8 @@
       "import_course": "استيراد دورة",
       "import_scorm": "استيراد حزمة SCORM",
       "import_scorm_description": "استيراد حزمة SCORM لإنشاء دورة جديدة",
-      "import_learnhouse": "استيراد دورات LearnHouse",
-      "import_learnhouse_description": "استيراد الدورات من حزمة تصدير LearnHouse",
+      "import_learnhouse": "استيراد دورات {{brand}}",
+      "import_learnhouse_description": "استيراد الدورات من حزمة تصدير {{brand}}",
       "import_select_type": "اختر نوع الحزمة التي تريد استيرادها",
       "no_courses": "لا توجد دورات بعد",
       "create_course_placeholder": "أنشئ دورة لإضافة محتوى",
@@ -2351,9 +2351,9 @@
         "footer_text_desc": "نص مخصص يظهر في أسفل صفحات منظمتك",
         "default_language": "اللغة الافتراضية",
         "default_language_desc": "اللغة التي يراها الزوار الجدد افتراضيًا واللغة المستخدمة للرسائل المُرسَلة باسم هذه المؤسسة. لا يزال بإمكان الأعضاء تغيير لغة واجهتهم.",
-        "watermark_desc": "إظهار علامة LearnHouse المائية على صفحات منظمتك",
+        "watermark_desc": "إظهار علامة {{brand}} المائية على صفحات منظمتك",
         "watermark_free_plan": "يتم عرض العلامة المائية دائمًا في الخطة المجانية",
-        "watermark_label": "علامة \"صنع بواسطة LearnHouse\" المائية",
+        "watermark_label": "علامة \"صنع بواسطة {{brand}}\" المائية",
         "watermark_ee": "مخفي بترخيص الإصدار المؤسسي"
       },
       "images": {
@@ -3014,19 +3014,97 @@
         "failed_load": "فشل تحميل ملف الطالب.",
         "back_to_students": "العودة إلى الطلاب",
         "no_behavioral": "لا توجد بيانات سلوكية (قد لا تكون التحليلات مُهيأة لهذه الفترة).",
-        "ranges": { "d30": "30 يومًا", "d90": "90 يومًا", "y1": "سنة واحدة" },
-        "kpi": { "courses": "الدورات", "completed": "{{count}} مكتملة", "avg_progress": "متوسط التقدم", "time_spent": "الوقت المستغرق", "assignments": "الواجبات", "avg_grade": "متوسط {{grade}}", "certificates": "الشهادات", "connections": "الاتصالات", "last": "آخر {{date}}" },
-        "tabs": { "connections": "الاتصالات", "courses": "الدورات", "assignments": "الواجبات", "code": "البرمجة", "community": "المجتمع", "certificates": "الشهادات", "behavior": "السلوك" },
-        "identity": { "verified": "مُوثَّق", "unverified": "غير مُوثَّق", "via": "عبر {{method}}" },
-        "connections": { "title": "الاتصالات", "empty": "لا توجد اتصالات مسجلة بعد." },
-        "courses": { "title": "تقدم الدورة", "empty": "غير مسجل في أي دورة.", "activities": "{{done}}/{{total}} نشاط", "enrolled": "مُسجَّل في {{date}}" },
-        "assignments": { "title": "الواجبات", "empty": "لا توجد واجبات مُقدَّمة.", "attempt": "المحاولة {{number}}", "feedback": "الملاحظات:" },
-        "code": { "title": "تمارين البرمجة", "empty": "لا توجد أكواد مُقدَّمة.", "activity": "النشاط", "result": "النتيجة", "tests": "الاختبارات", "time": "الوقت", "when": "متى", "passed": "ناجح", "failed": "فاشل" },
-        "community": { "title": "المشاركة المجتمعية", "empty": "لا يوجد نشاط مجتمعي.", "discussions": "المناقشات", "comments": "التعليقات" },
-        "certificates": { "title": "الشهادات المكتسبة", "empty": "لم يتم اكتساب أي شهادات." },
-        "behavior": { "title": "التحليلات السلوكية", "time_by_course": "الوقت المستغرق حسب الدورة", "searches": "عمليات البحث" },
-        "status": { "completed": "مكتمل", "in_progress": "قيد التقدم", "paused": "متوقف مؤقتًا", "cancelled": "مُلغى", "graded": "مُقيَّم", "submitted": "مُقدَّم", "pending": "قيد الانتظار", "late": "متأخر", "not_submitted": "لم يُقدَّم" },
-        "comparison": { "student": "الطالب", "enrolled": "مُسجَّل", "completed": "مكتمل", "certificates": "الشهادات", "last_connection": "آخر اتصال", "view": "عرض" }
+        "ranges": {
+          "d30": "30 يومًا",
+          "d90": "90 يومًا",
+          "y1": "سنة واحدة"
+        },
+        "kpi": {
+          "courses": "الدورات",
+          "completed": "{{count}} مكتملة",
+          "avg_progress": "متوسط التقدم",
+          "time_spent": "الوقت المستغرق",
+          "assignments": "الواجبات",
+          "avg_grade": "متوسط {{grade}}",
+          "certificates": "الشهادات",
+          "connections": "الاتصالات",
+          "last": "آخر {{date}}"
+        },
+        "tabs": {
+          "connections": "الاتصالات",
+          "courses": "الدورات",
+          "assignments": "الواجبات",
+          "code": "البرمجة",
+          "community": "المجتمع",
+          "certificates": "الشهادات",
+          "behavior": "السلوك"
+        },
+        "identity": {
+          "verified": "مُوثَّق",
+          "unverified": "غير مُوثَّق",
+          "via": "عبر {{method}}"
+        },
+        "connections": {
+          "title": "الاتصالات",
+          "empty": "لا توجد اتصالات مسجلة بعد."
+        },
+        "courses": {
+          "title": "تقدم الدورة",
+          "empty": "غير مسجل في أي دورة.",
+          "activities": "{{done}}/{{total}} نشاط",
+          "enrolled": "مُسجَّل في {{date}}"
+        },
+        "assignments": {
+          "title": "الواجبات",
+          "empty": "لا توجد واجبات مُقدَّمة.",
+          "attempt": "المحاولة {{number}}",
+          "feedback": "الملاحظات:"
+        },
+        "code": {
+          "title": "تمارين البرمجة",
+          "empty": "لا توجد أكواد مُقدَّمة.",
+          "activity": "النشاط",
+          "result": "النتيجة",
+          "tests": "الاختبارات",
+          "time": "الوقت",
+          "when": "متى",
+          "passed": "ناجح",
+          "failed": "فاشل"
+        },
+        "community": {
+          "title": "المشاركة المجتمعية",
+          "empty": "لا يوجد نشاط مجتمعي.",
+          "discussions": "المناقشات",
+          "comments": "التعليقات"
+        },
+        "certificates": {
+          "title": "الشهادات المكتسبة",
+          "empty": "لم يتم اكتساب أي شهادات."
+        },
+        "behavior": {
+          "title": "التحليلات السلوكية",
+          "time_by_course": "الوقت المستغرق حسب الدورة",
+          "searches": "عمليات البحث"
+        },
+        "status": {
+          "completed": "مكتمل",
+          "in_progress": "قيد التقدم",
+          "paused": "متوقف مؤقتًا",
+          "cancelled": "مُلغى",
+          "graded": "مُقيَّم",
+          "submitted": "مُقدَّم",
+          "pending": "قيد الانتظار",
+          "late": "متأخر",
+          "not_submitted": "لم يُقدَّم"
+        },
+        "comparison": {
+          "student": "الطالب",
+          "enrolled": "مُسجَّل",
+          "completed": "مكتمل",
+          "certificates": "الشهادات",
+          "last_connection": "آخر اتصال",
+          "view": "عرض"
+        }
       },
       "active_users": {
         "title": "المستخدمون النشطون",
@@ -4368,7 +4446,7 @@
   "embed": {
     "not_supported_description": "هذا النوع من النشاط يتطلب المصادقة ولا يمكن تضمينه.",
     "not_supported_title": "هذا النشاط غير مدعوم",
-    "powered_by": "مدعوم من LearnHouse",
+    "powered_by": "مدعوم من {{brand}}",
     "visit_activity": "زيارة صفحة النشاط"
   },
   "analytics": {
@@ -5072,10 +5150,10 @@
       },
       "teach_the_world": {
         "title": "تعلّم وانمُ",
-        "description": "موارد لمساعدتك في الاستفادة القصوى من LearnHouse.",
+        "description": "موارد لمساعدتك في الاستفادة القصوى من {{brand}}.",
         "classroom": "الفصل الدراسي",
         "classroom_desc": "تعلم كيفية تنمية وإدارة دوراتك",
-        "university": "جامعة LearnHouse",
+        "university": "جامعة {{brand}}",
         "university_desc": "أدلة ونصائح وأفضل الممارسات"
       },
       "add_content": {
@@ -5105,7 +5183,7 @@
       }
     },
     "welcome": {
-      "title": "مرحبًا بك في LearnHouse",
+      "title": "مرحبًا بك في {{brand}}",
       "subtitle": "أنشئ دورات، وادعُ المتعلمين، وشارك المعرفة مع العالم.",
       "get_started": "ابدأ الآن",
       "features_title": "كل ما تحتاجه",
@@ -5648,7 +5726,7 @@
         "title": "تريد التجربة؟",
         "body": "توجّه إلى",
         "link": "صفحة المطوّرين",
-        "suffix": "لتجربة LearnHouse بدلًا من ذلك."
+        "suffix": "لتجربة {{brand}} بدلًا من ذلك."
       },
       "validation": {
         "required": "مطلوب",

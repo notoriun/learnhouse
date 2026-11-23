@@ -33,7 +33,7 @@ function RecentRequests() {
     <div className="lh-ref-nav-history">
       <button className="lh-ref-nav-group-btn" onClick={() => setOpen((v) => !v)}>
         <ClockCounterClockwise size={13} weight="bold" className="lh-ref-nav-caret" />
-        Recent requests
+        Requisições recentes
         <span className="lh-ref-nav-count">{history.length}</span>
       </button>
       {open && (
@@ -134,7 +134,7 @@ export default function ReferenceNav({ nav }) {
       <button
         className="lh-ref-nav-mobile-btn"
         onClick={() => setMobileOpen((v) => !v)}
-        aria-label={mobileOpen ? 'Close endpoint list' : 'Open endpoint list'}
+        aria-label={mobileOpen ? 'Fechar lista de endpoints' : 'Abrir lista de endpoints'}
       >
         {mobileOpen ? <X size={16} weight="bold" /> : <List size={16} weight="bold" />}
         Endpoints
@@ -149,7 +149,7 @@ export default function ReferenceNav({ nav }) {
           <MagnifyingGlass size={14} className="lh-ref-nav-search-icon" />
           <input
             type="search"
-            placeholder="Search endpoints…"
+            placeholder="Buscar endpoints…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             spellCheck={false}
@@ -161,7 +161,7 @@ export default function ReferenceNav({ nav }) {
             href="/reference"
             className={`lh-ref-nav-overview ${pathname === '/reference' ? 'lh-ref-nav-item-active' : ''}`}
           >
-            Overview
+            Visão geral
           </Link>
 
           {filtered.map((group) => {
@@ -203,7 +203,7 @@ export default function ReferenceNav({ nav }) {
           })}
 
           {searching && filtered.length === 0 && (
-            <p className="lh-ref-nav-empty">No endpoints match “{query}”.</p>
+            <p className="lh-ref-nav-empty">Nenhum endpoint corresponde a “{query}”.</p>
           )}
 
           <RecentRequests />

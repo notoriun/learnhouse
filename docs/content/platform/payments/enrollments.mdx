@@ -1,29 +1,29 @@
-# Enrollments & Checkout
+# Matrículas e Checkout
 
-Enrollments track student access to paid content. When a student completes a purchase, an enrollment record is created that grants them access to the associated courses.
+Matrículas acompanham o acesso do aluno a conteúdo pago. Quando um aluno completa uma compra, um registro de matrícula é criado, concedendo acesso aos cursos associados.
 
-## Checkout Flow
+## Fluxo de Checkout
 
-1. A student selects an offer from the storefront or course page.
-2. They are redirected to a Stripe-hosted checkout page.
-3. On successful payment, an enrollment is created automatically.
-4. The student gains immediate access to the purchased courses.
+1. Um aluno seleciona uma oferta na vitrine ou na página do curso.
+2. Ele é redirecionado para uma página de checkout hospedada pelo Stripe.
+3. Após o pagamento ser confirmado, uma matrícula é criada automaticamente.
+4. O aluno ganha acesso imediato aos cursos comprados.
 
-## Enrollment Statuses
+## Status de Matrícula
 
-| Status | Description |
+| Status | Descrição |
 |---|---|
-| Pending | Payment initiated but not yet confirmed. |
-| Completed | One-time payment successful, access granted. |
-| Active | Subscription is active, access granted. |
-| Cancelled | Subscription cancelled, access revoked. |
-| Failed | Payment failed. |
-| Refunded | Payment refunded, access revoked. |
+| Pendente | Pagamento iniciado, mas ainda não confirmado. |
+| Concluída | Pagamento único bem-sucedido, acesso concedido. |
+| Ativa | Assinatura ativa, acesso concedido. |
+| Cancelada | Assinatura cancelada, acesso revogado. |
+| Falhou | Pagamento falhou. |
+| Reembolsada | Pagamento reembolsado, acesso revogado. |
 
-## Billing Portal
+## Portal de Cobrança
 
-Students with active subscriptions can access a Stripe billing portal to manage their payment methods, view invoices, and cancel or update their subscriptions.
+Alunos com assinaturas ativas podem acessar um portal de cobrança do Stripe para gerenciar seus métodos de pagamento, ver faturas e cancelar ou atualizar suas assinaturas.
 
-## Stripe Dashboard
+## Dashboard do Stripe
 
-Administrators can view an overview of charges, subscriptions, and customers directly from the LearnHouse admin panel without needing to log into Stripe separately.
+Administradores podem ver uma visão geral de cobranças, assinaturas e clientes diretamente do painel administrativo do Notoriun, sem precisar entrar no Stripe separadamente.

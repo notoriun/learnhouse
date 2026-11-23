@@ -24,7 +24,7 @@ export default function TokenWidget({ compact = false }) {
     const value = draft.trim()
     if (!value) return
     if (!/^lh_[A-Za-z0-9_-]+$/.test(value)) {
-      setWarning('That does not look like an lh_ API token — using it anyway.')
+      setWarning('Isso não parece um token de API lh_ — usando mesmo assim.')
     } else {
       setWarning('')
     }
@@ -42,7 +42,7 @@ export default function TokenWidget({ compact = false }) {
           type="button"
           className="lh-ref-token-icon-btn"
           onClick={() => setVisible((v) => !v)}
-          aria-label={visible ? 'Hide token' : 'Show token'}
+          aria-label={visible ? 'Ocultar token' : 'Mostrar token'}
         >
           {visible ? <EyeSlash size={14} /> : <Eye size={14} />}
         </button>
@@ -53,7 +53,7 @@ export default function TokenWidget({ compact = false }) {
             clearToken()
             setWarning('')
           }}
-          aria-label="Clear token"
+          aria-label="Limpar token"
         >
           <X size={14} />
         </button>
@@ -68,7 +68,7 @@ export default function TokenWidget({ compact = false }) {
         <input
           type={visible ? 'text' : 'password'}
           className="lh-ref-token-input"
-          placeholder="Paste your lh_ API token…"
+          placeholder="Cole seu token de API lh_…"
           value={draft}
           autoComplete="off"
           spellCheck={false}
@@ -79,19 +79,19 @@ export default function TokenWidget({ compact = false }) {
           type="button"
           className="lh-ref-token-icon-btn"
           onClick={() => setVisible((v) => !v)}
-          aria-label={visible ? 'Hide token' : 'Show token'}
+          aria-label={visible ? 'Ocultar token' : 'Mostrar token'}
         >
           {visible ? <EyeSlash size={14} /> : <Eye size={14} />}
         </button>
         <button type="button" className="lh-ref-token-apply" onClick={apply} disabled={!draft.trim()}>
-          Use
+          Usar
         </button>
       </div>
       {warning && <p className="lh-ref-token-warning">{warning}</p>}
       {!compact && (
         <p className="lh-ref-token-note">
-          Stored only in your browser — it is substituted into every example and used by the
-          playground. Prefer a least-privilege token.
+          Armazenado só no seu navegador — é substituído em cada exemplo e usado pelo
+          playground. Prefira um token com o menor privilégio possível.
         </p>
       )}
     </div>

@@ -5,6 +5,7 @@ import { useLHAnalytics } from '@services/analytics/useLHAnalytics'
 import { AnalyticsEvent } from '@services/analytics/events'
 import UserAvatar from '@components/Objects/UserAvatar'
 import { getAPIUrl, getUriWithOrg, getLEARNHOUSE_PLATFORM_URL_VAL } from '@services/config/config'
+import { getBrand } from '@services/config/brand'
 import { apiFetch } from '@services/utils/ts/requests'
 import { signOut } from '@components/Contexts/AuthContext'
 import { getOrgLogoMediaDirectory } from '@services/media/media'
@@ -47,6 +48,7 @@ function HomeClient() {
   const isAuthenticated = session?.status === 'authenticated'
   const isLoading = session?.status === 'loading'
   const platformUrl = getLEARNHOUSE_PLATFORM_URL_VAL()
+  const brand = getBrand()
 
   const { data: orgs, isLoading: orgsLoading } = useQuery({
     queryKey: ['orgs', 'user'],
@@ -95,8 +97,8 @@ function HomeClient() {
             <div className="flex flex-col items-center mb-10">
               { }
               <img
-                src="/lrn.svg"
-                alt="LearnHouse"
+                src={brand.logos.symbol}
+                alt={brand.name}
                 width={44}
                 height={44}
                 className="opacity-90"
@@ -238,12 +240,12 @@ function HomeClient() {
                 className="mt-10 flex items-center gap-1.5 text-[11px] text-black/30 hover:text-black/60 transition-colors"
               >
                 <span>{t('common.powered_by', { defaultValue: 'Powered by' })}</span>
-                <span className="font-semibold tracking-tight text-black/50 group-hover:text-black/70">LearnHouse</span>
+                <span className="font-semibold tracking-tight text-black/50 group-hover:text-black/70">{brand.name}</span>
               </a>
             ) : (
               <div className="mt-10 flex items-center gap-1.5 text-[11px] text-black/30">
                 <span>{t('common.powered_by', { defaultValue: 'Powered by' })}</span>
-                <span className="font-semibold tracking-tight text-black/50">LearnHouse</span>
+                <span className="font-semibold tracking-tight text-black/50">{brand.name}</span>
               </div>
             )}
             <CopyrightFooter year={new Date().getFullYear()} className="mt-4 pt-0" />

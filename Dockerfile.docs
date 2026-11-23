@@ -1,0 +1,41 @@
+# ───────────────────────────────────────────────
+# Documentação (docs/) — Nextra 4 + Next.js 16
+#
+# Não é site estático: docs/next.config.mjs não usa `output: 'export'` e o
+# Pagefind indexa a partir de .next/server/app. Exige runtime Node.
+#
+# Build:  docker build -t learnhouse-docs:latest -f Dockerfile.docs .
+# Contexto: raiz do repo (ver Dockerfile.docs.dockerignore)
+# ───────────────────────────────────────────────
+
+# ---- build ----
+FROM oven/bun:1 AS build
+WORKDIR /app
+
+COPY docs/package.json docs/bun.lock ./
+RUN bun install --frozen-lockfile
+
+COPY docs/ .
+
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# `bun run build` encadeia: scripts/generate-llms-full.mjs -> next build ->
+# postbuild (pagefind gera public/_pagefind, depois next-sitemap).
+RUN bun run build
+
+# ---- runtime ----
+FROM node:22-slim AS runtime
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# `output: 'standalone'` NÃO carrega public/ nem .next/static — sem estes dois
+# COPY extras o site perde CSS/JS e o índice de busca do Pagefind.
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
+COPY --from=build /app/public ./public
+
+EXPOSE 3000
+CMD ["node", "server.js"]

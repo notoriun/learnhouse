@@ -80,7 +80,7 @@ function isTerminalAuthFailure(status: number): boolean {
   return status === 401 || status === 403
 }
 
-function appendClearAuthCookies(response: NextResponse, request: NextRequest) {
+export function appendClearAuthCookies(response: NextResponse, request: NextRequest) {
   const securePart = request.nextUrl.protocol === 'https:' ? '; Secure' : ''
   const host = request.headers.get('host') || ''
   const { topDomain } = getDomainFromRequest(request)

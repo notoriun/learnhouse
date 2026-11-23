@@ -1,13 +1,20 @@
 import { Callout } from 'nextra/components'
 
-# AI-Assisted Migration
+# Migração Assistida por IA
 
-LearnHouse exposes a three-call API that uploads a folder of media files, asks Gemini to organise them into chapters and activities, and then creates the entire course in a single transaction. This is the right path when you have a directory full of legacy lecture recordings, PDFs, and images but no existing structure.
+O Notoriun expõe uma API de três chamadas que envia uma pasta de arquivos de mídia, pede ao
+Gemini para organizá-los em capítulos e atividades, e depois cria o curso inteiro em uma única
+transação. Este é o caminho certo quando você tem um diretório repleto de gravações de aula
+antigas, PDFs, e imagens, mas nenhuma estrutura existente.
 
-All three endpoints live under `/api/v1/courses/migrate/`. They require an **authenticated user session (JWT)** with permission to create courses in the target organization.
+Todos os três endpoints vivem sob `/api/v1/courses/migrate/`. Eles exigem uma **sessão de
+usuário autenticada (JWT)** com permissão para criar cursos na organização de destino.
 
 <Callout type="warning">
-**API tokens are blocked here.** Unlike the standard course/chapter/activity endpoints, the migration endpoints reject requests authenticated with an `lh_*` API token (`HTTP 403: API tokens cannot access this resource. Only user authentication is allowed.`). If you only have an API token, use the **admin token-swap** to mint a JWT first:
+**Tokens de API são bloqueados aqui.** Diferente dos endpoints padrão de curso/capítulo/
+atividade, os endpoints de migração rejeitam requisições autenticadas com um token de API
+`lh_*` (`HTTP 403: API tokens cannot access this resource. Only user authentication is allowed.`).
+Se você só tem um token de API, use a **troca de token pelo admin** para gerar um JWT primeiro:
 
 ```bash
 JWT=$(curl -s -X POST 'http://localhost:1338/api/v1/admin/{org_slug}/auth/token' \
@@ -15,54 +22,60 @@ JWT=$(curl -s -X POST 'http://localhost:1338/api/v1/admin/{org_slug}/auth/token'
   -H 'Content-Type: application/json' \
   -d '{"user_id": 1}' | jq -r .access_token)
 
-# Now use $JWT for the migrate/* calls
+# Agora use $JWT para as chamadas migrate/*
 curl -X POST "http://localhost:1338/api/v1/courses/migrate/upload?org_id=1" \
   -H "Authorization: Bearer $JWT" -F 'files=@./video.mp4'
 ```
 
-The token-swap endpoint requires the API token to have the `users.action_read` permission and the target user must belong to the same organization.
+O endpoint de troca de token exige que o token de API tenha a permissão `users.action_read` e
+que o usuário alvo pertença à mesma organização.
 </Callout>
 
-## When to use this vs. programmatic migration
+## Quando usar isso vs. migração programática
 
-| Situation | Use |
+| Situação | Use |
 | --- | --- |
-| You have a clean export from another LMS with a known chapter / activity layout | [Programmatic Migration](/developers/migration/programmatic) |
-| You need every detail of the resulting tree to be exact (titles, ordering, types) | Programmatic |
-| You have a pile of files and want LearnHouse to propose a structure | AI-assisted (this page) |
-| You want to author rich-text dynamic pages | Programmatic (AI-assisted produces media-only activities) |
+| Você tem uma exportação limpa de outro LMS com um layout conhecido de capítulo / atividade | [Migração Programática](/developers/migration/programmatic) |
+| Você precisa que todo detalhe da árvore resultante seja exato (títulos, ordenação, tipos) | Programática |
+| Você tem uma pilha de arquivos e quer que o Notoriun proponha uma estrutura | Assistida por IA (esta página) |
+| Você quer criar páginas dinâmicas de texto rico | Programática (a assistida produz atividades só de mídia) |
 
 <Callout type="warning">
-The assisted flow only handles **media files** -- video, PDF, image, and audio. It does not import HTML, Markdown, or rich-text content into dynamic pages. For text-heavy migrations, write a programmatic script.
+O fluxo assistido só lida com **arquivos de mídia** -- vídeo, PDF, imagem e áudio. Ele não
+importa HTML, Markdown, ou conteúdo de texto rico para páginas dinâmicas. Para migrações com
+muito texto, escreva um script programático.
 </Callout>
 
-## Supported file types
+## Tipos de arquivo suportados
 
-| Extension | Resulting activity | Sub-type |
+| Extensão | Atividade resultante | Subtipo |
 | --- | --- | --- |
 | `mp4`, `webm`, `mov` | `TYPE_VIDEO` | `SUBTYPE_VIDEO_HOSTED` |
 | `pdf` | `TYPE_DOCUMENT` | `SUBTYPE_DOCUMENT_PDF` |
-| `png`, `jpg`, `jpeg`, `webp` | `TYPE_DYNAMIC` (image block) | `SUBTYPE_DYNAMIC_PAGE` |
-| `mp3`, `wav` | `TYPE_DYNAMIC` (audio block) | `SUBTYPE_DYNAMIC_PAGE` |
+| `png`, `jpg`, `jpeg`, `webp` | `TYPE_DYNAMIC` (bloco de imagem) | `SUBTYPE_DYNAMIC_PAGE` |
+| `mp3`, `wav` | `TYPE_DYNAMIC` (bloco de áudio) | `SUBTYPE_DYNAMIC_PAGE` |
 
-Files with any other extension are skipped. Per-file size limit is **5 GB**, and total upload size per migration is **20 GB**.
+Arquivos com qualquer outra extensão são ignorados. O limite de tamanho por arquivo é **5 GB**,
+e o tamanho total de upload por migração é **20 GB**.
 
-## Endpoint overview
+## Visão geral dos endpoints
 
-| # | Method | Path | Purpose |
+| # | Método | Caminho | Propósito |
 | --- | --- | --- | --- |
-| 1 | `POST` | `/api/v1/courses/migrate/upload?org_id={org_id}` | Upload one or more files to a temporary holding area. Returns a `temp_id`. |
-| 2 | `POST` | `/api/v1/courses/migrate/suggest?org_id={org_id}` | Ask Gemini to propose a course tree from the uploaded files. Returns the structure for you to review. |
-| 3 | `POST` | `/api/v1/courses/migrate/create?org_id={org_id}` | Commit the (possibly edited) structure: creates the course, chapters, activities, and uploads each file to its final destination. |
+| 1 | `POST` | `/api/v1/courses/migrate/upload?org_id={org_id}` | Envia um ou mais arquivos para uma área de retenção temporária. Retorna um `temp_id`. |
+| 2 | `POST` | `/api/v1/courses/migrate/suggest?org_id={org_id}` | Pede ao Gemini para propor uma árvore de curso a partir dos arquivos enviados. Retorna a estrutura para você revisar. |
+| 3 | `POST` | `/api/v1/courses/migrate/create?org_id={org_id}` | Confirma a estrutura (possivelmente editada): cria o curso, capítulos, atividades, e envia cada arquivo ao seu destino final. |
 
-Temporary uploads older than 60 minutes are garbage-collected automatically, so finish a migration in one sitting.
+Uploads temporários com mais de 60 minutos são coletados automaticamente pelo garbage
+collector, então conclua uma migração em uma única sessão.
 
-## Step 1 -- Upload files
+## Passo 1 -- Envie os arquivos
 
-Upload up to 20 GB of files in one or more requests. Pass `temp_id` on subsequent requests to append to the same migration package:
+Envie até 20 GB de arquivos em uma ou mais requisições. Passe `temp_id` em requisições
+subsequentes para anexar ao mesmo pacote de migração:
 
 ```bash
-# First batch -- creates a new temp_id
+# Primeiro lote -- cria um novo temp_id
 curl -X POST "http://localhost:1338/api/v1/courses/migrate/upload?org_id=1" \
   -H "Authorization: Bearer lh_your_api_token" \
   -F 'files=@./lectures/lesson-01.mp4' \
@@ -70,7 +83,7 @@ curl -X POST "http://localhost:1338/api/v1/courses/migrate/upload?org_id=1" \
   -F 'files=@./handouts/syllabus.pdf'
 ```
 
-Response:
+Resposta:
 
 ```json
 {
@@ -89,7 +102,7 @@ Response:
 }
 ```
 
-Append more files to the same `temp_id`:
+Anexe mais arquivos ao mesmo `temp_id`:
 
 ```bash
 curl -X POST "http://localhost:1338/api/v1/courses/migrate/upload?org_id=1&temp_id=9c4e3...-d8f1-4..." \
@@ -97,15 +110,18 @@ curl -X POST "http://localhost:1338/api/v1/courses/migrate/upload?org_id=1&temp_
   -F 'files=@./images/diagram-01.png'
 ```
 
-`skipped` lists files rejected because of unsupported extension or size. They do not count against the total but you should re-encode and re-upload if you need them.
+`skipped` lista arquivos rejeitados por extensão não suportada ou tamanho. Eles não contam para
+o total, mas você deve reencodar e reenviar se precisar deles.
 
 <Callout type="info">
-The server limits concurrent uploads to **3 simultaneous requests per process**. If you parallelise the upload of a large package, throttle yourself accordingly.
+O servidor limita uploads simultâneos a **3 requisições simultâneas por processo**. Se você
+paralelizar o upload de um pacote grande, ajuste seu ritmo de acordo.
 </Callout>
 
-## Step 2 -- Ask for a suggested structure
+## Passo 2 -- Peça uma estrutura sugerida
 
-Send the `temp_id` and a course name; Gemini groups the files into chapters and proposes activity titles:
+Envie o `temp_id` e um nome de curso; o Gemini agrupa os arquivos em capítulos e propõe títulos
+de atividade:
 
 ```bash
 curl -X POST "http://localhost:1338/api/v1/courses/migrate/suggest?org_id=1" \
@@ -118,7 +134,7 @@ curl -X POST "http://localhost:1338/api/v1/courses/migrate/suggest?org_id=1" \
   }'
 ```
 
-Response:
+Resposta:
 
 ```json
 {
@@ -150,25 +166,37 @@ Response:
 }
 ```
 
-The AI prompt is parameterised by file extensions (see the table at the top of this page), so the suggested types are deterministic per extension; only the **names**, **chapter grouping**, and **ordering** are AI-generated.
+O prompt de IA é parametrizado pelas extensões de arquivo (veja a tabela no topo desta página),
+então os tipos sugeridos são determinísticos por extensão; só os **nomes**, o **agrupamento de
+capítulo**, e a **ordenação** são gerados por IA.
 
-If the AI call fails or quota is exhausted, the endpoint falls back to a **flat structure** -- a single chapter named "Content" containing one activity per file, with names derived from filenames. This guarantees you can still complete the migration even if the AI service is degraded.
+Se a chamada de IA falhar ou a cota se esgotar, o endpoint recorre a uma **estrutura plana** --
+um único capítulo chamado "Content" contendo uma atividade por arquivo, com nomes derivados dos
+nomes de arquivo. Isso garante que você ainda consiga concluir a migração mesmo se o serviço de
+IA estiver degradado.
 
-### Editing the suggestion
+### Editando a sugestão
 
-The structure is just JSON -- mutate it in your client however you like before posting to step 3. Common edits:
+A estrutura é apenas JSON -- modifique-a no seu cliente como quiser antes de enviá-la ao passo
+3. Edições comuns:
 
-- Rename chapters and activities
-- Move activities between chapters (move a `file_ids` entry between activities, or duplicate the activity object)
-- Split or merge chapters
-- Reorder activities (the order in the array becomes the activity order)
-- Drop an activity by removing it from the array (its file will simply not be imported)
+- Renomear capítulos e atividades
+- Mover atividades entre capítulos (mover uma entrada de `file_ids` entre atividades, ou
+  duplicar o objeto de atividade)
+- Dividir ou mesclar capítulos
+- Reordenar atividades (a ordem no array se torna a ordem da atividade)
+- Descartar uma atividade removendo-a do array (seu arquivo simplesmente não será importado)
 
-The only constraints are that every `file_id` you reference must exist in the manifest, every `activity_type` / `activity_sub_type` must be a valid enum value, and every file should be referenced by **at most one activity** (referencing the same file twice will fail on the second copy).
+As únicas restrições são que todo `file_id` que você referenciar deve existir no manifesto, todo
+`activity_type` / `activity_sub_type` deve ser um valor de enum válido, e todo arquivo deve ser
+referenciado por **no máximo uma atividade** (referenciar o mesmo arquivo duas vezes vai falhar
+na segunda cópia).
 
-## Step 3 -- Create the course
+## Passo 3 -- Crie o curso
 
-Post the (possibly edited) structure back with the same `temp_id`. The server creates the course, chapters, activities, and copies each file from the temporary upload area to its final location -- all in a single database transaction:
+Envie a estrutura (possivelmente editada) de volta com o mesmo `temp_id`. O servidor cria o
+curso, capítulos, atividades, e copia cada arquivo da área de upload temporária para seu local
+final -- tudo em uma única transação de banco de dados:
 
 ```bash
 curl -X POST "http://localhost:1338/api/v1/courses/migrate/create?org_id=1" \
@@ -196,7 +224,7 @@ curl -X POST "http://localhost:1338/api/v1/courses/migrate/create?org_id=1" \
   }'
 ```
 
-Response:
+Resposta:
 
 ```json
 {
@@ -209,61 +237,80 @@ Response:
 }
 ```
 
-The created course is **unpublished and private** by default (`public: false`, `published: false`). Visit `/{org_slug}/courses/{course_uuid}/edit` in the dashboard to review and publish it, or use `PUT /api/v1/courses/{course_uuid}` to publish programmatically.
+O curso criado é **não publicado e privado** por padrão (`public: false`, `published: false`).
+Visite `/{org_slug}/courses/{course_uuid}/edit` no painel para revisar e publicá-lo, ou use
+`PUT /api/v1/courses/{course_uuid}` para publicar programaticamente.
 
-If anything fails (database error, file copy failure, missing files), the entire transaction is rolled back and `success` is `false` with the error in `error`. The temporary upload directory is cleaned up either way -- start over from step 1 with a fresh upload.
+Se algo falhar (erro de banco de dados, falha na cópia de arquivo, arquivos ausentes), a
+transação inteira é revertida e `success` é `false` com o erro em `error`. O diretório de
+upload temporário é limpo de qualquer forma -- comece de novo a partir do passo 1 com um upload
+novo.
 
-## End-to-end script (bash)
+## Script de ponta a ponta (bash)
 
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
 
 API=http://localhost:1338/api/v1
-API_TOKEN=lh_your_api_token        # Pro-plan API token
+API_TOKEN=lh_your_api_token        # token de API do plano Pro
 ORG_SLUG=default
 ORG_ID=1
-USER_ID=1                          # the user to act as
+USER_ID=1                          # o usuário a agir como
 COURSE_NAME="Migrated content"
 
-# 0. Swap the API token for a user JWT (migrate/* endpoints reject API tokens)
+# 0. Troca o token de API por um JWT de usuário (endpoints migrate/* rejeitam tokens de API)
 TOKEN=$(curl -fsS -X POST "$API/admin/$ORG_SLUG/auth/token" \
   -H "Authorization: Bearer $API_TOKEN" \
   -H "Content-Type: application/json" \
   -d "{\"user_id\":$USER_ID}" | jq -r .access_token)
 
-# 1. Upload everything in ./content/
+# 1. Envia tudo em ./content/
 UPLOAD_RESP=$(curl -fsS -X POST "$API/courses/migrate/upload?org_id=$ORG_ID" \
   -H "Authorization: Bearer $TOKEN" \
   $(for f in ./content/*; do echo -n "-F files=@$f "; done))
 TEMP_ID=$(echo "$UPLOAD_RESP" | jq -r '.temp_id')
 
-# 2. Suggest structure
+# 2. Sugere a estrutura
 STRUCTURE=$(curl -fsS -X POST "$API/courses/migrate/suggest?org_id=$ORG_ID" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d "{\"temp_id\":\"$TEMP_ID\",\"course_name\":\"$COURSE_NAME\"}")
 
-# 3. (Optional) Edit the structure here, e.g. with `jq` -- skipped in this example.
+# 3. (Opcional) Edite a estrutura aqui, ex. com `jq` -- omitido neste exemplo.
 
-# 4. Create the course
+# 4. Cria o curso
 curl -fsS -X POST "$API/courses/migrate/create?org_id=$ORG_ID" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d "{\"temp_id\":\"$TEMP_ID\",\"structure\":$STRUCTURE}"
 ```
 
-## Cleaning up
+## Limpando
 
-If you abandon a migration mid-way, the temporary directory is deleted automatically after 60 minutes by the periodic cleanup task. There is no public endpoint to delete a `temp_id` early -- if you need to retry immediately, just start a new upload (you will get a new `temp_id`).
+Se você abandonar uma migração no meio do caminho, o diretório temporário é excluído
+automaticamente depois de 60 minutos pela tarefa de limpeza periódica. Não há endpoint público
+para excluir um `temp_id` antecipadamente -- se você precisar tentar novamente imediatamente,
+basta iniciar um novo upload (você receberá um novo `temp_id`).
 
-A successfully completed migration leaves no temporary state behind: step 3 deletes the temp directory once the transaction commits.
+Uma migração concluída com sucesso não deixa estado temporário: o passo 3 exclui o diretório
+temporário assim que a transação é confirmada.
 
-## Limitations
+## Limitações
 
-- **Media only.** Text content (Markdown, HTML, rich text) is not imported. The dynamic-page activities created from images and audio contain a single block referencing the file; no surrounding prose is generated.
-- **Single-chapter fallback.** If Gemini is unavailable, every file lands in one chapter named "Content". You can edit the structure before step 3 to rearrange.
-- **No assignments / quizzes / SCORM.** The flow does not infer interactive content from media. Create those separately via the programmatic flow.
-- **One file per activity.** Each migrated activity references exactly one source file. If you need an activity that combines multiple files (e.g. a dynamic page with several images), build that with the programmatic flow.
+- **Só mídia.** Conteúdo de texto (Markdown, HTML, texto rico) não é importado. As atividades
+  de página dinâmica criadas a partir de imagens e áudio contêm um único bloco referenciando o
+  arquivo; nenhuma prosa ao redor é gerada.
+- **Fallback de capítulo único.** Se o Gemini estiver indisponível, todo arquivo cai em um
+  único capítulo chamado "Content". Você pode editar a estrutura antes do passo 3 para
+  reorganizar.
+- **Sem tarefas / quizzes / SCORM.** O fluxo não infere conteúdo interativo a partir de mídia.
+  Crie-os separadamente via o fluxo programático.
+- **Um arquivo por atividade.** Cada atividade migrada referencia exatamente um arquivo de
+  origem. Se você precisar de uma atividade que combine vários arquivos (ex.: uma página
+  dinâmica com várias imagens), construa isso com o fluxo programático.
 
-For anything beyond the limits above, drop down to [Programmatic Migration](/developers/migration/programmatic) -- you can also use the assisted flow for the bulk of media and follow up with programmatic calls to add rich-text pages, assignments, and quizzes.
+Para qualquer coisa além dos limites acima, recorra à
+[Migração Programática](/developers/migration/programmatic) -- você também pode usar o fluxo
+assistido para o grosso da mídia e continuar com chamadas programáticas para adicionar páginas
+de texto rico, tarefas, e quizzes.

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query/keys'
 import { getUriWithOrg } from '@services/config/config'
+import { getBrand } from '@services/config/brand'
 import { fetchRAGChatSessions, RAGChatSession } from '@services/ai/ai'
 import { HeaderProfileBox } from '@components/Security/HeaderProfileBox'
 import MenuLinks from './OrgMenuLinks'
@@ -159,12 +160,12 @@ export const OrgMenu = (props: any) => {
                   {org?.logo_image ? (
                     <img
                       src={`${getOrgLogoMediaDirectory(org.org_uuid, org?.logo_image)}`}
-                      alt="Learnhouse"
+                      alt={org?.name || 'Organization logo'}
                       style={{ width: 'auto', height: '100%' }}
                       className="rounded-md"
                     />
                   ) : (
-                    <LearnHouseLogo logoFilter={colors.logoFilter} />
+                    <BrandLogo logoFilter={colors.logoFilter} />
                   )}
                 </div>
               </Link>
@@ -557,11 +558,12 @@ const CopilotMenuButton = ({
   )
 }
 
-const LearnHouseLogo = ({ logoFilter }: { logoFilter: string }) => {
+const BrandLogo = ({ logoFilter }: { logoFilter: string }) => {
   return (
     <Image
-      src="/lrn-text.svg"
-      alt="LearnHouse logo"
+      unoptimized
+      src={getBrand().logos.horizontal}
+      alt={getBrand().name}
       width={133}
       height={40}
       style={{ height: 'auto', filter: logoFilter }}

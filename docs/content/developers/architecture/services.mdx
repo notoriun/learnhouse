@@ -1,91 +1,113 @@
-# Supporting Services
+# Serviços de Apoio
 
-LearnHouse relies on several supporting services that run alongside the main applications.
+O Notoriun depende de vários serviços de apoio que rodam junto com as aplicações principais.
 
-- In **development** (`learnhouse dev`), PostgreSQL and Redis run in Docker via `.learnhouse/docker-compose.dev.yml` while the API, web, and collab processes run locally on the host.
-- In **self-hosted production**, the LearnHouse CLI generates a `docker-compose.yml` from templates in `apps/cli/src/templates/` that runs PostgreSQL, Redis, a single `learnhouse-app` container (which bundles web + API + collab), and either nginx or Caddy as a reverse proxy.
+- No **desenvolvimento** (`learnhouse dev`), o PostgreSQL e o Redis rodam em Docker via
+  `.learnhouse/docker-compose.dev.yml`, enquanto os processos de API, web e collab rodam
+  localmente no host.
+- Em **produção self-hosted**, a CLI do Notoriun gera um `docker-compose.yml` a partir de
+  templates em `apps/cli/src/templates/` que executa PostgreSQL, Redis, um único contêiner
+  `learnhouse-app` (que empacota web + API + collab), e nginx ou Caddy como proxy reverso.
 
 ## PostgreSQL
 
-`pgvector/pgvector:pg16` (PostgreSQL 16 with the pgvector extension) is the primary database for LearnHouse. It stores all persistent application data including:
+`pgvector/pgvector:pg16` (PostgreSQL 16 com a extensão pgvector) é o banco de dados principal do
+Notoriun. Ele armazena todos os dados persistentes da aplicação, incluindo:
 
-- Organizations and their configurations
-- User accounts and authentication records
-- Courses, chapters, and activities
-- Collections, trails, and progress tracking
-- AI vector embeddings (via the pgvector extension)
+- Organizações e suas configurações
+- Contas de usuário e registros de autenticação
+- Cursos, capítulos e atividades
+- Coleções, trilhas e rastreamento de progresso
+- Embeddings vetoriais de IA (via a extensão pgvector)
 
-The backend connects to PostgreSQL through SQLModel.
+O backend se conecta ao PostgreSQL através do SQLModel.
 
-**Default port:** `5432`
+**Porta padrão:** `5432`
 
 ## Redis
 
-Redis serves as the caching, session management, and collaboration persistence layer:
+O Redis serve como a camada de cache, gestão de sessão e persistência de colaboração:
 
-- **Caching** -- Reduces database load by storing frequently accessed data in memory.
-- **Session storage** -- Manages user session data for fast access.
-- **Collaboration state** -- Stores Yjs document state from the Collab server with a 1-hour TTL before it is persisted to PostgreSQL.
-- **Pub/Sub** -- Enables communication between services when needed.
+- **Cache** -- Reduz a carga no banco de dados armazenando dados acessados frequentemente em
+  memória.
+- **Armazenamento de sessão** -- Gerencia dados de sessão de usuário para acesso rápido.
+- **Estado de colaboração** -- Armazena o estado de documento Yjs do servidor Collab com um TTL
+  de 1 hora antes de ser persistido no PostgreSQL.
+- **Pub/Sub** -- Permite comunicação entre serviços quando necessário.
 
-The dev compose uses `redis:8.6.1-alpine`; the CLI-generated self-host production compose uses `redis:7.2.3-alpine`.
+O compose de dev usa `redis:8.6.1-alpine`; o compose de produção self-host gerado pela CLI usa
+`redis:7.2.3-alpine`.
 
-**Default port:** `6379`
+**Porta padrão:** `6379`
 
-## Hocuspocus (Collaboration Server)
+## Hocuspocus (Servidor de Colaboração)
 
-The Hocuspocus server, located at `apps/collab`, provides real-time collaborative editing capabilities. It is a Node.js + TypeScript application (run via `tsx` in dev) built on [Hocuspocus](https://hocuspocus.dev/) `^3.0.0`, which uses the Yjs CRDT library under the hood. It connects to Redis via `ioredis ^5.9.3`.
+O servidor Hocuspocus, localizado em `apps/collab`, fornece capacidades de edição colaborativa em
+tempo real. É uma aplicação Node.js + TypeScript (executada via `tsx` em dev) construída sobre o
+[Hocuspocus](https://hocuspocus.dev/) `^3.0.0`, que usa a biblioteca CRDT Yjs por baixo dos
+panos. Ele se conecta ao Redis via `ioredis ^5.9.3`.
 
-**Default port:** `4000` (configurable via `COLLAB_PORT` env var)
+**Porta padrão:** `4000` (configurável via a variável de ambiente `COLLAB_PORT`)
 
-### Authentication
+### Autenticação
 
-The Collab server performs JWT verification using the same secret as the API backend. On connection, it verifies board membership by making a request to the API.
+O servidor Collab realiza verificação JWT usando o mesmo segredo do backend da API. Na conexão,
+ele verifica a participação no quadro fazendo uma requisição à API.
 
-### Persistence
+### Persistência
 
-Document state follows a two-tier persistence strategy:
+O estado do documento segue uma estratégia de persistência em duas camadas:
 
-1. **Redis** -- Yjs state is first stored in Redis with a 1-hour TTL (`REDIS_YDOC_TTL = 3600`) for fast access.
-2. **PostgreSQL** -- State is persisted to the database via the API with a 5-second debounce (`DB_FLUSH_DELAY = 5000`) to avoid excessive writes.
+1. **Redis** -- O estado Yjs é primeiro armazenado no Redis com um TTL de 1 hora
+   (`REDIS_YDOC_TTL = 3600`) para acesso rápido.
+2. **PostgreSQL** -- O estado é persistido no banco de dados via a API com um debounce de 5
+   segundos (`DB_FLUSH_DELAY = 5000`) para evitar escritas excessivas.
 
-### Rate Limiting and Capacity
+### Limite de Taxa e Capacidade
 
-- **Max 10 concurrent users** per board (`MAX_BOARD_USERS`)
-- **Rate limiting** of 30 connections per IP per minute (`RATE_LIMIT_MAX`, `RATE_LIMIT_WINDOW_MS`)
+- **Máximo de 10 usuários simultâneos** por quadro (`MAX_BOARD_USERS`)
+- **Limite de taxa** de 30 conexões por IP por minuto (`RATE_LIMIT_MAX`, `RATE_LIMIT_WINDOW_MS`)
 
-### Key Features
+### Recursos Principais
 
-- **Real-time document synchronization** -- Multiple users can edit the same board simultaneously.
-- **Conflict resolution** -- Yjs CRDTs handle concurrent edits without conflicts.
-- **Durable persistence** -- Document state survives server restarts through Redis and PostgreSQL.
+- **Sincronização de documento em tempo real** -- Vários usuários podem editar o mesmo quadro
+  simultaneamente.
+- **Resolução de conflitos** -- Os CRDTs do Yjs lidam com edições concorrentes sem conflitos.
+- **Persistência durável** -- O estado do documento sobrevive a reinícios do servidor através do
+  Redis e do PostgreSQL.
 
-The frontend connects to Hocuspocus directly over WebSocket using the `@hocuspocus/provider` client for low-latency collaborative editing.
+O frontend se conecta ao Hocuspocus diretamente via WebSocket usando o cliente
+`@hocuspocus/provider` para edição colaborativa de baixa latência.
 
-## Reverse Proxy (nginx or Caddy)
+## Proxy Reverso (nginx ou Caddy)
 
-The CLI-generated self-host stack uses one of two reverse proxies depending on the SSL choice made during setup:
+A stack self-host gerada pela CLI usa um dos dois proxies reversos, dependendo da escolha de SSL
+feita durante a instalação:
 
-- **Caddy** (`caddy:2-alpine`) — selected when "Automatic SSL" is enabled; handles Let's Encrypt certificate issuance and renewal automatically.
-- **nginx** (`nginx:alpine`) — selected for manual SSL or HTTP-only setups.
+- **Caddy** (`caddy:2-alpine`) — selecionado quando "SSL Automático" está ativado; lida com a
+  emissão e renovação de certificados Let's Encrypt automaticamente.
+- **nginx** (`nginx:alpine`) — selecionado para SSL manual ou configurações somente HTTP.
 
-Both route traffic to the single `learnhouse-app` container, which internally serves the Next.js frontend, the FastAPI backend, and the Hocuspocus collaboration server.
+Ambos roteiam o tráfego para o único contêiner `learnhouse-app`, que internamente serve o
+frontend Next.js, o backend FastAPI e o servidor de colaboração Hocuspocus.
 
-## Service Communication
+## Comunicação entre Serviços
 
-Logically, a request flows like this:
+Logicamente, uma requisição flui assim:
 
 ```
 Client
-  └── nginx / caddy (reverse proxy)
-        └── learnhouse-app (single container)
+  └── nginx / caddy (proxy reverso)
+        └── learnhouse-app (contêiner único)
               ├── Next.js (web)
               ├── FastAPI (api)
-              │     ├── PostgreSQL (port 5432)
-              │     └── Redis (port 6379)
+              │     ├── PostgreSQL (porta 5432)
+              │     └── Redis (porta 6379)
               └── Hocuspocus (collab)
-                    ├── Redis (port 6379)
-                    └── FastAPI (for persistence & JWT-based auth)
+                    ├── Redis (porta 6379)
+                    └── FastAPI (para persistência e autenticação baseada em JWT)
 ```
 
-The Hocuspocus server authenticates connections via JWT (shared secret with the API), verifies board membership through the API, and persists document state to both Redis and PostgreSQL (via the API). PostgreSQL is accessed directly only by the backend.
+O servidor Hocuspocus autentica conexões via JWT (segredo compartilhado com a API), verifica a
+participação no quadro através da API, e persiste o estado do documento tanto no Redis quanto no
+PostgreSQL (via a API). O PostgreSQL é acessado diretamente apenas pelo backend.

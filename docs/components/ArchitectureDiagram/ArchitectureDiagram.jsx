@@ -58,7 +58,7 @@ const makeNode = (id, icon, label, sub, x, y, bg, border, width = 155) => ({
 
 const nodes = [
   // Row 0 — Users
-  makeNode('users', <Users size={16} weight="fill" color="#6366f1" />, 'Users', 'Browser', 265, 0, '#f0f4ff', '#c7d2fe'),
+  makeNode('users', <Users size={16} weight="fill" color="#6366f1" />, 'Usuários', 'Navegador', 265, 0, '#f0f4ff', '#c7d2fe'),
 
   // Row 1 — Core apps
   makeNode('web', <SiNextdotjs size={14} color="#000" />, 'Web', 'Next.js 16', 30, 120, '#e0f2fe', '#93c5fd'),
@@ -67,22 +67,22 @@ const nodes = [
 
   // Row 2 — Data layer
   makeNode('pg', <SiPostgresql size={14} color="#4169E1" />, 'PostgreSQL', 'pgvector', 145, 260, '#f3e8ff', '#c4b5fd'),
-  makeNode('redis', <SiRedis size={14} color="#DC382D" />, 'Redis', 'Cache & Sessions', 385, 260, '#fef9c3', '#fde047'),
+  makeNode('redis', <SiRedis size={14} color="#DC382D" />, 'Redis', 'Cache e Sessões', 385, 260, '#fef9c3', '#fde047'),
 
   // Row 3 — External services (API)
-  makeNode('gemini', <SiGooglegemini size={13} color="#8E75B2" />, 'Google Gemini', 'AI & RAG', 0, 400, '#ecfdf5', '#6ee7b7', 145),
-  makeNode('s3', <HardDrives size={14} weight="fill" color="#E25D10" />, 'S3 Storage', 'Media files', 165, 400, '#fff7ed', '#fdba74', 145),
-  makeNode('stripe', <SiStripe size={13} color="#635BFF" />, 'Stripe', 'Payments', 330, 400, '#eef2ff', '#a5b4fc', 145),
-  makeNode('email', <Envelope size={14} weight="fill" color="#EF4444" />, 'Email', 'Resend / SMTP', 495, 400, '#fef2f2', '#fca5a5', 145),
+  makeNode('gemini', <SiGooglegemini size={13} color="#8E75B2" />, 'Google Gemini', 'IA e RAG', 0, 400, '#ecfdf5', '#6ee7b7', 145),
+  makeNode('s3', <HardDrives size={14} weight="fill" color="#E25D10" />, 'Armazenamento S3', 'Arquivos de mídia', 165, 400, '#fff7ed', '#fdba74', 145),
+  makeNode('stripe', <SiStripe size={13} color="#635BFF" />, 'Stripe', 'Pagamentos', 330, 400, '#eef2ff', '#a5b4fc', 145),
+  makeNode('email', <Envelope size={14} weight="fill" color="#EF4444" />, 'E-mail', 'Resend / SMTP', 495, 400, '#fef2f2', '#fca5a5', 145),
 
   // Row 4 — More services
-  makeNode('judge0', <Terminal size={14} weight="fill" color="#16A34A" />, 'Judge0', 'Code execution', 0, 490, '#f0fdf4', '#86efac', 145),
-  makeNode('workos', <Key size={14} weight="fill" color="#7C3AED" />, 'WorkOS', 'Enterprise SSO', 165, 490, '#fdf4ff', '#d8b4fe', 145),
-  makeNode('sentry', <SiSentry size={13} color="#362D59" />, 'Sentry', 'Error tracking', 330, 490, '#faf5ff', '#c4b5fd', 145),
+  makeNode('judge0', <Terminal size={14} weight="fill" color="#16A34A" />, 'Judge0', 'Execução de código', 0, 490, '#f0fdf4', '#86efac', 145),
+  makeNode('workos', <Key size={14} weight="fill" color="#7C3AED" />, 'WorkOS', 'SSO Enterprise', 165, 490, '#fdf4ff', '#d8b4fe', 145),
+  makeNode('sentry', <SiSentry size={13} color="#362D59" />, 'Sentry', 'Rastreamento de erros', 330, 490, '#faf5ff', '#c4b5fd', 145),
   makeNode('tinybird', <ChartBar size={14} weight="fill" color="#0d9488" />, 'Tinybird', 'Analytics', 495, 490, '#f0fdfa', '#5eead4', 145),
 
   // Web → Unsplash
-  makeNode('unsplash', <SiUnsplash size={12} color="#000" />, 'Unsplash', 'Stock images', 30, 260, '#f5f5f4', '#d6d3d1', 105),
+  makeNode('unsplash', <SiUnsplash size={12} color="#000" />, 'Unsplash', 'Imagens de banco', 30, 260, '#f5f5f4', '#d6d3d1', 105),
 ]
 
 const solid = {
@@ -105,7 +105,7 @@ const edges = [
 
   // Inter-app
   { id: 'web-api', source: 'web', target: 'api', label: 'SSR', ...solid },
-  { id: 'collab-api', source: 'collab', target: 'api', label: 'Persist', ...solid },
+  { id: 'collab-api', source: 'collab', target: 'api', label: 'Persiste', ...solid },
 
   // Data stores
   { id: 'api-pg', source: 'api', target: 'pg', ...solid },

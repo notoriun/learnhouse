@@ -22,31 +22,33 @@
         "name": "next"
       }
     ],
-    "baseUrl": ".",
     "paths": {
+      "app/*": [
+        "./app/*"
+      ],
       "@components/*": [
-        "components/*"
+        "./components/*"
       ],
       "@public/*": [
-        "public/*"
+        "./public/*"
       ],
       "@images/*": [
-        "public/img/*"
+        "./public/img/*"
       ],
       "@styles/*": [
-        "styles/*"
+        "./styles/*"
       ],
       "@services/*": [
-        "services/*"
+        "./services/*"
       ],
       "@editor/*": [
-        "components/Objects/Editor/*"
+        "./components/Objects/Editor/*"
       ],
       "@hooks/*": [
-        "components/Hooks/*"
+        "./components/Hooks/*"
       ],
       "@lib/*": [
-        "lib/*"
+        "./lib/*"
       ],
       "@/*": [
         "./*"

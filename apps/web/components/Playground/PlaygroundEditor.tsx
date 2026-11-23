@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { getBrand } from '@services/config/brand'
 import { motion, type Transition, type TargetAndTransition } from 'motion/react'
 import {
   ArrowLeft,
@@ -57,7 +58,7 @@ const logoAnimations: { initial: TargetAndTransition; animate: TargetAndTransiti
   },
 ]
 
-const EditorLearnHouseLogo = () => {
+const EditorBrandLogo = () => {
   const [animation] = useState(
     () => logoAnimations[Math.floor(Math.random() * logoAnimations.length)]
   )
@@ -68,7 +69,7 @@ const EditorLearnHouseLogo = () => {
         animate={animation.animate}
         transition={animation.transition}
       >
-        <Image src="/lrn.svg" alt="LearnHouse" width={14} height={14} className="invert" />
+        <Image unoptimized src={getBrand().logos.symbolDark} alt={getBrand().name} width={14} height={14} />
       </motion.div>
     </div>
   )
@@ -285,7 +286,7 @@ export default function PlaygroundEditor({
       >
         {/* Logo */}
         <Link href="/">
-          <EditorLearnHouseLogo />
+          <EditorBrandLogo />
         </Link>
 
         <SlashIcon style={{ color: '#d1d5db', flexShrink: 0 }} />

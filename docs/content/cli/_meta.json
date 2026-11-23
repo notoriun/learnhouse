@@ -1,7 +1,7 @@
 {
-  "index": "Overview",
-  "commands": "Commands",
-  "setup-wizard": "Setup Wizard",
-  "dev-mode": "Dev Mode",
-  "environment-variables": "Environment Variables"
+  "index": "Visão Geral",
+  "commands": "Comandos",
+  "setup-wizard": "Assistente de Instalação",
+  "dev-mode": "Modo de Desenvolvimento",
+  "environment-variables": "Variáveis de Ambiente"
 }

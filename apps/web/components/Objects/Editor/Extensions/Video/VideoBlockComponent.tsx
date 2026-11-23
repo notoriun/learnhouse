@@ -15,7 +15,7 @@ import { useLHSession } from '@components/Contexts/LHSessionContext'
 import { constructAcceptValue } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 import Modal from '@components/Objects/StyledElements/Modal/Modal'
-import LearnHousePlayer from '@components/Objects/Activities/Video/LearnHousePlayer'
+import VideoPlayer from '@components/Objects/Activities/Video/VideoPlayer'
 import { useTranslation } from 'react-i18next'
 
 const SUPPORTED_FILES = constructAcceptValue(['webm', 'mp4'])
@@ -315,7 +315,7 @@ function VideoBlockComponent(props: ExtendedNodeViewProps) {
               }}
             >
               <div className="relative group w-full aspect-video overflow-hidden rounded-lg bg-black">
-                <LearnHousePlayer {...playerProps} />
+                <VideoPlayer {...playerProps} />
                 <div className="absolute top-2 right-2 z-40 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={handleExpand}
@@ -338,7 +338,7 @@ function VideoBlockComponent(props: ExtendedNodeViewProps) {
           minHeight="lg"
           dialogContent={
             <div className="w-full aspect-video overflow-hidden rounded-lg bg-black">
-              <LearnHousePlayer
+              <VideoPlayer
                 key={isModalOpen ? videoUrl : undefined}
                 {...playerProps}
                 details={{ autoplay: true }}
@@ -479,7 +479,7 @@ function VideoBlockComponent(props: ExtendedNodeViewProps) {
                       <CircleNotch weight="duotone" className="w-8 h-8 animate-spin text-white" />
                     </div>
                   )}
-                  <LearnHousePlayer {...playerProps} />
+                  <VideoPlayer {...playerProps} />
                   <div className="absolute top-2 right-2 z-40 flex gap-1">
                     <button
                       onClick={handleExpand}
@@ -505,7 +505,7 @@ function VideoBlockComponent(props: ExtendedNodeViewProps) {
           minHeight="lg"
           dialogContent={
             <div className="w-full aspect-video overflow-hidden rounded-lg bg-black">
-              <LearnHousePlayer
+              <VideoPlayer
                 key={isModalOpen ? videoUrl : undefined}
                 {...playerProps}
                 details={{ autoplay: true }}
