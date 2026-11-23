@@ -1,0 +1,119 @@
+name: CI
+
+# O CI só verifica: ruff (api), auditoria de marca, lint do web e build das apps (web, collab, cli).
+# A suíte de testes NÃO roda aqui (custo de minutos do GitHub Actions): ela roda localmente,
+# ou no servidor coder, antes do push. Ver docs/notes/guia-de-testes.md.
+#
+# Sem `paths-ignore`: o job `resumo` precisa sempre reportar. O filtro de documentação é
+# feito dentro do workflow (passo "Mudou algo além de documentação?").
+on:
+  pull_request:
+    branches: [dev, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    name: verificar (lint, marca e build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # O checkout de PR é o commit de merge; com 2 níveis o diff contra o 1º pai
+          # (a ponta da base) lista exatamente os arquivos do PR.
+          fetch-depth: 2
+      - name: Mudou algo além de documentação?
+        id: mudancas
+        run: |
+          arquivos=$(git diff --name-only HEAD^1 HEAD)
+          echo "$arquivos"
+          codigo_alterado=$(echo "$arquivos" | grep -vE '(\.md$|^docs/)' || true)
+          if [ -n "$codigo_alterado" ] || [ -z "$arquivos" ]; then
+            codigo=true
+          else
+            codigo=false
+          fi
+          echo "codigo=$codigo" >> "$GITHUB_OUTPUT"
+          echo "Mudança em código: $codigo" >> "$GITHUB_STEP_SUMMARY"
+          # Arquivos de TS/JS do web alterados no PR (lint estrito só neles).
+          echo "$arquivos" | grep -E '^apps/web/.*\.(ts|tsx|js|jsx|mjs)$' | sed 's|^apps/web/||' > "$RUNNER_TEMP/web-alterados.txt" || true
+      - name: Ruff (api)
+        if: steps.mudancas.outputs.codigo == 'true'
+        uses: chartboost/ruff-action@e18ae971ccee1b2d7bbef113930f00c670b78da4 # v1
+        with:
+          src: "./apps/api"
+          # Versão fixada: sem isso a detecção automática pode cair num conjunto de
+          # regras padrão e inundar a árvore com achados não relacionados.
+          version: "0.15.9"
+      - name: Node para a auditoria de marca
+        if: steps.mudancas.outputs.codigo == 'true'
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22"
+      - name: Auditoria de marca (script)
+        if: steps.mudancas.outputs.codigo == 'true'
+        run: node scripts/brand-audit.mjs --json
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        if: steps.mudancas.outputs.codigo == 'true'
+        with:
+          bun-version: latest
+      - name: Cache do bun
+        if: steps.mudancas.outputs.codigo == 'true'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('apps/web/bun.lock', 'apps/collab/bun.lock', 'apps/cli/bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+      - name: Instalar dependências (lockfile congelado)
+        if: steps.mudancas.outputs.codigo == 'true'
+        run: |
+          for app in web collab cli; do
+            (cd "apps/$app" && bun install --frozen-lockfile)
+          done
+      - name: Lint estrito dos arquivos alterados (web)
+        if: steps.mudancas.outputs.codigo == 'true'
+        working-directory: ./apps/web
+        run: |
+          if [ ! -s "$RUNNER_TEMP/web-alterados.txt" ]; then
+            echo "Nenhum arquivo lintável alterado."
+            exit 0
+          fi
+          xargs bun run lint:strict --no-error-on-unmatched-pattern < "$RUNNER_TEMP/web-alterados.txt"
+      - name: Build web (next build)
+        if: steps.mudancas.outputs.codigo == 'true'
+        working-directory: ./apps/web
+        run: bun run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+          NODE_OPTIONS: --max-old-space-size=6144
+      - name: Tipos da collab
+        if: steps.mudancas.outputs.codigo == 'true'
+        working-directory: ./apps/collab
+        run: bunx tsc --noEmit
+      - name: Build do cli
+        if: steps.mudancas.outputs.codigo == 'true'
+        working-directory: ./apps/cli
+        run: bun run build
+
+  resumo:
+    name: resumo
+    if: always()
+    needs: [verificar]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Falhar se algum job anterior falhou ou foi cancelado
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | node -e "
+            const n = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+            const ruins = Object.entries(n).filter(([, v]) => !['success', 'skipped'].includes(v.result));
+            if (ruins.length) { console.error('Jobs que não passaram:', ruins.map(([k, v]) => k + '=' + v.result).join(', ')); process.exit(1); }
+            console.log('Tudo certo:', Object.entries(n).map(([k, v]) => k + '=' + v.result).join(', '));"
