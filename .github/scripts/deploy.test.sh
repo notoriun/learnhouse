@@ -87,5 +87,16 @@ F
 )
 [ -z "$interpolados" ] && passou || falhou "workflow: \${{ }} dentro de run: ($interpolados)"
 
+# Toda `uses:` de terceiros fixa um SHA de 40 caracteres (action local `./` fica de fora).
+usos_sem_sha() { # arquivo... -> imprime os `uses:` que não são @<sha40>
+  grep -Hn '^[[:space:]]*\(- \)\?uses:' "$@" | grep -v 'uses:[[:space:]]*\./' | grep -Ev 'uses:[[:space:]]*[^[:space:]@]+@[0-9a-f]{40}([[:space:]]|$)' || true
+}
+sem_sha=$(usos_sem_sha "$AQUI"/../workflows/*.y*ml)
+[ -z "$sem_sha" ] && passou || falhou "workflows: uses: fora de @<sha40> ($sem_sha)"
+[ "$(grep -h 'uses:' "$AQUI"/../workflows/*.y*ml | grep -vc 'uses:[[:space:]]*\./')" -gt 0 ] && passou || falhou "workflows: nenhum uses: de terceiros para checar"
+amostra=$(mktemp); printf 'steps:\n  - uses: actions/checkout@main\n  - uses: a/b@%s\n  - uses: ./.github/actions/x\n' 11d5960a326750d5838078e36cf38b85af677262 > "$amostra"
+[ "$(usos_sem_sha "$amostra" | wc -l)" -eq 1 ] && passou || falhou "workflows: o detector de uses: sem SHA não enxerga @main"
+rm -f "$amostra"
+
 echo "$ok ok, $falhas falhas"
 [ "$falhas" -eq 0 ]
