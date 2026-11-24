@@ -12,6 +12,8 @@ name: Build Community Images
 # job `tag` cria vX.Y.Z no commit publicado. A tag vX.Y.Z não casa com o filtro
 # '[0-9]*' do release.yaml (glob começa por dígito) e, criada com GITHUB_TOKEN,
 # não dispara workflows. PRs seguem só construindo, sem publicar.
+# Canais (regras em .github/scripts/deploy.sh): producao só publica a ponta da main; desenvolvimento só a ponta da
+# dev. Ref livre falha, e a tag móvel da imagem (main ou dev) vem do ambiente, não da ref.
 on:
   workflow_dispatch:
     inputs:
@@ -21,7 +23,7 @@ on:
         options: [producao, desenvolvimento]
         default: producao
       ref:
-        description: Branch, tag ou SHA a publicar (ex. dev para desenvolvimento)
+        description: Branch a publicar (main para producao, dev para desenvolvimento)
         type: string
         default: main
       forcar:
@@ -79,7 +81,7 @@ jobs:
       criar_tag: ${{ steps.v.outputs.criar_tag }}
       versao: ${{ steps.v.outputs.versao }}
       sha: ${{ steps.sha.outputs.sha }}
-      branch: ${{ steps.sha.outputs.branch }}
+      branch: ${{ steps.canal.outputs.branch }}
       forcar: ${{ inputs.forcar == true && 'true' || 'false' }}
     steps:
       - uses: actions/checkout@v7
@@ -88,30 +90,33 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
+      # Antes de qualquer decisão: o ambiente só aceita a ref do seu branch (push = producao, na main).
+      - name: Validar ambiente e ref
+        id: canal
+        env:
+          AMBIENTE: ${{ inputs.ambiente || 'producao' }}
+          REF: ${{ inputs.ref || github.ref_name }}
+        run: bash .github/scripts/deploy.sh validar
+
       - name: Buscar tags e resolver commit
         id: sha
-        env:
-          REF_ESCOLHIDA: ${{ inputs.ref || github.ref_name }}
         run: |
           git fetch --tags --force --quiet origin
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          echo "branch=${REF_ESCOLHIDA//\//-}" >> "$GITHUB_OUTPUT"
 
       - name: Comparar versão com a última tag
         id: v
         env:
           FORCAR: ${{ inputs.forcar == true && 'true' || 'false' }}
-          EVENTO: ${{ github.event_name }}
-          REF_NAME: ${{ github.ref_name }}
+          BRANCH: ${{ steps.canal.outputs.branch }}
           SHA: ${{ steps.sha.outputs.sha }}
         # bash --noprofile --norc -eo pipefail: o mesmo modo em que os testes de .github/scripts rodam o versao.mjs
         shell: bash
         run: |
-          # Decisão dentro da fila: lê as tags do remoto (git ls-remote), recusa se o SHA não é mais a ponta da
-          # branch (só no push; no dispatch a ref é explícita) ou se a tag da versão já existe em outro SHA. Erro do
-          # git não vira "sem tag": o passo falha.
-          ARGS=(--arquivo apps/web/package.json --aceitar-sem-v --github-output --remoto origin --sha "$SHA")
-          if [ "$EVENTO" = "push" ]; then ARGS+=(--branch "$REF_NAME"); fi
+          # Decisão dentro da fila: lê as tags do remoto (git ls-remote), recusa se o SHA não é a ponta atual da
+          # branch do ambiente (push e dispatch) ou se a tag da versão já existe em outro SHA. Erro do git não vira
+          # "sem tag": o passo falha.
+          ARGS=(--arquivo apps/web/package.json --aceitar-sem-v --github-output --remoto origin --sha "$SHA" --branch "$BRANCH")
           if [ "$FORCAR" = "true" ]; then ARGS+=(--forcar); fi
           node .github/scripts/versao.mjs "${ARGS[@]}" > saida.txt
           cat saida.txt
@@ -153,8 +158,10 @@ jobs:
 
       - name: Prepare platform pair
         id: prep
+        env:
+          PLATFORM: ${{ matrix.platform }}
         run: |
-          echo "platform_pair=$(echo '${{ matrix.platform }}' | tr '/' '-')" >> $GITHUB_OUTPUT
+          echo "platform_pair=$(echo "$PLATFORM" | tr '/' '-')" >> "$GITHUB_OUTPUT"
 
       - name: Build and push by digest
         id: build
@@ -175,10 +182,12 @@ jobs:
 
       - name: Export digest
         if: github.event_name != 'pull_request'
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+          TEMP_DIR: ${{ runner.temp }}
         run: |
-          mkdir -p ${{ runner.temp }}/digests
-          digest="${{ steps.build.outputs.digest }}"
-          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+          mkdir -p "$TEMP_DIR/digests"
+          touch "$TEMP_DIR/digests/${DIGEST#sha256:}"
 
       - name: Upload digest
         if: github.event_name != 'pull_request'
@@ -211,21 +220,27 @@ jobs:
 
       - name: Generate image tags
         id: meta
+        env:
+          SHA: ${{ needs.versao.outputs.sha }}
+          # Vem do ambiente validado (main ou dev), nunca da ref de quem disparou.
+          BRANCH: ${{ needs.versao.outputs.branch }}
         run: |
-          SHA_SHORT=$(echo "${{ needs.versao.outputs.sha }}" | cut -c1-7)
-          BRANCH="${{ needs.versao.outputs.branch }}"
+          SHA_SHORT=$(echo "$SHA" | cut -c1-7)
 
-          TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${BRANCH}-${SHA_SHORT}"
-          TAGS="${TAGS},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${BRANCH}"
+          TAGS="${REGISTRY}/${IMAGE_NAME}:${BRANCH}-${SHA_SHORT}"
+          TAGS="${TAGS},${REGISTRY}/${IMAGE_NAME}:${BRANCH}"
 
-          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "tags=${TAGS}" >> "$GITHUB_OUTPUT"
 
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
+        env:
+          META_TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-          TAGS=$(echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n' | xargs -I{} echo "-t {}" | tr '\n' ' ')
+          TAGS=$(echo "$META_TAGS" | tr ',' '\n' | xargs -I{} echo "-t {}" | tr '\n' ' ')
+          # shellcheck disable=SC2046,SC2086
           docker buildx imagetools create $TAGS \
-            $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
+            $(printf "${REGISTRY}/${IMAGE_NAME}@sha256:%s " *)
 
   tag:
     name: Criar tag de versão
