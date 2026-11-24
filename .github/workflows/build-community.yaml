@@ -55,9 +55,12 @@ permissions:
   contents: read
   packages: write
 
-# See api-lint.yaml — one live run per PR, dev runs always finish.
+# One live run per PR (a PR build only validates, never publishes). Publishing runs queue per channel and are NEVER
+# cancelled: the group does not depend on the ref (push to main and a dispatch from another branch share the
+# "producao" queue), and it covers the decision (job versao), build, manifest and tag — the decision only holds
+# if the previous run's tag already exists.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.event.pull_request.number) || format('publicar-{0}', inputs.ambiente || 'producao') }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
@@ -77,6 +80,7 @@ jobs:
       versao: ${{ steps.v.outputs.versao }}
       sha: ${{ steps.sha.outputs.sha }}
       branch: ${{ steps.sha.outputs.branch }}
+      forcar: ${{ inputs.forcar == true && 'true' || 'false' }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -96,10 +100,21 @@ jobs:
       - name: Comparar versão com a última tag
         id: v
         env:
-          FORCAR: ${{ inputs.forcar == true && '--forcar' || '' }}
+          FORCAR: ${{ inputs.forcar == true && 'true' || 'false' }}
+          EVENTO: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          SHA: ${{ steps.sha.outputs.sha }}
+        # bash --noprofile --norc -eo pipefail: o mesmo modo em que os testes de .github/scripts rodam o versao.mjs
+        shell: bash
         run: |
-          # shellcheck disable=SC2086
-          node .github/scripts/versao.mjs --arquivo apps/web/package.json --aceitar-sem-v --github-output $FORCAR | tee saida.txt
+          # Decisão dentro da fila: lê as tags do remoto (git ls-remote), recusa se o SHA não é mais a ponta da
+          # branch (só no push; no dispatch a ref é explícita) ou se a tag da versão já existe em outro SHA. Erro do
+          # git não vira "sem tag": o passo falha.
+          ARGS=(--arquivo apps/web/package.json --aceitar-sem-v --github-output --remoto origin --sha "$SHA")
+          if [ "$EVENTO" = "push" ]; then ARGS+=(--branch "$REF_NAME"); fi
+          if [ "$FORCAR" = "true" ]; then ARGS+=(--forcar); fi
+          node .github/scripts/versao.mjs "${ARGS[@]}" > saida.txt
+          cat saida.txt
           motivo=$(sed -n 's/^motivo=//p' saida.txt)
           if [ "$(sed -n 's/^publicar=//p' saida.txt)" = "true" ]; then
             echo "### Publicar: $motivo" >> "$GITHUB_STEP_SUMMARY"
@@ -226,12 +241,23 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSAO: ${{ needs.versao.outputs.versao }}
           SHA: ${{ needs.versao.outputs.sha }}
+          FORCAR: ${{ needs.versao.outputs.forcar }}
+        shell: bash
         run: |
-          if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/v${VERSAO}" >/dev/null 2>&1 \
-            || gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${VERSAO}" >/dev/null 2>&1; then
-            echo "Tag da versão ${VERSAO} já existe; nada a criar." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
+          set -euo pipefail
+          # Tag existente (vX.Y.Z ou X.Y.Z): a imagem publicada é imutável e a tag tem de apontar para o commit
+          # publicado. Só a publicação forçada mantém a tag onde está; sem forçar, outro SHA falha o job.
+          for nome in "v${VERSAO}" "${VERSAO}"; do
+            if existente=$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${nome}" --jq .object.sha 2>/dev/null); then
+              if [ "$existente" != "$SHA" ] && [ "$FORCAR" != true ]; then
+                echo "::error::A tag ${nome} já existe em ${existente}, não em ${SHA} (a imagem publicada diverge da tag)."
+                exit 1
+              fi
+              echo "::warning::Tag ${nome} já existe; mantida."
+              echo "Tag ${nome} já existia; mantida." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+          done
           gh api "repos/${GITHUB_REPOSITORY}/git/refs" \
             -f ref="refs/tags/v${VERSAO}" -f sha="${SHA}" >/dev/null
           echo "Tag v${VERSAO} criada em ${SHA}." >> "$GITHUB_STEP_SUMMARY"
