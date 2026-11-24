@@ -28,6 +28,9 @@
   "fetchChangeLogs": "pr",
   "minimumReleaseAge": "3 days",
   "rebaseWhen": "behind-base-branch",
+  "github-actions": {
+    "enabled": false
+  },
   "vulnerabilityAlerts": {
     "labels": ["security", "renovate"],
     "schedule": ["at any time"]
