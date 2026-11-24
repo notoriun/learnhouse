@@ -59,27 +59,30 @@ nome() { grep -n "name: $1" "$WORKFLOW" | head -1 | cut -d: -f1; }
 [ "$(nome 'Validar ambiente')" -lt "$(nome 'Comparar versão')" ] && passou || falhou "workflow: validação antes da decisão de versão"
 
 # Repositório público: nenhum run: pode ter ${{ }} (outputs, matrix e inputs entram por env:, nunca no script).
-interpolados=$(python3 -I - "$WORKFLOW" <<'F'
-import re, sys
-linhas = open(sys.argv[1], encoding="utf-8").read().split("\n")
-i = 0
-while i < len(linhas):
-    m = re.match(r"^(\s*)(?:- )?run:\s*(.*)$", linhas[i])
-    if not m:
-        i += 1
-        continue
-    indent, resto = len(m.group(1)), m.group(2)
-    if resto[:1] in ("|", ">"):
-        j = i + 1
-        while j < len(linhas) and (not linhas[j].strip() or len(linhas[j]) - len(linhas[j].lstrip()) > indent):
-            if "${{" in linhas[j]:
-                print(f"linha {j + 1}: {linhas[j].strip()}")
-            j += 1
-        i = j
-    else:
-        if "${{" in resto:
-            print(f"linha {i + 1}: {resto}")
-        i += 1
+# Vale para todos os workflows (CI e publicação), não só o de deploy.
+interpolados=$(python3 -I - "$AQUI"/../workflows/*.y*ml <<'F'
+import os, re, sys
+for arq in sys.argv[1:]:
+    nome = os.path.basename(arq)
+    linhas = open(arq, encoding="utf-8").read().split("\n")
+    i = 0
+    while i < len(linhas):
+        m = re.match(r"^(\s*)(?:- )?run:\s*(.*)$", linhas[i])
+        if not m:
+            i += 1
+            continue
+        indent, resto = len(m.group(1)), m.group(2)
+        if resto[:1] in ("|", ">"):
+            j = i + 1
+            while j < len(linhas) and (not linhas[j].strip() or len(linhas[j]) - len(linhas[j].lstrip()) > indent):
+                if "${{" in linhas[j]:
+                    print(f"{nome}:{j + 1}: {linhas[j].strip()}")
+                j += 1
+            i = j
+        else:
+            if "${{" in resto:
+                print(f"{nome}:{i + 1}: {resto}")
+            i += 1
 F
 )
 [ -z "$interpolados" ] && passou || falhou "workflow: \${{ }} dentro de run: ($interpolados)"
