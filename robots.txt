@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://notoriun.github.io/learnhouse
+
+# Sitemaps
+Sitemap: https://notoriun.github.io/learnhouse/sitemap.xml
