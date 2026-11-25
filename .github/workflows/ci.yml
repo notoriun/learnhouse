@@ -62,7 +62,11 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         if: steps.mudancas.outputs.codigo == 'true'
         with:
-          bun-version: latest
+          # Fixa a versão: o bun 1.4+ passou a comparar/gravar os overrides com chave de pacote
+          # (ex.: "brace-expansion@5") em outro formato e recusa o bun.lock atual com
+          # --frozen-lockfile. 1.3.14 aceita os três bun.lock como estão. Ao subir de versão,
+          # regrave os bun.lock do web com a mesma versão e revise os pacotes alterados.
+          bun-version: "1.3.14"
       - name: Cache do bun
         if: steps.mudancas.outputs.codigo == 'true'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
