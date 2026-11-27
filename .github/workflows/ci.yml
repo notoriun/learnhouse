@@ -1,11 +1,13 @@
 name: CI
 
 # O CI só verifica: ruff (api), auditoria de marca, lint do web e build das apps (web, collab, cli).
-# A suíte de testes NÃO roda aqui (custo de minutos do GitHub Actions): ela roda localmente,
+# A suíte de testes da aplicação NÃO roda aqui (custo de minutos do GitHub Actions): ela roda localmente,
 # ou no servidor coder, antes do push. Ver docs/notes/guia-de-testes.md.
 #
 # Sem `paths-ignore`: o job `resumo` precisa sempre reportar. O filtro de documentação é
 # feito dentro do workflow (passo "Mudou algo além de documentação?").
+# Exceção: o job `deploy-scripts` roda os testes de .github/scripts, e só quando esses
+# scripts, os workflows ou as actions locais mudam.
 on:
   pull_request:
     branches: [dev, main]
@@ -105,10 +107,53 @@ jobs:
         working-directory: ./apps/cli
         run: bun run build
 
+  # Testes dos scripts de deploy (.github/scripts). Só rodam quando .github/scripts/**,
+  # .github/workflows/** ou .github/actions/** mudam (filtro dentro do workflow, como no `verificar`).
+  # Roda deploy.test.sh, versao.test.mjs e a prova por mutação (mutantes.mjs). Sem Docker, sem gh e
+  # sem segredos: os testes só usam git, bash, node e python3 em repositórios temporários.
+  deploy-scripts:
+    name: deploy-scripts (testes de .github/scripts)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Mudou .github/scripts, .github/workflows ou .github/actions?
+        id: mudancas
+        run: |
+          # `git diff --quiet`: 0 = igual, 1 = mudou, outro = erro do git (o job fica vermelho).
+          # `--no-renames`: arquivo movido para fora dessas pastas também conta. Diff vazio roda.
+          rc=0; git diff --quiet --no-renames HEAD^1 HEAD -- .github/scripts .github/workflows .github/actions || rc=$?
+          vazio=0; git diff --quiet HEAD^1 HEAD || vazio=$?
+          case "$rc" in 0) case "$vazio" in 0) deploy=true ;; 1) deploy=false ;; *) exit "$vazio" ;; esac ;; 1) deploy=true ;; *) exit "$rc" ;; esac
+          echo "deploy=$deploy" >> "$GITHUB_OUTPUT"
+          echo "Mudança em .github/scripts, workflows ou actions: $deploy" >> "$GITHUB_STEP_SUMMARY"
+      - name: Node para os testes
+        if: steps.mudancas.outputs.deploy == 'true'
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22"
+      - name: Garantir ferramentas do runner
+        if: steps.mudancas.outputs.deploy == 'true'
+        run: |
+          # ubuntu-latest traz git, bash e python3; se um dia faltar, falha aqui com mensagem clara.
+          for f in git bash python3 node; do command -v "$f" >/dev/null || { echo "Falta $f no runner"; exit 1; }; done
+      - name: Testes do deploy.sh e dos workflows
+        if: steps.mudancas.outputs.deploy == 'true'
+        run: bash .github/scripts/deploy.test.sh
+      - name: Testes do versao.mjs
+        if: steps.mudancas.outputs.deploy == 'true'
+        run: node --test .github/scripts/versao.test.mjs
+      - name: Prova por mutação (mutantes.mjs)
+        if: steps.mudancas.outputs.deploy == 'true'
+        run: node .github/scripts/mutantes.mjs
+
   resumo:
     name: resumo
     if: always()
-    needs: [verificar]
+    needs: [verificar, deploy-scripts]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
